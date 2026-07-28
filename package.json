@@ -6,7 +6,9 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
-    "publish": "electron-builder --win -p always"
+    "publish": "electron-builder --win -p always",
+    "sync": "sync-and-build.bat",
+    "update-all": "sync-and-build.bat"
   },
   "repository": {
     "type": "git",
@@ -53,7 +55,7 @@
   "author": "Expense Cal",
   "license": "ISC",
   "dependencies": {
-    "electron-updater": "^6.8.9"
+    "electron-updater": "^6.1.7"
   },
   "devDependencies": {
     "electron": "^30.0.0",
