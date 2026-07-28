@@ -5,11 +5,23 @@
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "dist": "electron-builder --win"
+    "dist": "electron-builder --win",
+    "publish": "electron-builder --win -p always"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/VaibhavJalota06/Expense-Calculator-Desktop.git"
   },
   "build": {
     "appId": "com.expensecalculator.app",
     "productName": "Expense OS",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "VaibhavJalota06",
+        "repo": "Expense-Calculator-Desktop"
+      }
+    ],
     "forceCodeSigning": false,
     "directories": {
       "output": "dist"
@@ -40,6 +52,9 @@
   ],
   "author": "Expense Cal",
   "license": "ISC",
+  "dependencies": {
+    "electron-updater": "^6.8.9"
+  },
   "devDependencies": {
     "electron": "^30.0.0",
     "electron-builder": "^24.13.3"

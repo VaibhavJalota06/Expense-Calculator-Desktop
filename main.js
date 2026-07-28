@@ -1,5 +1,14 @@
 const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
+let autoUpdater;
+
+try {
+  autoUpdater = require('electron-updater').autoUpdater;
+  autoUpdater.autoDownload = true;
+  autoUpdater.autoInstallOnAppQuit = true;
+} catch (e) {
+  console.log('electron-updater not loaded in dev mode:', e.message);
+}
 
 let mainWindow;
 
@@ -26,6 +35,13 @@ function createWindow() {
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();
+    
+    // Check for updates on GitHub Releases automatically on desktop app launch
+    if (autoUpdater) {
+      autoUpdater.checkForUpdatesAndNotify().catch(err => {
+        console.log('Auto update check status:', err.message);
+      });
+    }
   });
 
   mainWindow.on('closed', () => {
