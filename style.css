@@ -1117,6 +1117,11 @@ input:focus, select:focus {
   padding: 0.35rem;
   border-radius: 6px;
   transition: var(--transition);
+}
+.icon-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.1);
+}
 .icon-btn-sm {
   padding: 0.25rem 0.5rem;
   font-size: 0.85rem;
@@ -1170,6 +1175,12 @@ input:focus, select:focus {
   flex-direction: column;
   gap: 1.25rem;
   animation: modalPop 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
 }
 
 @keyframes modalPop {
