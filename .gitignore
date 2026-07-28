@@ -1,6 +1,9 @@
 node_modules/
 dist/win-unpacked/
+dist/.icon-ico/
 dist/builder-debug.yml
+dist/builder-effective-config.yaml
 dist/*.blockmap
+dist/*.7z
 .DS_Store
 *.log
