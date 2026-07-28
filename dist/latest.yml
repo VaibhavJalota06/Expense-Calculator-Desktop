@@ -1,8 +1,8 @@
 version: 2.0.0
 files:
   - url: Expense-OS-Setup-2.0.0.exe
-    sha512: 4UMynh4VLVx1lwn2PQe5Zrc2dsfRf2QHNDY2/oK4HbAugGeg35Rn/uV/xSlSslXGQXAbb8IE2R/1uiV4M31wQA==
-    size: 77887353
+    sha512: I+pDSCvbfNKRciDksWH6BsiVUC30YFaxHarFGlUQ6CIA5+JQB8kYdHrBVc5Yy28CnHp2vcyRCyHbA2ne52DQvQ==
+    size: 77887558
 path: Expense-OS-Setup-2.0.0.exe
-sha512: 4UMynh4VLVx1lwn2PQe5Zrc2dsfRf2QHNDY2/oK4HbAugGeg35Rn/uV/xSlSslXGQXAbb8IE2R/1uiV4M31wQA==
-releaseDate: '2026-07-28T15:04:31.036Z'
+sha512: I+pDSCvbfNKRciDksWH6BsiVUC30YFaxHarFGlUQ6CIA5+JQB8kYdHrBVc5Yy28CnHp2vcyRCyHbA2ne52DQvQ==
+releaseDate: '2026-07-28T15:11:20.198Z'
