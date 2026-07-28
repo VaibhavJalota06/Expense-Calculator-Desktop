@@ -69,13 +69,21 @@
 
     <!-- Main Content Workspace -->
     <main class="main-workspace">
-      <!-- Topbar Header -->
+      <!-- Topbar Header with Month Selector -->
       <header class="topbar">
         <div class="topbar-left">
           <h1 id="view-title">Dashboard Overview</h1>
           <p id="view-subtitle">Real-time financial analytics & budget control</p>
         </div>
         <div class="topbar-right">
+          <!-- Month Selector Control -->
+          <div class="month-selector-group">
+            <button id="btn-prev-month" class="icon-btn month-nav-btn" title="Previous Month"><i class="fa-solid fa-chevron-left"></i></button>
+            <select id="month-picker" class="month-picker-select">
+              <!-- Dynamic Months -->
+            </select>
+            <button id="btn-next-month" class="icon-btn month-nav-btn" title="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
           <button id="btn-add-sub" class="btn btn-secondary">
             <i class="fa-solid fa-calendar-plus"></i> + Add Bill
           </button>
@@ -133,8 +141,9 @@
             <!-- Radial SVG Budget Ring Gauge & Form -->
             <div class="dash-left-column">
               <div class="glass-panel radial-gauge-card">
-                <div class="panel-title">
-                  <i class="fa-solid fa-gauge-high"></i> Budget Health Gauge
+                <div class="panel-title justify-between">
+                  <span><i class="fa-solid fa-gauge-high"></i> Budget Health Gauge</span>
+                  <span id="active-month-label" class="month-pill-badge">Current Month</span>
                 </div>
                 <div id="radial-gauge-container" class="gauge-center-container">
                   <!-- Dynamic SVG Gauge Ring -->
@@ -245,7 +254,6 @@
                 <div class="filter-chips">
                   <button class="filter-chip active" data-filter="ALL">All</button>
                   <button class="filter-chip" data-filter="TODAY">Today</button>
-                  <button class="filter-chip" data-filter="MONTH">This Month</button>
                 </div>
                 <div class="search-box">
                   <i class="fa-solid fa-magnifying-glass"></i>
@@ -305,12 +313,24 @@
           </div>
         </section>
 
-        <!-- View 4: Category Analytics -->
+        <!-- View 4: Category & Monthly Analytics -->
         <section id="view-analytics" class="view-panel">
+          <div class="analytics-top-grid">
+            <!-- Monthly Spending Trend Bar Chart Card -->
+            <div class="glass-panel analytics-trend-card">
+              <div class="panel-title">
+                <i class="fa-solid fa-chart-column"></i> Month-by-Month Spending Trend
+              </div>
+              <div id="monthly-trend-chart-container" class="monthly-trend-container">
+                <!-- SVG Monthly Bar Chart -->
+              </div>
+            </div>
+          </div>
+
           <div class="analytics-grid">
             <div class="glass-panel analytics-chart-card">
               <div class="panel-title">
-                <i class="fa-solid fa-chart-pie"></i> Complete Category Distribution
+                <i class="fa-solid fa-chart-pie"></i> Category Distribution
               </div>
               <div id="full-analytics-chart-container" class="chart-container-large">
                 <!-- Large SVG Donut Chart -->
@@ -319,7 +339,7 @@
 
             <div class="glass-panel analytics-list-card">
               <div class="panel-title">
-                <i class="fa-solid fa-bars-staggered"></i> Spending Breakdown List
+                <i class="fa-solid fa-bars-staggered"></i> Category Spending Breakdown
               </div>
               <div id="full-analytics-list" class="breakdown-list-large">
                 <!-- Dynamic Breakdown Items -->

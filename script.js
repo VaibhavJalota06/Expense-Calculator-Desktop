@@ -1,5 +1,5 @@
 // Expense Calculator - Futuristic Dark Glassmorphic Dashboard Logic
-// Handles navigation tabs, state persistence, SVG radial budget gauge, category donut analytics, transaction tracking, and subscription reminders.
+// Handles navigation tabs, state persistence, SVG radial budget gauge, month-wise filtering, monthly bar chart trend, category donut analytics, transaction tracking, and subscription reminders.
 
 // ---------- State Variables ----------
 let budget = 0;
@@ -7,6 +7,7 @@ let expenses = [];
 let subscriptions = [];
 let activeTimeFilter = 'ALL';
 let currentView = 'dashboard';
+let selectedMonth = getCurrentYearMonth(); // YYYY-MM or 'ALL'
 
 // Category Color Map
 const categoryColors = {
@@ -20,12 +21,14 @@ const categoryColors = {
   'Miscellaneous': '#64748b'
 };
 
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 // View Titles & Subtitles
 const viewHeadings = {
   dashboard: { title: 'Dashboard Overview', subtitle: 'Real-time financial analytics & budget control' },
   transactions: { title: 'Transactions Log', subtitle: 'Comprehensive history & instant search' },
   bills: { title: 'Recurring Bills & Subscriptions', subtitle: 'Upcoming payment reminders & automation' },
-  analytics: { title: 'Category Analytics', subtitle: 'Visual breakdown of monthly expenditures' }
+  analytics: { title: 'Category & Monthly Analytics', subtitle: 'Visual breakdown of monthly expenditures & historical trends' }
 };
 
 // ---------- DOM Elements ----------
@@ -38,6 +41,7 @@ const statCountEl = document.getElementById('stat-count');
 const statRemainingEl = document.getElementById('stat-remaining');
 const statPercentEl = document.getElementById('stat-percent');
 const statusIconEl = document.getElementById('status-icon');
+const activeMonthLabelEl = document.getElementById('active-month-label');
 
 const statSubsTotalEl = document.getElementById('stat-subs-total');
 const statSubsCountEl = document.getElementById('stat-subs-count');
@@ -46,6 +50,11 @@ const progressBarFillEl = document.getElementById('progress-bar-fill');
 const progressPercentLabelEl = document.getElementById('progress-percent-label');
 
 const radialGaugeContainer = document.getElementById('radial-gauge-container');
+
+// Month Picker Elements
+const monthPickerSelect = document.getElementById('month-picker');
+const btnPrevMonth = document.getElementById('btn-prev-month');
+const btnNextMonth = document.getElementById('btn-next-month');
 
 // Forms & Inputs
 const expenseForm = document.getElementById('expense-form');
@@ -62,6 +71,7 @@ const breakdownChartContainer = document.getElementById('breakdown-chart-contain
 const breakdownListEl = document.getElementById('category-breakdown-list');
 const fullAnalyticsChartContainer = document.getElementById('full-analytics-chart-container');
 const fullAnalyticsListEl = document.getElementById('full-analytics-list');
+const monthlyTrendChartContainer = document.getElementById('monthly-trend-chart-container');
 
 const transactionsTbody = document.getElementById('transactions-tbody');
 const emptyTableMsg = document.getElementById('empty-table-msg');
@@ -76,7 +86,6 @@ const btnResetAll = document.getElementById('btn-reset-all');
 const btnEditBudget = document.getElementById('btn-edit-budget');
 const btnSidebarBudgetEdit = document.getElementById('btn-sidebar-budget-edit');
 const btnAddSub = document.getElementById('btn-add-sub');
-const btnQuickAddExpense = document.getElementById('btn-quick-add-expense');
 
 // Modals
 const budgetModal = document.getElementById('budget-modal');
@@ -108,6 +117,15 @@ function getCurrentYearMonth() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function formatMonthLabel(ymStr) {
+  if (!ymStr || ymStr === 'ALL') return 'All Months';
+  const parts = ymStr.split('-');
+  if (parts.length < 2) return ymStr;
+  const year = parts[0];
+  const monthIdx = parseInt(parts[1], 10) - 1;
+  return `${monthNames[monthIdx] || parts[1]} ${year}`;
+}
+
 function saveState() {
   localStorage.setItem('expense_cal_desktop_budget', budget.toString());
   localStorage.setItem('expense_cal_desktop_expenses', JSON.stringify(expenses));
@@ -119,7 +137,6 @@ function loadState() {
   const savedExpenses = localStorage.getItem('expense_cal_desktop_expenses');
   const savedSubs = localStorage.getItem('expense_cal_desktop_subscriptions');
 
-  // CLEAN INITIAL STATE - No pre-populated dummy data
   budget = savedBudget !== null ? (parseFloat(savedBudget) || 0) : 0;
   if (savedExpenses) {
     try { expenses = JSON.parse(savedExpenses); } catch (e) { expenses = []; }
@@ -132,12 +149,87 @@ function loadState() {
     subscriptions = [];
   }
 
+  updateMonthPickerOptions();
   updateUI();
 }
 
 function setTodayDateDefault() {
   const today = new Date().toISOString().split('T')[0];
   if (expDateInput) expDateInput.value = today;
+}
+
+// ---------- Month-Wise Selection & Navigation ----------
+function getAvailableMonths() {
+  const monthSet = new Set();
+  monthSet.add(getCurrentYearMonth()); // Always include current month
+
+  expenses.forEach(item => {
+    if (item.date && item.date.length >= 7) {
+      monthSet.add(item.date.substring(0, 7));
+    }
+  });
+
+  const sorted = Array.from(monthSet).sort().reverse();
+  return sorted;
+}
+
+function updateMonthPickerOptions() {
+  if (!monthPickerSelect) return;
+  const months = getAvailableMonths();
+
+  monthPickerSelect.innerHTML = '';
+  
+  // Option for All Time
+  const allOpt = document.createElement('option');
+  allOpt.value = 'ALL';
+  allOpt.textContent = '📅 All Time';
+  if (selectedMonth === 'ALL') allOpt.selected = true;
+  monthPickerSelect.appendChild(allOpt);
+
+  months.forEach(ym => {
+    const opt = document.createElement('option');
+    opt.value = ym;
+    opt.textContent = `📅 ${formatMonthLabel(ym)}`;
+    if (selectedMonth === ym) opt.selected = true;
+    monthPickerSelect.appendChild(opt);
+  });
+}
+
+if (monthPickerSelect) {
+  monthPickerSelect.addEventListener('change', (e) => {
+    selectedMonth = e.target.value;
+    updateUI();
+  });
+}
+
+if (btnPrevMonth && btnNextMonth) {
+  btnPrevMonth.addEventListener('click', () => {
+    const months = getAvailableMonths();
+    if (selectedMonth === 'ALL') {
+      selectedMonth = months[0] || getCurrentYearMonth();
+    } else {
+      const idx = months.indexOf(selectedMonth);
+      if (idx !== -1 && idx < months.length - 1) {
+        selectedMonth = months[idx + 1];
+      }
+    }
+    updateMonthPickerOptions();
+    updateUI();
+  });
+
+  btnNextMonth.addEventListener('click', () => {
+    const months = getAvailableMonths();
+    if (selectedMonth === 'ALL') {
+      selectedMonth = months[0] || getCurrentYearMonth();
+    } else {
+      const idx = months.indexOf(selectedMonth);
+      if (idx > 0) {
+        selectedMonth = months[idx - 1];
+      }
+    }
+    updateMonthPickerOptions();
+    updateUI();
+  });
 }
 
 // ---------- Tab / View Switching ----------
@@ -178,15 +270,25 @@ document.querySelectorAll('.nav-item').forEach(nav => {
 
 // ---------- UI Render & Update ----------
 function updateUI() {
-  const totalSpent = expenses.reduce((sum, item) => sum + Number(item.amount), 0);
+  // Filter Expenses by Selected Month
+  const filteredMonthExpenses = expenses.filter(item => {
+    if (selectedMonth === 'ALL') return true;
+    return item.date && item.date.startsWith(selectedMonth);
+  });
+
+  const totalSpent = filteredMonthExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
   const remaining = budget - totalSpent;
   const spentRatio = budget > 0 ? (totalSpent / budget) * 100 : 0;
   const remainingPercent = Math.max(0, 100 - spentRatio);
 
+  if (activeMonthLabelEl) {
+    activeMonthLabelEl.textContent = selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth);
+  }
+
   // Update Stat Cards
   if (statBudgetEl) statBudgetEl.textContent = formatCurrency(budget);
   if (statSpentEl) statSpentEl.textContent = formatCurrency(totalSpent);
-  if (statCountEl) statCountEl.textContent = `${expenses.length} transaction${expenses.length === 1 ? '' : 's'}`;
+  if (statCountEl) statCountEl.textContent = `${filteredMonthExpenses.length} transaction${filteredMonthExpenses.length === 1 ? '' : 's'}`;
 
   const sidebarBudgetVal = document.getElementById('sidebar-budget-val');
   if (sidebarBudgetVal) sidebarBudgetVal.textContent = formatCurrency(budget);
@@ -236,8 +338,9 @@ function updateUI() {
 
   renderRadialGauge(spentRatio, totalSpent, budget);
   renderSubscriptions();
-  renderCategoryBreakdown(totalSpent);
-  renderTransactionsTable();
+  renderCategoryBreakdown(filteredMonthExpenses, totalSpent);
+  renderMonthlyTrendChart();
+  renderTransactionsTable(filteredMonthExpenses);
 }
 
 // Render Radial SVG Budget Gauge Ring
@@ -276,13 +379,11 @@ function renderRadialGauge(spentRatio, totalSpent, budgetLimit) {
   radialGaugeContainer.innerHTML = `
     <div class="radial-gauge-wrapper">
       <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="radial-gauge-svg">
-        <!-- Background Track -->
         <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
           fill="transparent"
           stroke="rgba(255, 255, 255, 0.08)"
           stroke-width="${strokeWidth}"
         />
-        <!-- Animated Progress Ring -->
         <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
           fill="transparent"
           stroke="${strokeColor}"
@@ -428,6 +529,7 @@ window.markSubAsPaid = function(subId) {
 
   expenses.push(newExpense);
   saveState();
+  updateMonthPickerOptions();
   updateUI();
 };
 
@@ -440,7 +542,7 @@ window.deleteSubscription = function(subId) {
 };
 
 // SVG Category Donut & Analytics Breakdown
-function renderCategoryBreakdown(totalSpent) {
+function renderCategoryBreakdown(filteredList, totalSpent) {
   const containers = [
     { chart: breakdownChartContainer, list: breakdownListEl },
     { chart: fullAnalyticsChartContainer, list: fullAnalyticsListEl }
@@ -450,21 +552,21 @@ function renderCategoryBreakdown(totalSpent) {
     if (list) list.innerHTML = '';
     if (chart) chart.innerHTML = '';
 
-    if (expenses.length === 0 || totalSpent === 0) {
+    if (filteredList.length === 0 || totalSpent === 0) {
       if (chart) {
         chart.innerHTML = `
           <div class="empty-state-small">
             <i class="fa-solid fa-chart-pie empty-state-icon"></i>
-            <p>No expense data available</p>
+            <p>No expense data for ${selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth)}</p>
           </div>
         `;
       }
-      if (list) list.innerHTML = '<p class="empty-state-sub text-center">Add transactions to generate breakdown analytics.</p>';
+      if (list) list.innerHTML = `<p class="empty-state-sub text-center">No expenses logged in ${selectedMonth === 'ALL' ? 'all time' : formatMonthLabel(selectedMonth)}.</p>`;
       return;
     }
 
     const categoryTotals = {};
-    expenses.forEach(item => {
+    filteredList.forEach(item => {
       categoryTotals[item.category] = (categoryTotals[item.category] || 0) + Number(item.amount);
     });
 
@@ -506,7 +608,7 @@ function renderCategoryBreakdown(totalSpent) {
             ${slices.join('')}
           </svg>
           <div class="donut-center-text">
-            <span class="donut-total-title">Total</span>
+            <span class="donut-total-title">Total Spent</span>
             <span class="donut-total-val">${formatCurrency(totalSpent)}</span>
           </div>
         </div>
@@ -539,15 +641,77 @@ function renderCategoryBreakdown(totalSpent) {
   });
 }
 
-function renderTransactionsTable() {
+// Render SVG Month-Wise Historical Trend Bar Chart
+function renderMonthlyTrendChart() {
+  if (!monthlyTrendChartContainer) return;
+  monthlyTrendChartContainer.innerHTML = '';
+
+  if (expenses.length === 0) {
+    monthlyTrendChartContainer.innerHTML = `
+      <div class="empty-state-small">
+        <i class="fa-solid fa-chart-column empty-state-icon"></i>
+        <p>No historical data recorded yet.</p>
+      </div>
+    `;
+    return;
+  }
+
+  // Calculate monthly totals for all available months
+  const monthlyTotals = {};
+  expenses.forEach(item => {
+    if (item.date && item.date.length >= 7) {
+      const ym = item.date.substring(0, 7);
+      monthlyTotals[ym] = (monthlyTotals[ym] || 0) + Number(item.amount);
+    }
+  });
+
+  const months = Object.keys(monthlyTotals).sort();
+  if (months.length === 0) {
+    monthlyTrendChartContainer.innerHTML = '<p class="empty-state-sub">No monthly data available.</p>';
+    return;
+  }
+
+  const maxSpent = Math.max(...Object.values(monthlyTotals), budget || 1);
+  const chartHeight = 160;
+
+  const barElements = months.map(ym => {
+    const amount = monthlyTotals[ym] || 0;
+    const heightPercent = Math.min(100, Math.max(8, (amount / maxSpent) * 100));
+    const isSelected = selectedMonth === ym;
+    const barColor = isSelected ? 'linear-gradient(180deg, #818cf8, #6366f1)' : 'linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.2))';
+
+    return `
+      <div class="trend-bar-column ${isSelected ? 'selected' : ''}" onclick="selectMonthFromChart('${ym}')" title="${formatMonthLabel(ym)}: ${formatCurrency(amount)}">
+        <div class="trend-bar-val">${formatCurrency(amount)}</div>
+        <div class="trend-bar-track">
+          <div class="trend-bar-fill" style="height: ${heightPercent}%; background: ${barColor};"></div>
+        </div>
+        <div class="trend-bar-label">${formatMonthLabel(ym).split(' ')[0]}</div>
+      </div>
+    `;
+  });
+
+  monthlyTrendChartContainer.innerHTML = `
+    <div class="trend-chart-flex">
+      ${barElements.join('')}
+    </div>
+  `;
+}
+
+window.selectMonthFromChart = function(ym) {
+  selectedMonth = ym;
+  updateMonthPickerOptions();
+  updateUI();
+};
+
+function renderTransactionsTable(monthFilteredExpenses) {
   if (!transactionsTbody) return;
 
   const searchTerm = filterSearchInput ? filterSearchInput.value.toLowerCase().trim() : '';
   const selectedCat = filterCategorySelect ? filterCategorySelect.value : 'ALL';
   const todayStr = new Date().toISOString().split('T')[0];
-  const currentYM = getCurrentYearMonth();
 
-  const filtered = expenses.filter(item => {
+  const filtered = monthFilteredExpenses.filter(item => {
     const matchesSearch = item.description.toLowerCase().includes(searchTerm) ||
                           item.category.toLowerCase().includes(searchTerm) ||
                           item.payment.toLowerCase().includes(searchTerm);
@@ -556,8 +720,6 @@ function renderTransactionsTable() {
     let matchesTime = true;
     if (activeTimeFilter === 'TODAY') {
       matchesTime = item.date === todayStr;
-    } else if (activeTimeFilter === 'MONTH') {
-      matchesTime = item.date && item.date.startsWith(currentYM);
     }
 
     return matchesSearch && matchesCat && matchesTime;
@@ -632,6 +794,13 @@ if (expenseForm) {
 
     expenses.push(newExpense);
     saveState();
+    
+    // Automatically switch month to the added expense month if different
+    if (date && date.length >= 7) {
+      selectedMonth = date.substring(0, 7);
+    }
+
+    updateMonthPickerOptions();
     updateUI();
 
     expAmountInput.value = '';
@@ -644,19 +813,20 @@ window.deleteTransaction = function(id) {
   if (confirm('Are you sure you want to delete this transaction?')) {
     expenses = expenses.filter(item => item.id !== id);
     saveState();
+    updateMonthPickerOptions();
     updateUI();
   }
 };
 
-if (filterSearchInput) filterSearchInput.addEventListener('input', renderTransactionsTable);
-if (filterCategorySelect) filterCategorySelect.addEventListener('change', renderTransactionsTable);
+if (filterSearchInput) filterSearchInput.addEventListener('input', updateUI);
+if (filterCategorySelect) filterCategorySelect.addEventListener('change', updateUI);
 
 document.querySelectorAll('.filter-chip').forEach(chip => {
   chip.addEventListener('click', () => {
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     chip.classList.add('active');
     activeTimeFilter = chip.dataset.filter || 'ALL';
-    renderTransactionsTable();
+    updateUI();
   });
 });
 
@@ -737,13 +907,14 @@ if (subForm) {
 // Export CSV
 if (btnExportCsv) {
   btnExportCsv.addEventListener('click', () => {
-    if (expenses.length === 0) {
-      alert('No transactions available to export.');
+    const exportList = expenses.filter(item => selectedMonth === 'ALL' || (item.date && item.date.startsWith(selectedMonth)));
+    if (exportList.length === 0) {
+      alert('No transactions available to export for selected month.');
       return;
     }
 
     let csvContent = 'data:text/csv;charset=utf-8,Date,Category,Description,Payment Method,Amount (INR)\n';
-    expenses.forEach(item => {
+    exportList.forEach(item => {
       const row = `"${item.date}","${item.category}","${item.description.replace(/"/g, '""')}","${item.payment}",${item.amount}`;
       csvContent += row + '\n';
     });
@@ -751,7 +922,7 @@ if (btnExportCsv) {
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement('a');
     link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Expense_Report_${new Date().toISOString().split('T')[0]}.csv`);
+    link.setAttribute('download', `Expense_Report_${selectedMonth}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -765,9 +936,11 @@ if (btnResetAll) {
       budget = 0;
       expenses = [];
       subscriptions = [];
+      selectedMonth = getCurrentYearMonth();
       localStorage.removeItem('expense_cal_desktop_budget');
       localStorage.removeItem('expense_cal_desktop_expenses');
       localStorage.removeItem('expense_cal_desktop_subscriptions');
+      updateMonthPickerOptions();
       updateUI();
     }
   });
