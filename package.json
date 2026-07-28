@@ -10,6 +10,7 @@
   "build": {
     "appId": "com.expensecalculator.app",
     "productName": "Expense OS",
+    "forceCodeSigning": false,
     "directories": {
       "output": "dist"
     },
@@ -18,7 +19,9 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "sign": null,
+      "verifyUpdateCodeSignature": false
     },
     "nsis": {
       "oneClick": false,
