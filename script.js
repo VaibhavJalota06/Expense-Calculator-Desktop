@@ -89,10 +89,14 @@ const btnAddSub = document.getElementById('btn-add-sub');
 
 // Modals
 const budgetModal = document.getElementById('budget-modal');
+const budgetForm = document.getElementById('budget-form');
 const modalBudgetInput = document.getElementById('modal-budget-input');
 const modalSaveBtn = document.getElementById('modal-save-btn');
 const modalCancelBtn = document.getElementById('modal-cancel-btn');
 const modalCloseBtn = document.getElementById('modal-close-btn');
+const modalTitleText = document.getElementById('modal-title-text');
+const statBudgetCard = document.getElementById('stat-budget-card');
+const btnCardBudgetEdit = document.getElementById('btn-card-budget-edit');
 
 const subModal = document.getElementById('sub-modal');
 const subForm = document.getElementById('sub-form');
@@ -285,7 +289,13 @@ function updateUI() {
     activeMonthLabelEl.textContent = selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth);
   }
 
-  // Update Stat Cards
+  // Update Stat Cards & Topbar Budget Edit Button Label
+  if (btnEditBudget) {
+    btnEditBudget.innerHTML = budget > 0 
+      ? '<i class="fa-solid fa-pen-to-square"></i> Edit Budget' 
+      : '<i class="fa-solid fa-sliders"></i> Set Budget';
+  }
+
   if (statBudgetEl) statBudgetEl.textContent = formatCurrency(budget);
   if (statSpentEl) statSpentEl.textContent = formatCurrency(totalSpent);
   if (statCountEl) statCountEl.textContent = `${filteredMonthExpenses.length} transaction${filteredMonthExpenses.length === 1 ? '' : 's'}`;
@@ -295,7 +305,7 @@ function updateUI() {
 
   if (budget === 0) {
     if (statRemainingEl) statRemainingEl.textContent = '₹0.00';
-    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click ✏️)';
+    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set ✏️)';
   } else {
     if (statRemainingEl) statRemainingEl.textContent = formatCurrency(remaining);
     if (statPercentEl) statPercentEl.textContent = `${remainingPercent.toFixed(1)}% Left`;
@@ -832,17 +842,32 @@ document.querySelectorAll('.filter-chip').forEach(chip => {
 
 // Budget Modal Handlers
 function openBudgetModal() {
+  if (!modalBudgetInput || !budgetModal) return;
+  if (modalTitleText) {
+    modalTitleText.textContent = budget > 0 ? 'Edit Monthly Budget Cap' : 'Set Monthly Budget Cap';
+  }
   modalBudgetInput.value = budget > 0 ? budget : '';
   budgetModal.classList.remove('hidden');
-  modalBudgetInput.focus();
+  setTimeout(() => {
+    try {
+      modalBudgetInput.focus();
+      if (typeof modalBudgetInput.select === 'function') {
+        modalBudgetInput.select();
+      }
+    } catch (err) {
+      // Ignore selection errors on unsupported platforms
+    }
+  }, 50);
 }
 
 if (btnEditBudget) btnEditBudget.addEventListener('click', openBudgetModal);
 if (btnSidebarBudgetEdit) btnSidebarBudgetEdit.addEventListener('click', openBudgetModal);
+if (btnCardBudgetEdit) btnCardBudgetEdit.addEventListener('click', (e) => { e.stopPropagation(); openBudgetModal(); });
+if (statBudgetCard) statBudgetCard.addEventListener('click', openBudgetModal);
 
 function closeModal() {
-  budgetModal.classList.add('hidden');
-  subModal.classList.add('hidden');
+  if (budgetModal) budgetModal.classList.add('hidden');
+  if (subModal) subModal.classList.add('hidden');
 }
 
 if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
@@ -850,18 +875,52 @@ if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
 if (subModalCloseBtn) subModalCloseBtn.addEventListener('click', closeModal);
 if (subModalCancelBtn) subModalCancelBtn.addEventListener('click', closeModal);
 
-if (modalSaveBtn) {
-  modalSaveBtn.addEventListener('click', () => {
-    const newBudget = parseFloat(modalBudgetInput.value);
-    if (isNaN(newBudget) || newBudget < 0) {
-      alert('Please enter a valid budget amount.');
-      return;
-    }
-    budget = newBudget;
-    saveState();
-    updateUI();
-    closeModal();
+// Backdrop Click to Dismiss Modals
+if (budgetModal) {
+  budgetModal.addEventListener('click', (e) => {
+    if (e.target === budgetModal) closeModal();
   });
+}
+if (subModal) {
+  subModal.addEventListener('click', (e) => {
+    if (e.target === subModal) closeModal();
+  });
+}
+
+function handleSaveBudget(e) {
+  if (e) e.preventDefault();
+  const raw = modalBudgetInput ? modalBudgetInput.value : '';
+  // Clean commas, currency symbols, spaces, keeping digits and decimal point
+  const cleaned = raw.toString().replace(/[^0-9.]/g, '').trim();
+  const newBudget = parseFloat(cleaned);
+
+  if (cleaned === '' || isNaN(newBudget) || newBudget < 0) {
+    alert('Please enter a valid budget amount.');
+    return;
+  }
+
+  budget = newBudget;
+  saveState();
+  updateUI();
+  closeModal();
+}
+
+if (modalBudgetInput) {
+  modalBudgetInput.addEventListener('input', (e) => {
+    // Restrict input to digits and an optional single decimal point only
+    let val = e.target.value.replace(/[^0-9.]/g, '');
+    const parts = val.split('.');
+    if (parts.length > 2) {
+      val = parts[0] + '.' + parts.slice(1).join('');
+    }
+    e.target.value = val;
+  });
+}
+
+if (budgetForm) {
+  budgetForm.addEventListener('submit', handleSaveBudget);
+} else if (modalSaveBtn) {
+  modalSaveBtn.addEventListener('click', handleSaveBudget);
 }
 
 // Add Subscription Modal

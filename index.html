@@ -98,13 +98,13 @@
         <section id="view-dashboard" class="view-panel active">
           <!-- Overview Stats Cards -->
           <div class="stats-grid">
-            <div class="stat-card glass-panel">
+            <div id="stat-budget-card" class="stat-card glass-panel clickable-card" title="Click to edit monthly budget cap">
               <div class="stat-header">
                 <span>Total Budget</span>
-                <i class="fa-solid fa-wallet stat-icon text-indigo"></i>
+                <button id="btn-card-budget-edit" class="icon-btn icon-btn-sm" title="Edit Budget"><i class="fa-solid fa-pen-to-square"></i></button>
               </div>
               <div id="stat-budget" class="stat-value">₹0.00</div>
-              <div class="stat-subtext">Monthly Cap</div>
+              <div class="stat-subtext">Monthly Cap <span class="edit-hint">(Click to edit)</span></div>
             </div>
 
             <div class="stat-card glass-panel">
@@ -354,20 +354,22 @@
   <div id="budget-modal" class="modal-overlay hidden">
     <div class="modal-card glass-panel">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-sliders"></i> Set Monthly Budget Cap</h3>
-        <button id="modal-close-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+        <h3><i class="fa-solid fa-sliders"></i> <span id="modal-title-text">Set Monthly Budget Cap</span></h3>
+        <button id="modal-close-btn" type="button" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <div class="modal-body">
-        <label for="modal-budget-input">Enter total monthly budget limit (₹):</label>
-        <div class="input-with-icon">
-          <span class="currency-symbol">₹</span>
-          <input type="number" id="modal-budget-input" placeholder="e.g. 50000" min="1" step="100" />
+      <form id="budget-form">
+        <div class="modal-body">
+          <label for="modal-budget-input">Enter total monthly budget limit (₹):</label>
+          <div class="input-with-icon">
+            <span class="currency-symbol">₹</span>
+            <input type="text" id="modal-budget-input" inputmode="decimal" pattern="[0-9]*" placeholder="e.g. 50000" autocomplete="off" required />
+          </div>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
-        <button id="modal-save-btn" class="btn btn-primary">Save Budget</button>
-      </div>
+        <div class="modal-footer">
+          <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="modal-save-btn" class="btn btn-primary">Save Budget</button>
+        </div>
+      </form>
     </div>
   </div>
 

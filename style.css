@@ -1117,14 +1117,34 @@ input:focus, select:focus {
   padding: 0.35rem;
   border-radius: 6px;
   transition: var(--transition);
-}
-.icon-btn:hover {
-  color: #ffffff;
-  background: rgba(255, 255, 255, 0.1);
+.icon-btn-sm {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.85rem;
 }
 
 .action-btn-del { color: #f43f5e; }
 .action-btn-del:hover { background: var(--rose-bg); }
+
+.clickable-card {
+  cursor: pointer;
+  transition: var(--transition);
+}
+.clickable-card:hover {
+  border-color: var(--border-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+}
+.clickable-card:hover .edit-hint {
+  color: #ffffff;
+}
+
+.edit-hint {
+  font-size: 0.72rem;
+  color: var(--primary);
+  font-weight: 600;
+  margin-left: 0.25rem;
+  transition: color 0.2s ease;
+}
 
 .hidden { display: none !important; }
 
