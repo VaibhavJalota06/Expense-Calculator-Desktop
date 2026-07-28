@@ -157,8 +157,16 @@ function loadState() {
   updateUI();
 }
 
+function getLocalDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
 function setTodayDateDefault() {
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   if (expDateInput) expDateInput.value = today;
 }
 
@@ -527,7 +535,7 @@ window.markSubAsPaid = function(subId) {
   const currentYM = getCurrentYearMonth();
   sub.lastPaidMonth = currentYM;
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = getLocalDateString();
   const newExpense = {
     id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
     amount: sub.amount,
@@ -719,7 +727,7 @@ function renderTransactionsTable(monthFilteredExpenses) {
 
   const searchTerm = filterSearchInput ? filterSearchInput.value.toLowerCase().trim() : '';
   const selectedCat = filterCategorySelect ? filterCategorySelect.value : 'ALL';
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = getLocalDateString();
 
   const filtered = monthFilteredExpenses.filter(item => {
     const matchesSearch = item.description.toLowerCase().includes(searchTerm) ||
@@ -766,7 +774,8 @@ function renderTransactionsTable(monthFilteredExpenses) {
 }
 
 function escapeHtml(str) {
-  return str.replace(/[&<>"']/g, function(m) {
+  if (str === null || str === undefined) return '';
+  return String(str).replace(/[&<>"']/g, function(m) {
     return {
       '&': '&amp;',
       '<': '&lt;',
@@ -974,7 +983,10 @@ if (btnExportCsv) {
 
     let csvContent = 'data:text/csv;charset=utf-8,Date,Category,Description,Payment Method,Amount (INR)\n';
     exportList.forEach(item => {
-      const row = `"${item.date}","${item.category}","${item.description.replace(/"/g, '""')}","${item.payment}",${item.amount}`;
+      const safeDesc = (item.description || '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ');
+      const safeCat = (item.category || '').replace(/"/g, '""');
+      const safePay = (item.payment || '').replace(/"/g, '""');
+      const row = `"${item.date}","${safeCat}","${safeDesc}","${safePay}",${item.amount}`;
       csvContent += row + '\n';
     });
 
