@@ -4,228 +4,346 @@
   <meta charset="UTF-8" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Expense Calculator - Desktop App</title>
+  <title>Expense OS - Futuristic Desktop Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
-  <div class="app-container">
-    <!-- Top Header -->
-    <header class="app-header">
-      <div class="brand">
-        <div class="brand-icon">
+  <!-- Ambient Background Glow Blobs -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <div class="app-layout">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
           <i class="fa-solid fa-wallet"></i>
         </div>
-        <div>
-          <h1>Expense Calculator</h1>
-          <p class="subtitle">Windows Desktop Edition</p>
+        <div class="brand-text">
+          <h2>Expense OS</h2>
+          <span class="brand-badge"><i class="fa-solid fa-bolt"></i> Studio v2</span>
         </div>
       </div>
-      <div class="header-actions">
-        <button id="btn-add-sub" class="btn btn-primary" title="Add Recurring Bill or Subscription">
-          <i class="fa-solid fa-calendar-plus"></i> Add Bill
-        </button>
-        <button id="btn-export-csv" class="btn btn-secondary" title="Export transactions to CSV">
-          <i class="fa-solid fa-file-csv"></i> Export CSV
-        </button>
-        <button id="btn-reset-all" class="btn btn-danger-outline" title="Reset Budget & Data">
-          <i class="fa-solid fa-rotate-left"></i> Reset
-        </button>
-      </div>
-    </header>
 
-    <!-- Overview Stats Cards -->
-    <section class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-header">
-          <span>Total Budget</span>
-          <button id="btn-edit-budget" class="icon-btn" title="Edit Budget"><i class="fa-solid fa-pen"></i></button>
-        </div>
-        <div id="stat-budget" class="stat-value">₹0.00</div>
-        <div class="stat-subtext">Monthly Spending Cap</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-header">
-          <span>Total Spent</span>
-          <i class="fa-solid fa-arrow-trend-up stat-icon text-amber"></i>
-        </div>
-        <div id="stat-spent" class="stat-value text-amber">₹0.00</div>
-        <div id="stat-count" class="stat-subtext">0 transactions</div>
-      </div>
-
-      <div class="stat-card" id="card-remaining">
-        <div class="stat-header">
-          <span>Remaining Balance</span>
-          <i class="fa-solid fa-shield-halved stat-icon text-emerald" id="status-icon"></i>
-        </div>
-        <div id="stat-remaining" class="stat-value text-emerald">₹0.00</div>
-        <div id="stat-percent" class="stat-subtext">100% left</div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-header">
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active" data-view="dashboard">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-view="transactions">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Transactions Log</span>
+        </a>
+        <a href="#" class="nav-item" data-view="bills">
+          <i class="fa-solid fa-arrows-rotate"></i>
           <span>Recurring Bills</span>
-          <i class="fa-solid fa-bell stat-icon text-purple"></i>
+        </a>
+        <a href="#" class="nav-item" data-view="analytics">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Category Analytics</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-budget-card">
+          <div class="sb-budget-header">
+            <span>Budget Cap</span>
+            <button id="btn-sidebar-budget-edit" class="icon-btn" title="Edit Budget"><i class="fa-solid fa-pen-to-square"></i></button>
+          </div>
+          <div id="sidebar-budget-val" class="sb-budget-val">₹0.00</div>
         </div>
-        <div id="stat-subs-total" class="stat-value text-purple">₹0.00</div>
-        <div id="stat-subs-count" class="stat-subtext">0 monthly subscriptions</div>
-      </div>
-    </section>
-
-    <!-- Progress Bar Section -->
-    <section class="progress-section card">
-      <div class="progress-header">
-        <span>Budget Utilization</span>
-        <span id="progress-percent-label">0% Used</span>
-      </div>
-      <div class="progress-bar-bg">
-        <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
-      </div>
-    </section>
-
-    <!-- Recurring Subscriptions & Bill Reminders Section -->
-    <section class="card subscriptions-card">
-      <div class="card-title justify-between">
-        <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Subscriptions & Bill Reminders</span>
-        <span class="sub-alert-badge" id="sub-reminder-badge">0 due soon</span>
-      </div>
-      <div id="subs-grid-container" class="subs-grid">
-        <!-- Dynamic Subscriptions Cards -->
-      </div>
-    </section>
-
-    <!-- Main Content Layout: Form + Category Breakdown -->
-    <div class="main-grid">
-      <!-- Add Expense Form -->
-      <section class="card form-card">
-        <div class="card-title">
-          <i class="fa-solid fa-circle-plus"></i> Log New Expense
+        <div class="sidebar-actions">
+          <button id="btn-export-csv" class="btn btn-secondary btn-block" title="Export CSV">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+          </button>
+          <button id="btn-reset-all" class="btn btn-danger-outline btn-block" title="Reset All Data">
+            <i class="fa-solid fa-rotate-left"></i> Reset
+          </button>
         </div>
-        <form id="expense-form">
-          <div class="form-row">
-            <div class="form-group flex-1">
-              <label for="exp-amount">Amount (₹)</label>
-              <div class="input-with-icon">
-                <span class="currency-symbol">₹</span>
-                <input type="number" id="exp-amount" placeholder="0.00" step="0.01" min="0.01" required />
+      </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <main class="main-workspace">
+      <!-- Topbar Header -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="view-title">Dashboard Overview</h1>
+          <p id="view-subtitle">Real-time financial analytics & budget control</p>
+        </div>
+        <div class="topbar-right">
+          <button id="btn-add-sub" class="btn btn-secondary">
+            <i class="fa-solid fa-calendar-plus"></i> + Add Bill
+          </button>
+          <button id="btn-edit-budget" class="btn btn-primary">
+            <i class="fa-solid fa-sliders"></i> Set Budget
+          </button>
+        </div>
+      </header>
+
+      <!-- View Panels -->
+      <div class="views-container">
+        <!-- View 1: Dashboard Overview -->
+        <section id="view-dashboard" class="view-panel active">
+          <!-- Overview Stats Cards -->
+          <div class="stats-grid">
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Total Budget</span>
+                <i class="fa-solid fa-wallet stat-icon text-indigo"></i>
+              </div>
+              <div id="stat-budget" class="stat-value">₹0.00</div>
+              <div class="stat-subtext">Monthly Cap</div>
+            </div>
+
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Total Spent</span>
+                <i class="fa-solid fa-arrow-trend-up stat-icon text-amber"></i>
+              </div>
+              <div id="stat-spent" class="stat-value text-amber">₹0.00</div>
+              <div id="stat-count" class="stat-subtext">0 transactions</div>
+            </div>
+
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Remaining Balance</span>
+                <i class="fa-solid fa-shield-halved stat-icon text-emerald" id="status-icon"></i>
+              </div>
+              <div id="stat-remaining" class="stat-value text-emerald">₹0.00</div>
+              <div id="stat-percent" class="stat-subtext">No budget set</div>
+            </div>
+
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Recurring Bills</span>
+                <i class="fa-solid fa-bell stat-icon text-purple"></i>
+              </div>
+              <div id="stat-subs-total" class="stat-value text-purple">₹0.00</div>
+              <div id="stat-subs-count" class="stat-subtext">0 active subscriptions</div>
+            </div>
+          </div>
+
+          <!-- Main Dashboard Grid: Radial Gauge + Form + Analytics & Bills Preview -->
+          <div class="dashboard-grid">
+            <!-- Radial SVG Budget Ring Gauge & Form -->
+            <div class="dash-left-column">
+              <div class="glass-panel radial-gauge-card">
+                <div class="panel-title">
+                  <i class="fa-solid fa-gauge-high"></i> Budget Health Gauge
+                </div>
+                <div id="radial-gauge-container" class="gauge-center-container">
+                  <!-- Dynamic SVG Gauge Ring -->
+                </div>
+                <div class="progress-bar-bg">
+                  <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <div class="gauge-sub-info">
+                  <span id="progress-percent-label">0% Used</span>
+                  <span>Spending Limit Indicator</span>
+                </div>
+              </div>
+
+              <!-- Inline Log Expense Form -->
+              <div class="glass-panel form-card">
+                <div class="panel-title">
+                  <i class="fa-solid fa-circle-plus"></i> Log New Expense
+                </div>
+                <form id="expense-form">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label for="exp-amount">Amount (₹)</label>
+                      <div class="input-with-icon">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="exp-amount" placeholder="0.00" step="0.01" min="0.01" required />
+                      </div>
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-category">Category</label>
+                      <select id="exp-category" required>
+                        <option value="Food & Dining">🍔 Food & Dining</option>
+                        <option value="Transportation">🚗 Transportation</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Bills & Utilities">⚡ Bills & Utilities</option>
+                        <option value="Entertainment">🎬 Entertainment</option>
+                        <option value="Health & Fitness">💊 Health & Fitness</option>
+                        <option value="Services & Subscriptions">📱 Subscriptions</option>
+                        <option value="Miscellaneous">📦 Miscellaneous</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group flex-2">
+                      <label for="exp-description">Description / Note</label>
+                      <input type="text" id="exp-description" placeholder="e.g. Grocery items at Supermarket" required />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-payment">Payment</label>
+                      <select id="exp-payment">
+                        <option value="UPI">💳 UPI</option>
+                        <option value="Credit Card">💳 Credit Card</option>
+                        <option value="Debit Card">💳 Debit Card</option>
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Net Banking">🏦 Net Banking</option>
+                      </select>
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-date">Date</label>
+                      <input type="date" id="exp-date" required />
+                    </div>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-plus"></i> Log Transaction
+                  </button>
+                </form>
               </div>
             </div>
-            <div class="form-group flex-1">
-              <label for="exp-category">Category</label>
-              <select id="exp-category" required>
-                <option value="Food & Dining">🍔 Food & Dining</option>
-                <option value="Transportation">🚗 Transportation</option>
-                <option value="Shopping">🛍️ Shopping</option>
-                <option value="Bills & Utilities">⚡ Bills & Utilities</option>
-                <option value="Entertainment">🎬 Entertainment</option>
-                <option value="Health & Fitness">💊 Health & Fitness</option>
-                <option value="Services & Subscriptions">📱 Subscriptions</option>
-                <option value="Miscellaneous">📦 Miscellaneous</option>
-              </select>
+
+            <!-- Right Column: Category Breakdown + Bills Preview -->
+            <div class="dash-right-column">
+              <!-- Category Breakdown Donut -->
+              <div class="glass-panel breakdown-card">
+                <div class="panel-title">
+                  <i class="fa-solid fa-chart-pie"></i> Category Distribution
+                </div>
+                <div id="breakdown-chart-container" class="chart-container">
+                  <!-- Dynamic SVG Donut Chart -->
+                </div>
+                <div id="category-breakdown-list" class="breakdown-list">
+                  <p class="empty-state-sub">No transactions recorded yet.</p>
+                </div>
+              </div>
+
+              <!-- Bills Preview Panel -->
+              <div class="glass-panel bills-preview-card">
+                <div class="panel-title justify-between">
+                  <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Bills</span>
+                  <a href="#" class="view-all-link" onclick="switchView('bills')">View All <i class="fa-solid fa-chevron-right"></i></a>
+                </div>
+                <div id="dash-subs-preview" class="dash-subs-list">
+                  <!-- Dynamic Preview -->
+                </div>
+              </div>
             </div>
           </div>
+        </section>
 
-          <div class="form-row">
-            <div class="form-group flex-2">
-              <label for="exp-description">Description / Note</label>
-              <input type="text" id="exp-description" placeholder="e.g. Grocery items at Supermarket" required />
+        <!-- View 2: Transactions Log -->
+        <section id="view-transactions" class="view-panel">
+          <div class="glass-panel transactions-card">
+            <div class="transactions-header">
+              <div class="panel-title">
+                <i class="fa-solid fa-list-check"></i> Transaction Records
+              </div>
+              <div class="filter-controls">
+                <div class="filter-chips">
+                  <button class="filter-chip active" data-filter="ALL">All</button>
+                  <button class="filter-chip" data-filter="TODAY">Today</button>
+                  <button class="filter-chip" data-filter="MONTH">This Month</button>
+                </div>
+                <div class="search-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="filter-search" placeholder="Search description..." />
+                </div>
+                <select id="filter-category">
+                  <option value="ALL">All Categories</option>
+                  <option value="Food & Dining">Food & Dining</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Bills & Utilities">Bills & Utilities</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Health & Fitness">Health & Fitness</option>
+                  <option value="Services & Subscriptions">Subscriptions</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+              </div>
             </div>
-            <div class="form-group flex-1">
-              <label for="exp-payment">Payment Method</label>
-              <select id="exp-payment">
-                <option value="UPI">💳 UPI</option>
-                <option value="Credit Card">💳 Credit Card</option>
-                <option value="Debit Card">💳 Debit Card</option>
-                <option value="Cash">💵 Cash</option>
-                <option value="Net Banking">🏦 Net Banking</option>
-              </select>
-            </div>
-            <div class="form-group flex-1">
-              <label for="exp-date">Date</label>
-              <input type="date" id="exp-date" required />
+
+            <div class="table-responsive">
+              <table class="transactions-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Payment Method</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-tbody">
+                  <!-- Dynamic Rows -->
+                </tbody>
+              </table>
+              <div id="empty-table-msg" class="empty-state-table hidden">
+                <i class="fa-solid fa-receipt empty-icon"></i>
+                <p class="empty-title">No Transactions Recorded</p>
+                <p class="empty-sub">Use the dashboard form to log your first transaction.</p>
+              </div>
             </div>
           </div>
+        </section>
 
-          <button type="submit" class="btn btn-primary btn-block">
-            <i class="fa-solid fa-plus"></i> Add Transaction
-          </button>
-        </form>
-      </section>
-
-      <!-- Category Distribution Breakdown -->
-      <section class="card breakdown-card">
-        <div class="card-title">
-          <i class="fa-solid fa-chart-pie"></i> Category Breakdown
-        </div>
-        <div id="category-breakdown-list" class="breakdown-list">
-          <p class="empty-state">No transactions recorded yet.</p>
-        </div>
-      </section>
-    </div>
-
-    <!-- Transactions List & Filters -->
-    <section class="card transactions-card">
-      <div class="transactions-header">
-        <div class="card-title">
-          <i class="fa-solid fa-list-check"></i> Recent Transactions
-        </div>
-        <div class="filter-controls">
-          <div class="search-box">
-            <i class="fa-solid fa-magnifying-glass"></i>
-            <input type="text" id="filter-search" placeholder="Search transactions..." />
+        <!-- View 3: Recurring Bills -->
+        <section id="view-bills" class="view-panel">
+          <div class="glass-panel subscriptions-card">
+            <div class="panel-title justify-between">
+              <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Subscriptions & Monthly Bills</span>
+              <button class="btn btn-primary btn-sm" onclick="document.getElementById('btn-add-sub').click()">
+                <i class="fa-solid fa-plus"></i> Add New Bill
+              </button>
+            </div>
+            <div id="subs-grid-container" class="subs-grid">
+              <!-- Dynamic Subscriptions Cards -->
+            </div>
           </div>
-          <select id="filter-category">
-            <option value="ALL">All Categories</option>
-            <option value="Food & Dining">Food & Dining</option>
-            <option value="Transportation">Transportation</option>
-            <option value="Shopping">Shopping</option>
-            <option value="Bills & Utilities">Bills & Utilities</option>
-            <option value="Entertainment">Entertainment</option>
-            <option value="Health & Fitness">Health & Fitness</option>
-            <option value="Services & Subscriptions">Subscriptions</option>
-            <option value="Miscellaneous">Miscellaneous</option>
-          </select>
-        </div>
+        </section>
+
+        <!-- View 4: Category Analytics -->
+        <section id="view-analytics" class="view-panel">
+          <div class="analytics-grid">
+            <div class="glass-panel analytics-chart-card">
+              <div class="panel-title">
+                <i class="fa-solid fa-chart-pie"></i> Complete Category Distribution
+              </div>
+              <div id="full-analytics-chart-container" class="chart-container-large">
+                <!-- Large SVG Donut Chart -->
+              </div>
+            </div>
+
+            <div class="glass-panel analytics-list-card">
+              <div class="panel-title">
+                <i class="fa-solid fa-bars-staggered"></i> Spending Breakdown List
+              </div>
+              <div id="full-analytics-list" class="breakdown-list-large">
+                <!-- Dynamic Breakdown Items -->
+              </div>
+            </div>
+          </div>
+        </section>
       </div>
-
-      <div class="table-responsive">
-        <table class="transactions-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Category</th>
-              <th>Description</th>
-              <th>Payment</th>
-              <th class="text-right">Amount</th>
-              <th class="text-center">Action</th>
-            </tr>
-          </thead>
-          <tbody id="transactions-tbody">
-            <!-- Dynamic Rows -->
-          </tbody>
-        </table>
-        <div id="empty-table-msg" class="empty-state hidden">
-          <i class="fa-solid fa-receipt empty-icon"></i>
-          <p>No matching transactions found.</p>
-        </div>
-      </div>
-    </section>
+    </main>
   </div>
 
   <!-- Budget Edit Modal -->
   <div id="budget-modal" class="modal-overlay hidden">
-    <div class="modal-card">
+    <div class="modal-card glass-panel">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-sliders"></i> Set Monthly Budget</h3>
+        <h3><i class="fa-solid fa-sliders"></i> Set Monthly Budget Cap</h3>
         <button id="modal-close-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="modal-body">
-        <label for="modal-budget-input">Enter total budget limit (₹):</label>
-        <input type="number" id="modal-budget-input" placeholder="e.g. 50000" min="1" step="100" />
+        <label for="modal-budget-input">Enter total monthly budget limit (₹):</label>
+        <div class="input-with-icon">
+          <span class="currency-symbol">₹</span>
+          <input type="number" id="modal-budget-input" placeholder="e.g. 50000" min="1" step="100" />
+        </div>
       </div>
       <div class="modal-footer">
         <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
@@ -236,13 +354,13 @@
 
   <!-- New Subscription Modal -->
   <div id="sub-modal" class="modal-overlay hidden">
-    <div class="modal-card">
+    <div class="modal-card glass-panel">
       <div class="modal-header">
         <h3><i class="fa-solid fa-calendar-plus"></i> Add Recurring Bill</h3>
         <button id="sub-modal-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="sub-form">
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 0.8rem;">
+        <div class="modal-body modal-form-gap">
           <div class="form-group">
             <label for="sub-name">Subscription / Bill Name</label>
             <input type="text" id="sub-name" placeholder="e.g. Netflix Premium, House Rent, Wifi" required />
@@ -250,7 +368,7 @@
           <div class="form-row">
             <div class="form-group flex-1">
               <label for="sub-amount">Monthly Amount (₹)</label>
-              <input type="number" id="sub-amount" placeholder="649" min="1" step="1" required />
+              <input type="number" id="sub-amount" placeholder="e.g. 649" min="1" step="1" required />
             </div>
             <div class="form-group flex-1">
               <label for="sub-due-day">Due Day of Month</label>
@@ -268,7 +386,7 @@
             </select>
           </div>
         </div>
-        <div class="modal-footer" style="margin-top: 1rem;">
+        <div class="modal-footer">
           <button type="button" id="sub-modal-cancel" class="btn btn-secondary">Cancel</button>
           <button type="submit" class="btn btn-primary">Add Subscription</button>
         </div>

@@ -1,5 +1,5 @@
 @echo off
-title Expense Calculator Desktop App
+title Expense OS Desktop Studio
 cd /d "%~dp0"
-echo Launching Expense Calculator Windows App...
+echo Launching Expense OS Futuristic Desktop Studio...
 npm start

@@ -5,12 +5,12 @@ let mainWindow;
 
 function createWindow() {
   mainWindow = new BrowserWindow({
-    width: 1000,
-    height: 750,
-    minWidth: 800,
-    minHeight: 600,
-    title: 'Expense Calculator',
-    backgroundColor: '#0f172a',
+    width: 1240,
+    height: 820,
+    minWidth: 950,
+    minHeight: 650,
+    title: 'Expense OS - Desktop Studio',
+    backgroundColor: '#050811',
     icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
       nodeIntegration: true,
@@ -19,7 +19,7 @@ function createWindow() {
     show: false,
   });
 
-  // Remove default menu for a clean desktop app look
+  // Remove default menu bar for clean desktop app presentation
   Menu.setApplicationMenu(null);
 
   mainWindow.loadFile('index.html');
