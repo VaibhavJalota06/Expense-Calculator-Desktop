@@ -6,9 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
-    "publish": "electron-builder --win -p always",
-    "sync": "sync-and-build.bat",
-    "update-all": "sync-and-build.bat"
+    "publish": "electron-builder --win -p always"
   },
   "repository": {
     "type": "git",

@@ -123,17 +123,13 @@ body {
   padding-bottom: 0.5rem;
 }
 
-.brand-logo {
+.brand-logo-img {
   width: 44px;
   height: 44px;
-  background: linear-gradient(135deg, #6366f1, #a855f7);
   border-radius: 14px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.35rem;
-  color: #ffffff;
+  object-fit: cover;
   box-shadow: 0 4px 20px var(--primary-glow);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .brand-text h2 {
@@ -149,6 +145,9 @@ body {
   font-size: 0.7rem;
   color: #c084fc;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
 /* Sidebar Navigation Menu */
@@ -357,6 +356,10 @@ body {
   align-items: center;
   gap: 0.55rem;
   color: #f1f5f9;
+}
+
+.panel-title.justify-between {
+  justify-content: space-between;
 }
 
 .panel-title i {
@@ -1103,7 +1106,7 @@ input:focus, select:focus {
 }
 
 .btn-sm { font-size: 0.75rem; padding: 0.3rem 0.65rem; }
-.btn-xs { font-size: 0.7rem; padding: 0.2rem 0.5rem; }
+.btn-xs { font-size: 0.7rem; padding: 0.2rem 0.55rem; }
 .btn-block { width: 100%; }
 
 .icon-btn {
