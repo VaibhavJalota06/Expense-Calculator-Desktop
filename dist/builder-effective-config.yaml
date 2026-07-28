@@ -1,0 +1,24 @@
+directories:
+  output: dist
+  buildResources: build
+appId: com.expensecalculator.app
+productName: Expense OS
+publish:
+  - provider: github
+    owner: VaibhavJalota06
+    repo: Expense-Calculator-Desktop
+forceCodeSigning: false
+win:
+  icon: icon.png
+  target:
+    - nsis
+    - portable
+  sign: null
+  verifyUpdateCodeSignature: false
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+files: []
+electronVersion: 30.5.1
