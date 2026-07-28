@@ -1,0 +1,43 @@
+{
+  "name": "expense-calculator-desktop",
+  "version": "1.0.0",
+  "description": "Windows Desktop Expense Calculator",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder --win"
+  },
+  "build": {
+    "appId": "com.expensecalculator.app",
+    "productName": "Expense Calculator",
+    "directories": {
+      "output": "dist"
+    },
+    "win": {
+      "icon": "icon.png",
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true
+    }
+  },
+  "keywords": [
+    "expense",
+    "calculator",
+    "budget",
+    "desktop",
+    "windows"
+  ],
+  "author": "Expense Cal",
+  "license": "ISC",
+  "devDependencies": {
+    "electron": "^30.0.0",
+    "electron-builder": "^24.13.3"
+  }
+}
