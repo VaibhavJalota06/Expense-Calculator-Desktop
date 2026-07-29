@@ -232,7 +232,7 @@
               <div class="glass-panel bills-preview-card">
                 <div class="panel-title justify-between">
                   <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Bills</span>
-                  <a href="#" class="view-all-link" onclick="switchView('bills')">View All <i class="fa-solid fa-chevron-right"></i></a>
+                  <a href="#" class="view-all-link" data-view="bills">View All <i class="fa-solid fa-chevron-right"></i></a>
                 </div>
                 <div id="dash-subs-preview" class="dash-subs-list">
                   <!-- Dynamic Preview -->
@@ -302,7 +302,7 @@
           <div class="glass-panel subscriptions-card">
             <div class="panel-title justify-between">
               <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Subscriptions & Monthly Bills</span>
-              <button class="btn btn-primary btn-sm" onclick="document.getElementById('btn-add-sub').click()">
+              <button class="btn btn-primary btn-sm" id="btn-add-sub-inline">
                 <i class="fa-solid fa-plus"></i> Add New Bill
               </button>
             </div>

@@ -22,8 +22,8 @@ function createWindow() {
     backgroundColor: '#050811',
     icon: path.join(__dirname, 'icon.png'),
     webPreferences: {
-      nodeIntegration: true,
-      contextIsolation: false,
+      nodeIntegration: false,
+      contextIsolation: true,
     },
     show: false,
   });
@@ -31,7 +31,7 @@ function createWindow() {
   // Remove default menu bar for clean desktop app presentation
   Menu.setApplicationMenu(null);
 
-  mainWindow.loadFile('index.html');
+  mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.show();

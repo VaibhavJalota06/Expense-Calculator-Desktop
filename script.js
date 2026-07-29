@@ -86,6 +86,7 @@ const btnResetAll = document.getElementById('btn-reset-all');
 const btnEditBudget = document.getElementById('btn-edit-budget');
 const btnSidebarBudgetEdit = document.getElementById('btn-sidebar-budget-edit');
 const btnAddSub = document.getElementById('btn-add-sub');
+const btnAddSubInline = document.getElementById('btn-add-sub-inline');
 
 // Modals
 const budgetModal = document.getElementById('budget-modal');
@@ -141,20 +142,46 @@ function loadState() {
   const savedExpenses = localStorage.getItem('expense_cal_desktop_expenses');
   const savedSubs = localStorage.getItem('expense_cal_desktop_subscriptions');
 
-  budget = savedBudget !== null ? (parseFloat(savedBudget) || 0) : 0;
+  const parsedBudget = savedBudget !== null ? parseFloat(savedBudget) : 0;
+  budget = Number.isFinite(parsedBudget) && parsedBudget >= 0 ? parsedBudget : 0;
   if (savedExpenses) {
-    try { expenses = JSON.parse(savedExpenses); } catch (e) { expenses = []; }
+    try {
+      const parsedExpenses = JSON.parse(savedExpenses);
+      expenses = Array.isArray(parsedExpenses) ? parsedExpenses.filter(isValidExpense) : [];
+    } catch (e) { expenses = []; }
   } else {
     expenses = [];
   }
   if (savedSubs) {
-    try { subscriptions = JSON.parse(savedSubs); } catch (e) { subscriptions = []; }
+    try {
+      const parsedSubscriptions = JSON.parse(savedSubs);
+      subscriptions = Array.isArray(parsedSubscriptions) ? parsedSubscriptions.filter(isValidSubscription) : [];
+    } catch (e) { subscriptions = []; }
   } else {
     subscriptions = [];
   }
 
   updateMonthPickerOptions();
   updateUI();
+}
+
+function isValidExpense(item) {
+  return item && typeof item === 'object' &&
+    typeof item.id === 'string' &&
+    Number.isFinite(Number(item.amount)) && Number(item.amount) >= 0 &&
+    typeof item.category === 'string' &&
+    typeof item.description === 'string' &&
+    typeof item.payment === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(item.date);
+}
+
+function isValidSubscription(item) {
+  return item && typeof item === 'object' &&
+    typeof item.id === 'string' &&
+    typeof item.name === 'string' &&
+    Number.isFinite(Number(item.amount)) && Number(item.amount) > 0 &&
+    Number.isInteger(Number(item.dueDay)) && Number(item.dueDay) >= 1 && Number(item.dueDay) <= 31 &&
+    typeof item.category === 'string';
 }
 
 function getLocalDateString() {
@@ -277,6 +304,13 @@ document.querySelectorAll('.nav-item').forEach(nav => {
     e.preventDefault();
     const view = nav.dataset.view;
     if (view) switchView(view);
+  });
+});
+
+document.querySelectorAll('[data-view]').forEach(control => {
+  control.addEventListener('click', (e) => {
+    e.preventDefault();
+    switchView(control.dataset.view);
   });
 });
 
@@ -477,7 +511,7 @@ function renderSubscriptions() {
               <div class="sub-title">${escapeHtml(sub.name)}</div>
               <div class="sub-due">${escapeHtml(sub.category)}</div>
             </div>
-            <button class="icon-btn action-btn-del" onclick="deleteSubscription('${sub.id}')" title="Delete Subscription">
+            <button class="icon-btn action-btn-del" data-delete-sub="${sub.id}" title="Delete Subscription">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
@@ -486,7 +520,7 @@ function renderSubscriptions() {
             <span class="status-badge ${statusClass}">${statusText}</span>
             ${
               !isPaidThisMonth
-                ? `<button class="btn btn-secondary btn-sm" onclick="markSubAsPaid('${sub.id}')">
+                ? `<button class="btn btn-secondary btn-sm" data-pay-sub="${sub.id}">
                     <i class="fa-solid fa-check"></i> Mark Paid
                    </button>`
                 : `<span class="paid-check-badge"><i class="fa-solid fa-circle-check"></i> Paid</span>`
@@ -518,7 +552,7 @@ function renderSubscriptions() {
             <span class="dash-sub-amount">${formatCurrency(sub.amount)}</span>
             ${isPaidThisMonth
               ? '<span class="status-badge paid"><i class="fa-solid fa-check"></i> Paid</span>'
-              : `<button class="btn btn-secondary btn-xs" onclick="markSubAsPaid('${sub.id}')">Pay</button>`
+              : `<button class="btn btn-secondary btn-xs" data-pay-sub="${sub.id}">Pay</button>`
             }
           </div>
         `;
@@ -528,7 +562,7 @@ function renderSubscriptions() {
   }
 }
 
-window.markSubAsPaid = function(subId) {
+function markSubAsPaid(subId) {
   const sub = subscriptions.find(s => s.id === subId);
   if (!sub) return;
 
@@ -537,7 +571,7 @@ window.markSubAsPaid = function(subId) {
 
   const today = getLocalDateString();
   const newExpense = {
-    id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
     amount: sub.amount,
     category: sub.category || 'Services & Subscriptions',
     description: `Bill Payment: ${sub.name}`,
@@ -549,15 +583,15 @@ window.markSubAsPaid = function(subId) {
   saveState();
   updateMonthPickerOptions();
   updateUI();
-};
+}
 
-window.deleteSubscription = function(subId) {
+function deleteSubscription(subId) {
   if (confirm('Delete this recurring subscription/bill?')) {
     subscriptions = subscriptions.filter(s => s.id !== subId);
     saveState();
     updateUI();
   }
-};
+}
 
 // SVG Category Donut & Analytics Breakdown
 function renderCategoryBreakdown(filteredList, totalSpent) {
@@ -699,7 +733,7 @@ function renderMonthlyTrendChart() {
     const barColor = isSelected ? 'linear-gradient(180deg, #818cf8, #6366f1)' : 'linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.2))';
 
     return `
-      <div class="trend-bar-column ${isSelected ? 'selected' : ''}" onclick="selectMonthFromChart('${ym}')" title="${formatMonthLabel(ym)}: ${formatCurrency(amount)}">
+      <div class="trend-bar-column ${isSelected ? 'selected' : ''}" data-select-month="${ym}" title="${formatMonthLabel(ym)}: ${formatCurrency(amount)}">
         <div class="trend-bar-val">${formatCurrency(amount)}</div>
         <div class="trend-bar-track">
           <div class="trend-bar-fill" style="height: ${heightPercent}%; background: ${barColor};"></div>
@@ -716,11 +750,11 @@ function renderMonthlyTrendChart() {
   `;
 }
 
-window.selectMonthFromChart = function(ym) {
+function selectMonthFromChart(ym) {
   selectedMonth = ym;
   updateMonthPickerOptions();
   updateUI();
-};
+}
 
 function renderTransactionsTable(monthFilteredExpenses) {
   if (!transactionsTbody) return;
@@ -764,7 +798,7 @@ function renderTransactionsTable(monthFilteredExpenses) {
       <td><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>
       <td class="text-right font-bold text-amount">${formatCurrency(item.amount)}</td>
       <td class="text-center">
-        <button class="icon-btn action-btn-del" onclick="deleteTransaction('${item.id}')" title="Delete Transaction">
+        <button class="icon-btn action-btn-del" data-delete-tx="${item.id}" title="Delete Transaction">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </td>
@@ -803,7 +837,7 @@ if (expenseForm) {
     }
 
     const newExpense = {
-      id: Date.now().toString(36) + Math.random().toString(36).substr(2, 5),
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
       amount,
       category,
       description,
@@ -824,18 +858,19 @@ if (expenseForm) {
 
     expAmountInput.value = '';
     expDescriptionInput.value = '';
+    setTodayDateDefault();
     expAmountInput.focus();
   });
 }
 
-window.deleteTransaction = function(id) {
+function deleteTransaction(id) {
   if (confirm('Are you sure you want to delete this transaction?')) {
     expenses = expenses.filter(item => item.id !== id);
     saveState();
     updateMonthPickerOptions();
     updateUI();
   }
-};
+}
 
 if (filterSearchInput) filterSearchInput.addEventListener('input', updateUI);
 if (filterCategorySelect) filterCategorySelect.addEventListener('change', updateUI);
@@ -874,15 +909,20 @@ if (btnSidebarBudgetEdit) btnSidebarBudgetEdit.addEventListener('click', openBud
 if (btnCardBudgetEdit) btnCardBudgetEdit.addEventListener('click', (e) => { e.stopPropagation(); openBudgetModal(); });
 if (statBudgetCard) statBudgetCard.addEventListener('click', openBudgetModal);
 
-function closeModal() {
-  if (budgetModal) budgetModal.classList.add('hidden');
-  if (subModal) subModal.classList.add('hidden');
+function closeModal(targetModal) {
+  if (targetModal) {
+    targetModal.classList.add('hidden');
+  } else {
+    // Close all modals if no specific target
+    if (budgetModal) budgetModal.classList.add('hidden');
+    if (subModal) subModal.classList.add('hidden');
+  }
 }
 
-if (modalCancelBtn) modalCancelBtn.addEventListener('click', closeModal);
-if (modalCloseBtn) modalCloseBtn.addEventListener('click', closeModal);
-if (subModalCloseBtn) subModalCloseBtn.addEventListener('click', closeModal);
-if (subModalCancelBtn) subModalCancelBtn.addEventListener('click', closeModal);
+if (modalCancelBtn) modalCancelBtn.addEventListener('click', () => closeModal(budgetModal));
+if (modalCloseBtn) modalCloseBtn.addEventListener('click', () => closeModal(budgetModal));
+if (subModalCloseBtn) subModalCloseBtn.addEventListener('click', () => closeModal(subModal));
+if (subModalCancelBtn) subModalCancelBtn.addEventListener('click', () => closeModal(subModal));
 
 // Backdrop Click to Dismiss Modals
 if (budgetModal) {
@@ -933,15 +973,17 @@ if (budgetForm) {
 }
 
 // Add Subscription Modal
-if (btnAddSub) {
-  btnAddSub.addEventListener('click', () => {
-    subNameInput.value = '';
-    subAmountInput.value = '';
-    subDueDayInput.value = '';
-    subModal.classList.remove('hidden');
-    subNameInput.focus();
-  });
+function openSubscriptionModal() {
+  if (!subNameInput || !subAmountInput || !subDueDayInput || !subModal) return;
+  subNameInput.value = '';
+  subAmountInput.value = '';
+  subDueDayInput.value = '';
+  subModal.classList.remove('hidden');
+  subNameInput.focus();
 }
+
+if (btnAddSub) btnAddSub.addEventListener('click', openSubscriptionModal);
+if (btnAddSubInline) btnAddSubInline.addEventListener('click', openSubscriptionModal);
 
 if (subForm) {
   subForm.addEventListener('submit', (e) => {
@@ -981,7 +1023,7 @@ if (btnExportCsv) {
       return;
     }
 
-    let csvContent = 'data:text/csv;charset=utf-8,Date,Category,Description,Payment Method,Amount (INR)\n';
+    let csvContent = 'Date,Category,Description,Payment Method,Amount (INR)\n';
     exportList.forEach(item => {
       const safeDesc = (item.description || '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ');
       const safeCat = (item.category || '').replace(/"/g, '""');
@@ -990,13 +1032,15 @@ if (btnExportCsv) {
       csvContent += row + '\n';
     });
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
+    link.setAttribute('href', url);
     link.setAttribute('download', `Expense_Report_${selectedMonth}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   });
 }
 
@@ -1029,6 +1073,34 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Escape') {
     closeModal();
+  }
+});
+
+// ---------- Delegated Event Listeners ----------
+// Handle clicks on dynamically-rendered elements via data-* attributes
+document.addEventListener('click', (e) => {
+  const target = e.target.closest('[data-delete-sub]');
+  if (target) {
+    deleteSubscription(target.dataset.deleteSub);
+    return;
+  }
+
+  const payBtn = e.target.closest('[data-pay-sub]');
+  if (payBtn) {
+    markSubAsPaid(payBtn.dataset.paySub);
+    return;
+  }
+
+  const txDel = e.target.closest('[data-delete-tx]');
+  if (txDel) {
+    deleteTransaction(txDel.dataset.deleteTx);
+    return;
+  }
+
+  const monthBar = e.target.closest('[data-select-month]');
+  if (monthBar) {
+    selectMonthFromChart(monthBar.dataset.selectMonth);
+    return;
   }
 });
 

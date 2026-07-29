@@ -39,6 +39,11 @@ body {
   color: var(--text-main);
   min-height: 100vh;
   overflow-x: hidden;
+}
+
+/* Prevent text selection only on interactive/decorative elements */
+.btn, .icon-btn, .nav-item, .sidebar-brand, .filter-chip,
+.month-nav-btn, .gauge-status-badge, .radial-gauge-center {
   user-select: none;
 }
 
