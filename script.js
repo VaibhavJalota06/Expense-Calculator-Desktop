@@ -307,7 +307,7 @@ document.querySelectorAll('.nav-item').forEach(nav => {
   });
 });
 
-document.querySelectorAll('[data-view]').forEach(control => {
+document.querySelectorAll('.view-all-link[data-view]').forEach(control => {
   control.addEventListener('click', (e) => {
     e.preventDefault();
     switchView(control.dataset.view);
@@ -927,12 +927,12 @@ if (subModalCancelBtn) subModalCancelBtn.addEventListener('click', () => closeMo
 // Backdrop Click to Dismiss Modals
 if (budgetModal) {
   budgetModal.addEventListener('click', (e) => {
-    if (e.target === budgetModal) closeModal();
+    if (e.target === budgetModal) closeModal(budgetModal);
   });
 }
 if (subModal) {
   subModal.addEventListener('click', (e) => {
-    if (e.target === subModal) closeModal();
+    if (e.target === subModal) closeModal(subModal);
   });
 }
 
@@ -943,7 +943,7 @@ function handleSaveBudget(e) {
   const cleaned = raw.toString().replace(/[^0-9.]/g, '').trim();
   const newBudget = parseFloat(cleaned);
 
-  if (cleaned === '' || isNaN(newBudget) || newBudget < 0) {
+  if (cleaned === '' || isNaN(newBudget) || newBudget <= 0) {
     alert('Please enter a valid budget amount.');
     return;
   }

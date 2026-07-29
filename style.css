@@ -904,6 +904,30 @@ input:focus, select:focus {
   margin-top: 0.3rem;
 }
 
+.empty-state-small {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+}
+
+.empty-state-small .empty-state-icon {
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.paid-check-badge {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--emerald);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+#filter-category {
+  max-width: 200px;
+}
+
 /* Analytics Grid Layout */
 .analytics-grid {
   display: grid;

@@ -15,6 +15,11 @@
   "build": {
     "appId": "com.expensecalculator.app",
     "productName": "Expense OS",
+    "files": [
+      "!dist{,/**}",
+      "!dist-verify{,/**}",
+      "!release{,/**}"
+    ],
     "publish": [
       {
         "provider": "github",
