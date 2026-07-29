@@ -16,8 +16,8 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1240,
     height: 820,
-    minWidth: 950,
-    minHeight: 650,
+    minWidth: 420,
+    minHeight: 500,
     title: 'Expense OS - Desktop Studio',
     backgroundColor: '#050811',
     icon: path.join(__dirname, 'icon.png'),

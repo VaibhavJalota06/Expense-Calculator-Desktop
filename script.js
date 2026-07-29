@@ -1104,6 +1104,38 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// ---------- Sidebar Toggle for Small Screens ----------
+const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
+const sidebarEl = document.querySelector('.sidebar');
+
+function toggleSidebar() {
+  if (sidebarEl) sidebarEl.classList.toggle('sidebar-open');
+}
+
+function closeSidebar() {
+  if (sidebarEl) sidebarEl.classList.remove('sidebar-open');
+}
+
+if (sidebarToggleBtn) {
+  sidebarToggleBtn.addEventListener('click', toggleSidebar);
+}
+
+// Auto-close sidebar when a nav item is clicked on small screens
+document.querySelectorAll('.nav-item').forEach(nav => {
+  nav.addEventListener('click', () => {
+    if (window.innerWidth <= 900) closeSidebar();
+  });
+});
+
+// Close sidebar when clicking outside on mobile (on the main workspace)
+document.querySelector('.main-workspace')?.addEventListener('click', (e) => {
+  if (window.innerWidth <= 900 && sidebarEl?.classList.contains('sidebar-open')) {
+    if (!e.target.closest('.sidebar-toggle-btn')) {
+      closeSidebar();
+    }
+  }
+});
+
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
   setTodayDateDefault();
