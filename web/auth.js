@@ -77,21 +77,18 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    async function triggerWelcomeEmail(user, name, force = false) {
+    async function triggerWelcomeEmail(user, name) {
       if (!user || !user.email) return;
       const key = 'expense_cal_welcome_email_sent_' + user.uid;
-      if (!force && localStorage.getItem(key)) {
-        console.log('Welcome email already sent for UID:', user.uid);
-      }
+      if (localStorage.getItem(key)) return;
       localStorage.setItem(key, 'true');
 
       const recipientName = name || user.displayName || user.email.split('@')[0] || 'User';
-      console.log('Sending EmailJS welcome email to:', user.email, 'service:', emailjsConfig.serviceId);
 
-      // Live Delivery via EmailJS directly to Gmail
+      // Automated Live Delivery via EmailJS directly to Gmail
       if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
         try {
-          const res = await emailjs.send(
+          await emailjs.send(
             emailjsConfig.serviceId,
             emailjsConfig.templateId,
             {
@@ -106,25 +103,12 @@ if (isFirebaseConfigured && auth) {
             },
             emailjsConfig.publicKey
           );
-          console.log('EmailJS Live Dispatch Success:', res.status, res.text);
-          if (typeof showAlert === 'function') {
-            showAlert('Welcome Email Sent! 📩', `A live welcome email has been delivered to ${user.email}. Check your inbox or Spam folder!`);
-          }
+          console.log('Automated Welcome Email sent successfully to:', user.email);
         } catch (err) {
-          console.error('EmailJS Live Dispatch Error:', err);
-          if (typeof showAlert === 'function') {
-            showAlert('Email Dispatch Notice', `EmailJS status: ${err.text || err.message || 'Check EmailJS Template Settings'}`);
-          }
+          console.warn('Welcome Email delivery notice:', err);
         }
       }
     }
-
-    window.testSendWelcomeEmail = function() {
-      const currentUser = auth ? auth.currentUser : { uid: 'test', email: 'bountyh745@gmail.com', displayName: 'Test User' };
-      if (currentUser) {
-        triggerWelcomeEmail(currentUser, currentUser.displayName || 'Test User', true);
-      }
-    };
 
     async function signUpWithEmail(name, gender, email, password) {
       try {
