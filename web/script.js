@@ -9,17 +9,22 @@ let activeTimeFilter = 'ALL';
 let currentView = 'dashboard';
 let selectedMonth = getCurrentYearMonth(); // YYYY-MM or 'ALL'
 
-// Category Color Map
+// Category Color Map (Spec Compliant)
 const categoryColors = {
-  'Food & Dining': '#3b82f6',
-  'Transportation': '#f59e0b',
-  'Shopping': '#ec4899',
-  'Bills & Utilities': '#10b981',
-  'Entertainment': '#8b5cf6',
-  'Health & Fitness': '#06b6d4',
-  'Services & Subscriptions': '#6366f1',
-  'Miscellaneous': '#64748b'
+  'Food & Dining': '#34D399',           // Emerald
+  'Transportation': '#38BDF8',          // Sky
+  'Shopping': '#A78BFA',                // Violet
+  'Bills & Utilities': '#FBBF24',       // Amber
+  'Entertainment': '#F472B6',           // Pink
+  'Health & Fitness': '#FB923C',        // Orange
+  'Services & Subscriptions': '#818CF8',// Indigo
+  'Miscellaneous': '#94A3B8'            // Slate
 };
+
+// Chart.js Instances
+let breakdownChartInstance = null;
+let fullAnalyticsChartInstance = null;
+let trendChartInstance = null;
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -346,15 +351,12 @@ if (btnPrevMonth && btnNextMonth) {
 
 // ---------- Tab / View Switching ----------
 function switchView(viewName) {
-  currentView = viewName;
-  document.querySelectorAll('.view-panel').forEach(panel => {
-    panel.classList.remove('active');
-  });
+  if (currentView === viewName) return;
 
+  const oldPanel = document.getElementById(`view-${currentView}`);
   const targetPanel = document.getElementById(`view-${viewName}`);
-  if (targetPanel) {
-    targetPanel.classList.add('active');
-  }
+
+  currentView = viewName;
 
   document.querySelectorAll('.nav-item').forEach(nav => {
     if (nav.dataset.view === viewName) {
@@ -369,7 +371,20 @@ function switchView(viewName) {
     viewSubtitleEl.textContent = viewHeadings[viewName].subtitle;
   }
 
-  updateUI();
+  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  if (oldPanel && targetPanel && !isReducedMotion) {
+    oldPanel.classList.add('view-exit');
+    setTimeout(() => {
+      oldPanel.classList.remove('active', 'view-exit');
+      targetPanel.classList.add('active');
+      updateUI();
+    }, 150);
+  } else {
+    document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active', 'view-exit'));
+    if (targetPanel) targetPanel.classList.add('active');
+    updateUI();
+  }
 }
 
 document.querySelectorAll('.nav-item').forEach(nav => {
@@ -479,25 +494,25 @@ function renderRadialGauge(spentRatio, totalSpent, budgetLimit) {
   const clampPercent = Math.min(100, Math.max(0, spentRatio));
   const strokeDashoffset = circumference - (clampPercent / 100) * circumference;
 
-  let strokeColor = '#6366f1';
+  let strokeColor = '#34D399';
   let statusText = 'Normal Spending';
-  let badgeClass = 'gauge-normal';
+  let badgeClass = 'gauge-success';
 
   if (budgetLimit === 0) {
     statusText = 'Set Budget Limit';
-    strokeColor = '#64748b';
+    strokeColor = '#5F6A80';
     badgeClass = 'gauge-muted';
   } else if (spentRatio > 100) {
     statusText = 'Over Budget Cap!';
-    strokeColor = '#f43f5e';
+    strokeColor = '#FB7185';
     badgeClass = 'gauge-danger';
   } else if (spentRatio >= 80) {
     statusText = 'High Spending Warning';
-    strokeColor = '#f59e0b';
+    strokeColor = '#FBBF24';
     badgeClass = 'gauge-warning';
   } else {
     statusText = 'Budget Healthy';
-    strokeColor = '#10b981';
+    strokeColor = '#34D399';
     badgeClass = 'gauge-success';
   }
 
@@ -666,14 +681,17 @@ function deleteSubscription(subId) {
   }
 }
 
-// SVG Category Donut & Analytics Breakdown
+// Chart.js Category Donut Breakdown
 function renderCategoryBreakdown(filteredList, totalSpent) {
+  if (breakdownChartInstance) { breakdownChartInstance.destroy(); breakdownChartInstance = null; }
+  if (fullAnalyticsChartInstance) { fullAnalyticsChartInstance.destroy(); fullAnalyticsChartInstance = null; }
+
   const containers = [
-    { chart: breakdownChartContainer, list: breakdownListEl },
-    { chart: fullAnalyticsChartContainer, list: fullAnalyticsListEl }
+    { chart: breakdownChartContainer, list: breakdownListEl, getInstance: () => breakdownChartInstance, setInstance: (inst) => { breakdownChartInstance = inst; } },
+    { chart: fullAnalyticsChartContainer, list: fullAnalyticsListEl, getInstance: () => fullAnalyticsChartInstance, setInstance: (inst) => { fullAnalyticsChartInstance = inst; } }
   ];
 
-  containers.forEach(({ chart, list }) => {
+  containers.forEach(({ chart, list, setInstance }) => {
     if (list) list.innerHTML = '';
     if (chart) chart.innerHTML = '';
 
@@ -697,55 +715,68 @@ function renderCategoryBreakdown(filteredList, totalSpent) {
 
     const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
 
-    // SVG Donut Chart
+    // Chart.js Donut Chart
     if (chart) {
-      let accumulatedAngle = 0;
-      const slices = [];
-      const size = 170;
-      const strokeWidth = 26;
-      const radius = (size - strokeWidth) / 2;
-      const circumference = 2 * Math.PI * radius;
+      const wrapper = document.createElement('div');
+      wrapper.className = 'donut-chart-wrapper';
+      const canvas = document.createElement('canvas');
+      wrapper.appendChild(canvas);
 
-      sortedCategories.forEach(([catName, catAmount]) => {
-        const percentage = catAmount / totalSpent;
-        const strokeDasharray = `${percentage * circumference} ${circumference}`;
-        // Correct positive dashoffset: shift start point by already-drawn arc length
-        const strokeDashoffset = circumference * (1 - accumulatedAngle);
-        accumulatedAngle += percentage;
-        const color = categoryColors[catName] || '#6366f1';
-
-        slices.push(`
-          <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
-            fill="transparent"
-            stroke="${color}"
-            stroke-width="${strokeWidth}"
-            stroke-dasharray="${strokeDasharray}"
-            stroke-dashoffset="${strokeDashoffset}"
-            class="donut-slice"
-          >
-            <title>${catName}: ${formatCurrency(catAmount)} (${(percentage * 100).toFixed(1)}%)</title>
-          </circle>
-        `);
-      });
-
-      chart.innerHTML = `
-        <div class="donut-chart-wrapper">
-          <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="donut-svg">
-            ${slices.join('')}
-          </svg>
-          <div class="donut-center-text">
-            <span class="donut-total-title">Total Spent</span>
-            <span class="donut-total-val">${formatCurrency(totalSpent)}</span>
-          </div>
-        </div>
+      const centerText = document.createElement('div');
+      centerText.className = 'donut-center-text';
+      centerText.innerHTML = `
+        <span class="donut-total-title">Total Spent</span>
+        <span class="donut-total-val mono">${formatCurrency(totalSpent)}</span>
       `;
+      wrapper.appendChild(centerText);
+      chart.appendChild(wrapper);
+
+      if (typeof Chart !== 'undefined') {
+        const inst = new Chart(canvas, {
+          type: 'doughnut',
+          data: {
+            labels: sortedCategories.map(c => c[0]),
+            datasets: [{
+              data: sortedCategories.map(c => c[1]),
+              backgroundColor: sortedCategories.map(c => categoryColors[c[0]] || '#34D399'),
+              borderColor: '#0E131A',
+              borderWidth: 2,
+              hoverOffset: 6
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: { animateScale: true, animateRotate: true },
+            plugins: {
+              legend: { display: false },
+              tooltip: {
+                backgroundColor: 'rgba(14, 19, 26, 0.95)',
+                titleColor: '#F2F5FA',
+                bodyColor: '#A6B0C3',
+                borderColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 1,
+                callbacks: {
+                  label: function(context) {
+                    const val = context.raw || 0;
+                    const pct = ((val / totalSpent) * 100).toFixed(1);
+                    return `${context.label}: ${formatCurrency(val)} (${pct}%)`;
+                  }
+                }
+              }
+            },
+            cutout: '74%'
+          }
+        });
+        setInstance(inst);
+      }
     }
 
     // List Breakdown items
     if (list) {
       sortedCategories.forEach(([catName, catAmount]) => {
         const percent = ((catAmount / totalSpent) * 100).toFixed(1);
-        const color = categoryColors[catName] || '#3b82f6';
+        const color = categoryColors[catName] || '#34D399';
 
         const itemEl = document.createElement('div');
         itemEl.className = 'breakdown-item';
@@ -755,7 +786,7 @@ function renderCategoryBreakdown(filteredList, totalSpent) {
               <span class="cat-dot" style="background: ${color};"></span>
               ${catName} (${percent}%)
             </span>
-            <strong>${formatCurrency(catAmount)}</strong>
+            <strong class="mono">${formatCurrency(catAmount)}</strong>
           </div>
           <div class="breakdown-bar-bg">
             <div class="breakdown-bar-fill" style="width: ${percent}%; background: ${color};"></div>
@@ -767,9 +798,10 @@ function renderCategoryBreakdown(filteredList, totalSpent) {
   });
 }
 
-// Render SVG Month-Wise Historical Trend Bar Chart
+// Chart.js 6-Month Trend Bar Chart
 function renderMonthlyTrendChart() {
   if (!monthlyTrendChartContainer) return;
+  if (trendChartInstance) { trendChartInstance.destroy(); trendChartInstance = null; }
   monthlyTrendChartContainer.innerHTML = '';
 
   if (expenses.length === 0) {
@@ -782,7 +814,6 @@ function renderMonthlyTrendChart() {
     return;
   }
 
-  // Calculate monthly totals for all available months
   const monthlyTotals = {};
   expenses.forEach(item => {
     if (item.date && item.date.length >= 7) {
@@ -797,31 +828,64 @@ function renderMonthlyTrendChart() {
     return;
   }
 
-  const maxSpent = Math.max(...Object.values(monthlyTotals), budget || 1);
-  const chartHeight = 160;
+  const canvas = document.createElement('canvas');
+  canvas.style.height = '180px';
+  monthlyTrendChartContainer.appendChild(canvas);
 
-  const barElements = months.map(ym => {
-    const amount = monthlyTotals[ym] || 0;
-    const heightPercent = Math.min(100, Math.max(8, (amount / maxSpent) * 100));
-    const isSelected = selectedMonth === ym;
-    const barColor = isSelected ? 'linear-gradient(180deg, #818cf8, #6366f1)' : 'linear-gradient(180deg, rgba(99, 102, 241, 0.6), rgba(99, 102, 241, 0.2))';
-
-    return `
-      <div class="trend-bar-column ${isSelected ? 'selected' : ''}" data-select-month="${ym}" title="${formatMonthLabel(ym)}: ${formatCurrency(amount)}">
-        <div class="trend-bar-val">${formatCurrency(amount)}</div>
-        <div class="trend-bar-track">
-          <div class="trend-bar-fill" style="height: ${heightPercent}%; background: ${barColor};"></div>
-        </div>
-        <div class="trend-bar-label">${formatMonthLabel(ym).split(' ')[0]}</div>
-      </div>
-    `;
-  });
-
-  monthlyTrendChartContainer.innerHTML = `
-    <div class="trend-chart-flex">
-      ${barElements.join('')}
-    </div>
-  `;
+  if (typeof Chart !== 'undefined') {
+    trendChartInstance = new Chart(canvas, {
+      type: 'bar',
+      data: {
+        labels: months.map(ym => formatMonthLabel(ym).split(' ')[0]),
+        datasets: [{
+          data: months.map(ym => monthlyTotals[ym] || 0),
+          backgroundColor: months.map(ym => selectedMonth === ym ? '#34D399' : 'rgba(56, 189, 248, 0.35)'),
+          hoverBackgroundColor: months.map(ym => selectedMonth === ym ? '#34D399' : 'rgba(56, 189, 248, 0.75)'),
+          borderRadius: 6,
+          borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        onClick: (e, elements) => {
+          if (elements && elements.length > 0) {
+            const idx = elements[0].index;
+            selectMonthFromChart(months[idx]);
+          }
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: 'rgba(14, 19, 26, 0.95)',
+            titleColor: '#F2F5FA',
+            bodyColor: '#A6B0C3',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            borderWidth: 1,
+            callbacks: {
+              label: function(context) {
+                return `${formatMonthLabel(months[context.dataIndex])}: ${formatCurrency(context.raw)}`;
+              }
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { color: '#A6B0C3', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
+          },
+          y: {
+            grid: { color: 'rgba(255, 255, 255, 0.05)' },
+            ticks: {
+              color: '#5F6A80',
+              font: { family: 'IBM Plex Mono', size: 10 },
+              callback: function(val) { return '₹' + val; }
+            }
+          }
+        }
+      }
+    });
+  }
 }
 
 function selectMonthFromChart(ym) {
@@ -866,7 +930,7 @@ function renderTransactionsTable(monthFilteredExpenses) {
     const color = categoryColors[item.category] || '#3b82f6';
 
     tr.innerHTML = `
-      <td data-label="Date" class="font-medium">${item.date}</td>
+      <td data-label="Date" class="font-medium mono">${item.date}</td>
       <td data-label="Category"><span class="category-badge" style="border-left: 3px solid ${color};">${item.category}</span></td>
       <td data-label="Description" class="description-cell">${escapeHtml(item.description)}</td>
       <td data-label="Payment"><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>

@@ -5,14 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Expense OS - Personal Finance Command Center</title>
   <meta name="description" content="Expense OS — a personal finance command center to track expenses, manage budgets, and analyze spending habits with real-time cloud sync." />
-  <!-- Google Fonts: Plus Jakarta Sans -->
+  <!-- Google Fonts: Plus Jakarta Sans & IBM Plex Mono -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Custom Stylesheet (Cache Busted v2.0.3) -->
-  <link rel="stylesheet" href="style.css?v=2.0.3" />
+  <!-- Custom Stylesheet (Cache Busted v3.0.0) -->
+  <link rel="stylesheet" href="style.css?v=3.0.0" />
 </head>
 <body>
   <!-- Instant App Startup Loader -->
@@ -23,6 +23,11 @@
       <p class="loader-text">Loading Expense OS...</p>
     </div>
   </div>
+
+  <!-- Ambient Background Glow Blobs -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+  <div class="bg-glow bg-glow-3"></div>
 
   <!-- ============================================================ -->
   <!-- AUTHENTICATION SCREEN (Shown when user is not logged in) -->
@@ -164,7 +169,7 @@
             <span>Budget Cap</span>
             <button id="btn-sidebar-budget-edit" class="icon-btn" title="Edit Budget"><i class="fa-solid fa-pen-to-square"></i></button>
           </div>
-          <div id="sidebar-budget-val" class="sb-budget-val">₹0.00</div>
+          <div id="sidebar-budget-val" class="sb-budget-val mono">₹0.00</div>
         </div>
         <div class="sidebar-actions">
           <button id="btn-export-csv" class="btn btn-secondary btn-block" title="Export CSV">
@@ -214,9 +219,9 @@
             <div class="glass-panel stat-card clickable-card" id="stat-budget-card" title="Click to change monthly budget cap">
               <div class="stat-header">
                 <span>Monthly Budget Cap</span>
-                <i class="fa-solid fa-wallet text-indigo"></i>
+                <i class="fa-solid fa-wallet text-emerald"></i>
               </div>
-              <div id="stat-budget" class="stat-value text-indigo">₹0.00</div>
+              <div id="stat-budget" class="stat-value text-emerald mono">₹0.00</div>
               <div id="stat-percent" class="stat-subtext text-muted">No budget limit set <span class="edit-hint">(Edit)</span></div>
             </div>
 
@@ -225,7 +230,7 @@
                 <span>Total Spent (<span id="active-month-label">Current</span>)</span>
                 <i class="fa-solid fa-receipt text-amber"></i>
               </div>
-              <div id="stat-spent" class="stat-value text-amber">₹0.00</div>
+              <div id="stat-spent" class="stat-value text-amber mono">₹0.00</div>
               <div id="stat-count" class="stat-subtext text-muted">0 transactions recorded</div>
             </div>
 
@@ -234,16 +239,16 @@
                 <span>Remaining Balance</span>
                 <i id="status-icon" class="fa-solid fa-shield-halved text-emerald"></i>
               </div>
-              <div id="stat-remaining" class="stat-value text-emerald">₹0.00</div>
+              <div id="stat-remaining" class="stat-value text-emerald mono">₹0.00</div>
               <div id="progress-percent-label" class="stat-subtext text-muted">0% Used</div>
             </div>
 
             <div class="glass-panel stat-card">
               <div class="stat-header">
                 <span>Monthly Subscriptions</span>
-                <i class="fa-solid fa-arrows-rotate text-purple"></i>
+                <i class="fa-solid fa-arrows-rotate text-violet"></i>
               </div>
-              <div id="stat-subs-total" class="stat-value text-purple">₹0.00</div>
+              <div id="stat-subs-total" class="stat-value text-violet mono">₹0.00</div>
               <div id="stat-subs-count" class="stat-subtext text-muted">0 active bills</div>
             </div>
           </div>
@@ -504,6 +509,9 @@
       </form>
     </div>
   </div>
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <!-- Firebase SDK (compat for vanilla JS) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
