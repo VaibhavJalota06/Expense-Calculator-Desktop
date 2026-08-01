@@ -83,7 +83,11 @@ const server = http.createServer((req, res) => {
       res.writeHead(500);
       res.end('Error loading ' + filePath);
     } else {
-      res.writeHead(200, { 'Content-Type': contentType });
+      res.writeHead(200, {
+        'Content-Type': contentType,
+        'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
+        'Cross-Origin-Embedder-Policy': 'unsafe-none'
+      });
       res.end(content, 'utf-8');
     }
   });

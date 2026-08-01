@@ -55,16 +55,26 @@ if (isFirebaseConfigured && auth) {
           try {
             await auth.signInWithPopup(googleProvider);
           } catch (popupErr) {
-            if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/operation-not-supported-in-this-environment') {
-              await auth.signInWithRedirect(googleProvider);
+            console.warn('Google Auth popup error:', popupErr);
+            const msg = popupErr && (popupErr.message || popupErr.code || '');
+            if (popupErr.code === 'auth/popup-blocked' ||
+                popupErr.code === 'auth/popup-closed-by-user' ||
+                popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
+                msg.includes('Cross-Origin-Opener-Policy') ||
+                msg.includes('closed')) {
+              try {
+                await auth.signInWithRedirect(googleProvider);
+              } catch (redErr) {
+                showError(loginError, 'Google auth popup was blocked by browser security. Click "Continue as Guest" below to use the app immediately.');
+              }
             } else {
-              showError(loginError, getAuthErrorMessage(popupErr));
+              showError(loginError, getAuthErrorMessage(popupErr) + ' Or click "Continue as Guest" below to use the app immediately.');
             }
           }
         }
       } catch (error) {
         console.error('Google Sign-In error:', error);
-        showError(loginError, getAuthErrorMessage(error));
+        showError(loginError, getAuthErrorMessage(error) + ' Or click "Continue as Guest" below to use the app immediately.');
       }
     }
 
@@ -216,6 +226,25 @@ if (isFirebaseConfigured && auth) {
       syncStatusEl.innerHTML = `<i class="fa-solid ${s.icon}"></i> ${s.text}`;
     };
 
+    // Guest Mode Handler
+    function continueAsGuest() {
+      hideLoader();
+      showApp({ displayName: 'Guest User', email: 'Local Mode', photoURL: '' });
+      if (typeof loadStateFromLocal === 'function') loadStateFromLocal();
+    }
+
+    document.querySelectorAll('.btn-guest-login').forEach(btn => {
+      btn.addEventListener('click', continueAsGuest);
+    });
+
+    document.addEventListener('click', (e) => {
+      const gBtn = e.target.closest('.btn-guest-login');
+      if (gBtn) {
+        e.preventDefault();
+        continueAsGuest();
+      }
+    });
+
     // Event Listeners
     document.querySelectorAll('.btn-google-login').forEach(btn => {
       btn.addEventListener('click', signInWithGoogle);
@@ -249,6 +278,13 @@ if (isFirebaseConfigured && auth) {
 } else {
   // Firebase not configured — run in offline/localStorage mode
   (function offlineMode() {
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+      loader.style.opacity = '0';
+      loader.style.visibility = 'hidden';
+      loader.style.pointerEvents = 'none';
+      loader.style.display = 'none';
+    }
     const loginScreen = document.getElementById('login-screen');
     const appLayout = document.querySelector('.app-layout');
     if (loginScreen) loginScreen.classList.add('hidden');

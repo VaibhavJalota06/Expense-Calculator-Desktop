@@ -137,78 +137,89 @@ function formatMonthLabel(ymStr) {
   return `${monthNames[monthIdx] || parts[1]} ${year}`;
 }
 
-// Custom Glassmorphic Confirm & Alert Modal Helpers
+// // Custom Glassmorphic Confirm & Alert Modal Helpers
 function showConfirm(title, message, isDanger = false) {
   return new Promise((resolve) => {
-    const modal = document.getElementById('confirm-modal');
-    const titleEl = document.getElementById('confirm-modal-title');
-    const msgEl = document.getElementById('confirm-modal-msg');
-    const okBtn = document.getElementById('confirm-modal-ok');
-    const cancelBtn = document.getElementById('confirm-modal-cancel');
-    const closeBtn = document.getElementById('confirm-modal-close');
+    try {
+      const modal = document.getElementById('confirm-modal');
+      const titleEl = document.getElementById('confirm-modal-title');
+      const msgEl = document.getElementById('confirm-modal-msg');
+      const okBtn = document.getElementById('confirm-modal-ok');
+      const cancelBtn = document.getElementById('confirm-modal-cancel');
+      const closeBtn = document.getElementById('confirm-modal-close');
 
-    if (!modal || !okBtn) { resolve(confirm(message)); return; }
+      if (!modal || !okBtn) { resolve(window.confirm(message)); return; }
 
-    titleEl.innerHTML = isDanger
-      ? `<i class="fa-solid fa-triangle-exclamation text-rose"></i> ${title}`
-      : `<i class="fa-solid fa-circle-question text-sky"></i> ${title}`;
-    msgEl.textContent = message;
+      titleEl.innerHTML = isDanger
+        ? `<i class="fa-solid fa-triangle-exclamation text-rose"></i> ${title}`
+        : `<i class="fa-solid fa-circle-question text-sky"></i> ${title}`;
+      msgEl.textContent = message;
 
-    if (isDanger) {
-      okBtn.className = 'btn btn-danger-outline';
-      okBtn.textContent = 'Yes, Proceed';
-    } else {
-      okBtn.className = 'btn btn-primary';
-      okBtn.textContent = 'Confirm';
+      if (isDanger) {
+        okBtn.className = 'btn btn-danger-outline';
+        okBtn.textContent = 'Yes, Proceed';
+      } else {
+        okBtn.className = 'btn btn-primary';
+        okBtn.textContent = 'Confirm';
+      }
+
+      modal.classList.remove('hidden');
+
+      function done(res) {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+        if (cancelBtn) cancelBtn.onclick = null;
+        if (closeBtn) closeBtn.onclick = null;
+        modal.onclick = null;
+        resolve(res);
+      }
+
+      okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(true); };
+      if (cancelBtn) cancelBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
+      if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
+      modal.onclick = (e) => {
+        if (e.target === modal) done(false);
+      };
+    } catch (err) {
+      console.warn('showConfirm modal error, fallback to native confirm:', err);
+      resolve(window.confirm(message));
     }
-
-    modal.classList.remove('hidden');
-
-    function done(res) {
-      modal.classList.add('hidden');
-      okBtn.onclick = null;
-      if (cancelBtn) cancelBtn.onclick = null;
-      if (closeBtn) closeBtn.onclick = null;
-      modal.onclick = null;
-      resolve(res);
-    }
-
-    okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(true); };
-    if (cancelBtn) cancelBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
-    if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
-    modal.onclick = (e) => {
-      if (e.target === modal) done(false);
-    };
   });
 }
 
 function showAlert(title, message) {
   return new Promise((resolve) => {
-    const modal = document.getElementById('alert-modal');
-    const titleEl = document.getElementById('alert-modal-title');
-    const msgEl = document.getElementById('alert-modal-msg');
-    const okBtn = document.getElementById('alert-modal-ok');
-    const closeBtn = document.getElementById('alert-modal-close');
+    try {
+      const modal = document.getElementById('alert-modal');
+      const titleEl = document.getElementById('alert-modal-title');
+      const msgEl = document.getElementById('alert-modal-msg');
+      const okBtn = document.getElementById('alert-modal-ok');
+      const closeBtn = document.getElementById('alert-modal-close');
 
-    if (!modal || !okBtn) { alert(message); resolve(); return; }
+      if (!modal || !okBtn) { alert(`${title}\n\n${message}`); resolve(); return; }
 
-    titleEl.innerHTML = `<i class="fa-solid fa-circle-info text-emerald"></i> ${title}`;
-    msgEl.textContent = message;
-    modal.classList.remove('hidden');
+      titleEl.innerHTML = `<i class="fa-solid fa-circle-info text-emerald"></i> ${title}`;
+      msgEl.textContent = message;
+      modal.classList.remove('hidden');
 
-    function done() {
-      modal.classList.add('hidden');
-      okBtn.onclick = null;
-      if (closeBtn) closeBtn.onclick = null;
-      modal.onclick = null;
+      function done() {
+        modal.classList.add('hidden');
+        okBtn.onclick = null;
+        if (closeBtn) closeBtn.onclick = null;
+        modal.onclick = null;
+        resolve();
+      }
+
+      okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
+      if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
+      modal.onclick = (e) => {
+        if (e.target === modal) done();
+      };
+    } catch (err) {
+      console.warn('showAlert modal error, fallback to native alert:', err);
+      alert(`${title}\n\n${message}`);
       resolve();
     }
-
-    okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
-    if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
-    modal.onclick = (e) => {
-      if (e.target === modal) done();
-    };
   });
 }
 
@@ -375,14 +386,14 @@ function updateMonthPickerOptions() {
   // Option for All Time
   const allOpt = document.createElement('option');
   allOpt.value = 'ALL';
-  allOpt.textContent = '📅 All Time';
+  allOpt.textContent = 'Ã°Å¸â€œâ€¦ All Time';
   if (selectedMonth === 'ALL') allOpt.selected = true;
   monthPickerSelect.appendChild(allOpt);
 
   months.forEach(ym => {
     const opt = document.createElement('option');
     opt.value = ym;
-    opt.textContent = `📅 ${formatMonthLabel(ym)}`;
+    opt.textContent = `Ã°Å¸â€œâ€¦ ${formatMonthLabel(ym)}`;
     if (selectedMonth === ym) opt.selected = true;
     monthPickerSelect.appendChild(opt);
   });
@@ -427,11 +438,7 @@ if (btnPrevMonth && btnNextMonth) {
 
 // ---------- Tab / View Switching ----------
 function switchView(viewName) {
-  if (currentView === viewName) return;
-
-  const oldPanel = document.getElementById(`view-${currentView}`);
-  const targetPanel = document.getElementById(`view-${viewName}`);
-
+  if (!viewName) return;
   currentView = viewName;
 
   document.querySelectorAll('.nav-item').forEach(nav => {
@@ -443,24 +450,20 @@ function switchView(viewName) {
   });
 
   if (viewHeadings[viewName]) {
-    viewTitleEl.textContent = viewHeadings[viewName].title;
-    viewSubtitleEl.textContent = viewHeadings[viewName].subtitle;
+    if (viewTitleEl) viewTitleEl.textContent = viewHeadings[viewName].title;
+    if (viewSubtitleEl) viewSubtitleEl.textContent = viewHeadings[viewName].subtitle;
   }
 
-  const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  document.querySelectorAll('.view-panel').forEach(panel => {
+    panel.classList.remove('active', 'view-exit');
+  });
 
-  if (oldPanel && targetPanel && !isReducedMotion) {
-    oldPanel.classList.add('view-exit');
-    setTimeout(() => {
-      oldPanel.classList.remove('active', 'view-exit');
-      targetPanel.classList.add('active');
-      updateUI();
-    }, 150);
-  } else {
-    document.querySelectorAll('.view-panel').forEach(panel => panel.classList.remove('active', 'view-exit'));
-    if (targetPanel) targetPanel.classList.add('active');
-    updateUI();
+  const targetPanel = document.getElementById(`view-${viewName}`);
+  if (targetPanel) {
+    targetPanel.classList.add('active');
   }
+
+  updateUI();
 }
 
 document.querySelectorAll('.nav-item').forEach(nav => {
@@ -510,8 +513,8 @@ function updateUI() {
   if (sidebarBudgetVal) sidebarBudgetVal.textContent = formatCurrency(budget);
 
   if (budget === 0) {
-    if (statRemainingEl) statRemainingEl.textContent = '₹0.00';
-    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set ✏️)';
+    if (statRemainingEl) statRemainingEl.textContent = 'Ã¢â€šÂ¹0.00';
+    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set Ã¢Å“ÂÃ¯Â¸Â)';
   } else {
     if (statRemainingEl) statRemainingEl.textContent = formatCurrency(remaining);
     if (statPercentEl) statPercentEl.textContent = `${remainingPercent.toFixed(1)}% Left`;
@@ -679,7 +682,7 @@ function renderSubscriptions() {
               <div class="sub-title">${escapeHtml(sub.name)}</div>
               <div class="sub-due">${escapeHtml(sub.category)}</div>
             </div>
-            <button class="icon-btn action-btn-del" data-delete-sub="${sub.id}" title="Delete Subscription">
+            <button type="button" class="icon-btn action-btn-del" data-delete-sub="${sub.id}" title="Delete Subscription">
               <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
@@ -688,7 +691,7 @@ function renderSubscriptions() {
             <span class="status-badge ${statusClass}">${statusText}</span>
             ${
               !isPaidThisMonth
-                ? `<button class="btn btn-secondary btn-sm" data-pay-sub="${sub.id}">
+                ? `<button type="button" class="btn btn-secondary btn-sm" data-pay-sub="${sub.id}">
                     <i class="fa-solid fa-check"></i> Mark Paid
                    </button>`
                 : `<span class="paid-check-badge"><i class="fa-solid fa-circle-check"></i> Paid</span>`
@@ -720,7 +723,7 @@ function renderSubscriptions() {
             <span class="dash-sub-amount">${formatCurrency(sub.amount)}</span>
             ${isPaidThisMonth
               ? '<span class="status-badge paid"><i class="fa-solid fa-check"></i> Paid</span>'
-              : `<button class="btn btn-secondary btn-xs" data-pay-sub="${sub.id}">Pay</button>`
+              : `<button type="button" class="btn btn-secondary btn-xs" data-pay-sub="${sub.id}">Pay</button>`
             }
           </div>
         `;
@@ -731,7 +734,7 @@ function renderSubscriptions() {
 }
 
 function markSubAsPaid(subId) {
-  const sub = subscriptions.find(s => s.id === subId);
+  const sub = subscriptions.find(s => String(s.id) === String(subId));
   if (!sub) return;
 
   const currentYM = getCurrentYearMonth();
@@ -754,9 +757,10 @@ function markSubAsPaid(subId) {
 }
 
 async function deleteSubscription(subId) {
+  if (!subId) return;
   const ok = await showConfirm('Delete Recurring Bill', 'Are you sure you want to delete this recurring subscription/bill?', true);
   if (ok) {
-    subscriptions = subscriptions.filter(s => s.id !== subId);
+    subscriptions = subscriptions.filter(s => String(s.id) !== String(subId));
     saveState();
     updateUI();
   }
@@ -960,7 +964,7 @@ function renderMonthlyTrendChart() {
             ticks: {
               color: '#5F6A80',
               font: { family: 'IBM Plex Mono', size: 10 },
-              callback: function(val) { return '₹' + val; }
+              callback: function(val) { return 'Ã¢â€šÂ¹' + val; }
             }
           }
         }
@@ -1017,7 +1021,7 @@ function renderTransactionsTable(monthFilteredExpenses) {
       <td data-label="Payment"><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>
       <td data-label="Amount" class="text-right font-bold text-amount">${formatCurrency(item.amount)}</td>
       <td class="text-center td-action">
-        <button class="icon-btn action-btn-del" data-delete-tx="${item.id}" title="Delete Transaction">
+        <button type="button" class="icon-btn action-btn-del" data-delete-tx="${item.id}" title="Delete Transaction">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </td>
@@ -1083,52 +1087,14 @@ if (expenseForm) {
 }
 
 async function deleteTransaction(id) {
+  if (!id) return;
   const ok = await showConfirm('Delete Transaction', 'Are you sure you want to delete this expense transaction record?', true);
   if (ok) {
-    expenses = expenses.filter(item => item.id !== id);
+    expenses = expenses.filter(item => String(item.id) !== String(id));
     saveState();
     updateMonthPickerOptions();
     updateUI();
   }
-}
-
-// Event Delegation for Table Delete Buttons
-if (transactionsTbody) {
-  transactionsTbody.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-delete-tx]');
-    if (btn) {
-      const id = btn.getAttribute('data-delete-tx');
-      if (id) deleteTransaction(id);
-    }
-  });
-}
-
-// Event Delegation for Subscription Delete & Pay Buttons
-if (subsGridContainer) {
-  subsGridContainer.addEventListener('click', (e) => {
-    const delBtn = e.target.closest('[data-delete-sub]');
-    if (delBtn) {
-      const id = delBtn.getAttribute('data-delete-sub');
-      if (id) deleteSubscription(id);
-      return;
-    }
-    const payBtn = e.target.closest('[data-pay-sub]');
-    if (payBtn) {
-      const id = payBtn.getAttribute('data-pay-sub');
-      if (id) markSubAsPaid(id);
-      return;
-    }
-  });
-}
-
-if (dashSubsPreviewContainer) {
-  dashSubsPreviewContainer.addEventListener('click', (e) => {
-    const payBtn = e.target.closest('[data-pay-sub]');
-    if (payBtn) {
-      const id = payBtn.getAttribute('data-pay-sub');
-      if (id) markSubAsPaid(id);
-    }
-  });
 }
 
 if (filterSearchInput) filterSearchInput.addEventListener('input', updateUI);
@@ -1314,48 +1280,51 @@ if (btnExportCsv) {
 }
 
 // Reset All Data
-if (btnResetAll) {
-  btnResetAll.addEventListener('click', async (e) => {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    const ok = await showConfirm(
-      'Reset All Financial Data',
-      '⚠️ WARNING: This will permanently reset and delete ALL logged expenses, budget caps, and subscriptions! Continue?',
-      true
-    );
+async function resetAllData(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
 
-    if (ok) {
-      budget = 0;
-      expenses = [];
-      subscriptions = [];
-      selectedMonth = getCurrentYearMonth();
-      // Clear local storage
-      localStorage.clear();
-      // Guard against the Firestore onSnapshot re-firing stale data during reset
-      isSyncingFromFirestore = true;
-      // Push reset to Firestore (if logged in)
-      if (currentUserId && db) {
-        if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-        try {
-          await db.collection('users').doc(currentUserId).set({
-            budget: 0,
-            expenses: [],
-            subscriptions: [],
-            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-        } catch (err) {
-          console.error('Reset Firestore error:', err);
-          if (typeof setSyncStatus === 'function') setSyncStatus('error');
-        }
-      }
-      isSyncingFromFirestore = false;
-      updateMonthPickerOptions();
-      updateUI();
-      await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been completely reset.');
-    }
-  });
+  const ok = await showConfirm(
+    'Reset All Financial Data',
+    'WARNING: This will permanently reset and delete all logged expenses, budget caps, and subscriptions. Continue?',
+    true
+  );
+  if (!ok) return;
+
+  budget = 0;
+  expenses = [];
+  subscriptions = [];
+  selectedMonth = getCurrentYearMonth();
+
+  // Do not clear all localStorage: Firebase stores the signed-in session here.
+  localStorage.setItem('expense_cal_web_budget', '0');
+  localStorage.setItem('expense_cal_web_expenses', '[]');
+  localStorage.setItem('expense_cal_web_subscriptions', '[]');
+  updateMonthPickerOptions();
+  updateUI();
+
+  if (!currentUserId || !db) {
+    await showAlert('Data Reset Complete', 'Your expense records, budget limit, and subscriptions have been reset on this device.');
+    return;
+  }
+
+  if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+  try {
+    await db.collection('users').doc(currentUserId).set({
+      budget: 0,
+      expenses: [],
+      subscriptions: [],
+      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+    await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been reset.');
+  } catch (err) {
+    console.error('Reset Firestore error:', err);
+    if (typeof setSyncStatus === 'function') setSyncStatus('error');
+    await showAlert('Reset Saved Locally', 'Your data was reset on this device, but cloud sync failed. Check your internet connection or Firestore permissions before using another device.');
+  }
 }
 
+if (btnResetAll) btnResetAll.addEventListener('click', resetAllData);
 // Keyboard Shortcuts
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'n') {
@@ -1376,25 +1345,29 @@ document.addEventListener('keydown', (e) => {
 document.addEventListener('click', (e) => {
   const target = e.target.closest('[data-delete-sub]');
   if (target) {
-    deleteSubscription(target.dataset.deleteSub);
+    const id = target.dataset.deleteSub || target.getAttribute('data-delete-sub');
+    if (id) deleteSubscription(id);
     return;
   }
 
   const payBtn = e.target.closest('[data-pay-sub]');
   if (payBtn) {
-    markSubAsPaid(payBtn.dataset.paySub);
+    const id = payBtn.dataset.paySub || payBtn.getAttribute('data-pay-sub');
+    if (id) markSubAsPaid(id);
     return;
   }
 
   const txDel = e.target.closest('[data-delete-tx]');
   if (txDel) {
-    deleteTransaction(txDel.dataset.deleteTx);
+    const id = txDel.dataset.deleteTx || txDel.getAttribute('data-delete-tx');
+    if (id) deleteTransaction(id);
     return;
   }
 
   const monthBar = e.target.closest('[data-select-month]');
   if (monthBar) {
-    selectMonthFromChart(monthBar.dataset.selectMonth);
+    const m = monthBar.dataset.selectMonth || monthBar.getAttribute('data-select-month');
+    if (m) selectMonthFromChart(m);
     return;
   }
 });

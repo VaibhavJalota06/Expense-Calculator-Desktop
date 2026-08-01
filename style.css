@@ -372,6 +372,26 @@ html, body {
   text-decoration: underline;
 }
 
+.btn-guest-login {
+  background: rgba(52, 211, 153, 0.12) !important;
+  border: 1px solid rgba(52, 211, 153, 0.35) !important;
+  color: var(--emerald) !important;
+  font-weight: 700 !important;
+  margin-top: 0.85rem !important;
+  transition: var(--transition);
+}
+.btn-guest-login:hover {
+  background: rgba(52, 211, 153, 0.22) !important;
+  border-color: var(--emerald) !important;
+  transform: translateY(-1px);
+}
+.btn-guest-login:active {
+  transform: scale(0.97) translateY(1px);
+}
+.auth-switch a:hover {
+  text-decoration: underline;
+}
+
 /* Button & Form Control System */
 .btn {
   display: inline-flex;
@@ -388,6 +408,13 @@ html, body {
   transition: var(--transition);
   text-decoration: none;
   white-space: nowrap;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.btn:active {
+  transform: scale(0.97) translateY(1px);
 }
 .btn-primary {
   background: var(--emerald);
@@ -400,6 +427,10 @@ html, body {
   transform: translateY(-1px);
   box-shadow: none !important;
 }
+.btn-primary:active {
+  background: #27cc92;
+  transform: scale(0.97) translateY(1px);
+}
 .btn-secondary {
   background: rgba(255, 255, 255, 0.06);
   border-color: var(--glass-border);
@@ -410,14 +441,28 @@ html, body {
   border-color: rgba(255, 255, 255, 0.18);
   transform: translateY(-1px);
 }
+.btn-secondary:active {
+  background: rgba(255, 255, 255, 0.18);
+  transform: scale(0.97) translateY(1px);
+}
 .btn-danger-outline {
   background: transparent;
   border-color: rgba(248, 113, 113, 0.3);
   color: var(--danger);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .btn-danger-outline:hover {
-  background: rgba(248, 113, 113, 0.12);
+  background: rgba(248, 113, 113, 0.14);
   border-color: var(--danger);
+  color: #ff8597;
+  transform: translateY(-1px);
+}
+.btn-danger-outline:active {
+  background: rgba(248, 113, 113, 0.22);
+  transform: scale(0.97) translateY(1px);
 }
 .btn-block {
   width: 100%;
@@ -1229,10 +1274,22 @@ select option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  min-width: 32px;
+  min-height: 32px;
+  padding: 0.35rem;
+  border-radius: var(--radius-sm);
   transition: var(--transition);
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 .icon-btn:hover {
   color: var(--text-hi);
+  background: rgba(255, 255, 255, 0.08);
+}
+.icon-btn:active {
+  transform: scale(0.92);
 }
 
 /* Dashboard Bills Preview */
@@ -1503,12 +1560,19 @@ select option {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  width: 100%;
 }
 .status-badge {
-  padding: 0.22rem 0.65rem;
+  padding: 0.25rem 0.65rem;
   border-radius: var(--radius-pill);
   font-size: 0.74rem;
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  white-space: nowrap;
 }
 .status-badge.paid { background: rgba(52, 211, 153, 0.12); color: var(--emerald); border: 1px solid rgba(52, 211, 153, 0.3); }
 .status-badge.due { background: rgba(56, 189, 248, 0.12); color: var(--sky); border: 1px solid rgba(56, 189, 248, 0.3); }
@@ -1517,6 +1581,14 @@ select option {
   font-size: 0.78rem;
   color: var(--emerald);
   font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.55rem;
+  background: rgba(52, 211, 153, 0.08);
+  border-radius: var(--radius-pill);
+  border: 1px solid rgba(52, 211, 153, 0.2);
+  user-select: none;
 }
 
 /* Analytics View */
@@ -2026,6 +2098,25 @@ select option {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+}
+.modal-header .icon-btn {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  min-height: 32px;
+  border-radius: 50%;
+  color: var(--text-mid);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  transition: var(--transition);
+}
+.modal-header .icon-btn:hover {
+  color: var(--text-hi);
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.22);
+}
+.modal-header .icon-btn:active {
+  transform: scale(0.9);
 }
 .modal-footer {
   display: flex;
