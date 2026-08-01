@@ -2581,7 +2581,7 @@ select option {
   width: 280px;
   padding: 1.1rem;
   z-index: 10050;
-  background: #0f172a !important;
+  background: #141820 !important;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(52, 211, 153, 0.25);
   border: 1px solid rgba(52, 211, 153, 0.5);
   border-radius: var(--radius-lg);
@@ -2706,7 +2706,7 @@ select option {
 .modal-card {
   width: 100%;
   max-width: 480px;
-  background: #0f172a !important;
+  background: #141820 !important;
   border: 1px solid rgba(52, 211, 153, 0.5);
   border-radius: var(--radius-lg);
   box-shadow: 0 25px 60px rgba(0, 0, 0, 0.95), 0 0 30px rgba(52, 211, 153, 0.25);
