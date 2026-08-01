@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu } = require('electron');
+const { app, BrowserWindow, Menu, shell } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -125,20 +125,26 @@ function createWindow(port) {
   // Set Chrome User-Agent so Google Auth popups inside Electron operate smoothly
   mainWindow.webContents.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-  // Handle window popups (for Google Sign-In popup)
+  // Handle external link navigation vs Google Auth popups
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    return {
-      action: 'allow',
-      overrideBrowserWindowOptions: {
-        width: 550,
-        height: 650,
-        autoHideMenuBar: true,
-        webPreferences: {
-          nodeIntegration: false,
-          contextIsolation: true,
+    // Allow Google Auth popups inside Electron
+    if (url.includes('accounts.google.com') || url.includes('firebaseapp.com')) {
+      return {
+        action: 'allow',
+        overrideBrowserWindowOptions: {
+          width: 550,
+          height: 650,
+          autoHideMenuBar: true,
+          webPreferences: {
+            nodeIntegration: false,
+            contextIsolation: true,
+          }
         }
-      }
-    };
+      };
+    }
+    // Open all other external links in user's default installed browser (Chrome/Edge/Firefox)
+    shell.openExternal(url);
+    return { action: 'deny' };
   });
 
   // Remove default menu bar for clean desktop app presentation
