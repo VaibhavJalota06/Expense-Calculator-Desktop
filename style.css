@@ -327,6 +327,30 @@ html, body {
   border-color: rgba(255, 255, 255, 0.18);
   transform: translateY(-1px);
 }
+
+.btn-social {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-high);
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.65rem 0.85rem;
+  transition: var(--transition);
+  cursor: pointer;
+}
+.btn-social:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.25);
+  transform: translateY(-1px);
+}
+.btn-social:active {
+  transform: scale(0.97);
+}
 .auth-divider {
   display: flex;
   align-items: center;
