@@ -43,24 +43,28 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
+    const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+
     // Auth Actions
     async function signInWithGoogle() {
       try {
         clearErrors();
-        await auth.signInWithPopup(googleProvider);
-      } catch (error) {
-        console.error('Google Sign-In popup error:', error);
-        // Fallback to redirect sign-in for mobile browsers and popup blockers
-        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/operation-not-supported-in-this-environment') {
-          try {
-            await auth.signInWithRedirect(googleProvider);
-          } catch (redErr) {
-            console.error('Google Sign-In redirect error:', redErr);
-            showError(loginError, getAuthErrorMessage(redErr));
-          }
+        if (isMobileBrowser) {
+          await auth.signInWithRedirect(googleProvider);
         } else {
-          showError(loginError, getAuthErrorMessage(error));
+          try {
+            await auth.signInWithPopup(googleProvider);
+          } catch (popupErr) {
+            if (popupErr.code === 'auth/popup-blocked' || popupErr.code === 'auth/popup-closed-by-user' || popupErr.code === 'auth/operation-not-supported-in-this-environment') {
+              await auth.signInWithRedirect(googleProvider);
+            } else {
+              showError(loginError, getAuthErrorMessage(popupErr));
+            }
+          }
         }
+      } catch (error) {
+        console.error('Google Sign-In error:', error);
+        showError(loginError, getAuthErrorMessage(error));
       }
     }
 
@@ -94,12 +98,17 @@ if (isFirebaseConfigured && auth) {
     }
 
     // Handle Mobile OAuth Redirect Result
-    // NOTE: onAuthStateChanged already fires after redirect, so we only use
-    // getRedirectResult to detect the redirect case for logging purposes.
-    // We do NOT call showApp/startFirestoreSync here to avoid double listener registration.
-    auth.getRedirectResult().catch((error) => {
+    auth.getRedirectResult().then((result) => {
+      if (result && result.user) {
+        hideLoader();
+        showApp(result.user);
+        startFirestoreSync(result.user.uid);
+      }
+    }).catch((error) => {
       if (error && error.code) {
         console.error('Redirect result error:', error);
+        showError(loginError, getAuthErrorMessage(error));
+        showError(signupError, getAuthErrorMessage(error));
       }
     });
 
@@ -111,6 +120,9 @@ if (isFirebaseConfigured && auth) {
         setTimeout(() => { loader.style.display = 'none'; }, 300);
       }
     }
+
+    // Safety timeout to prevent infinite loader hanging on mobile networks
+    setTimeout(hideLoader, 3500);
 
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
