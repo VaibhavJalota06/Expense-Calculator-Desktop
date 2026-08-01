@@ -1539,6 +1539,19 @@ function endGuidedTour() {
   if (typeof switchView === 'function') switchView('dashboard');
 }
 
+const isElectronApp = /Electron/i.test(navigator.userAgent) || Boolean(window.process && window.process.type);
+
+function applyEnvironmentAdjustments() {
+  const skipTourBtn = document.getElementById('btn-skip-tour');
+  if (skipTourBtn) {
+    if (!isElectronApp) {
+      skipTourBtn.style.display = 'none';
+    } else {
+      skipTourBtn.style.display = 'block';
+    }
+  }
+}
+
 // Event Listeners for Welcome Modal & Guided Tour
 document.addEventListener('click', (e) => {
   if (e.target.closest('#btn-start-tour')) {
@@ -1567,3 +1580,5 @@ document.addEventListener('click', (e) => {
     return;
   }
 });
+
+document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
