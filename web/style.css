@@ -1509,14 +1509,21 @@ select option {
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 3.5rem 1.5rem;
+  padding: 3rem 1.5rem;
   color: var(--text-mid);
+  gap: 0.25rem;
+}
+.empty-state-card p, .empty-state-table p, .empty-state-small p {
+  font-weight: 700;
+  font-size: 1rem;
+  color: var(--text-hi);
+  margin: 0;
 }
 .empty-state-icon, .empty-icon {
   font-size: 2.5rem;
   color: var(--emerald);
   opacity: 0.9;
-  margin-bottom: 0.85rem;
+  margin-bottom: 0.6rem;
 }
 .empty-state-title, .empty-title {
   font-size: 1.05rem;
@@ -1525,10 +1532,12 @@ select option {
   margin-bottom: 0.35rem;
 }
 .empty-state-sub, .empty-sub {
-  font-size: 0.86rem;
+  font-size: 0.88rem;
+  font-weight: 600;
   color: var(--text-mid);
   max-width: 440px;
-  line-height: 1.45;
+  line-height: 1.5;
+  padding: 0.5rem 0;
 }
 .stat-subtext, .topbar-title-group p {
   color: var(--text-mid);
