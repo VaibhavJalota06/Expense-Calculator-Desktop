@@ -222,6 +222,44 @@
           <button id="btn-edit-budget" class="btn btn-primary btn-topbar-action">
             <i class="fa-solid fa-sliders"></i> <span class="btn-text">Budget</span>
           </button>
+
+          <!-- Topbar Circular Profile Avatar & Dropdown Menu -->
+          <div class="topbar-user-menu-wrapper">
+            <button id="btn-topbar-profile" class="topbar-avatar-btn" title="User Profile & Settings">
+              <img id="topbar-user-img" src="" alt="User Avatar" class="topbar-avatar-img hidden" />
+              <span id="topbar-user-initial" class="topbar-avatar-initial">U</span>
+            </button>
+
+            <!-- User Profile Glassmorphic Dropdown Menu -->
+            <div id="user-dropdown-menu" class="user-dropdown-menu glass-panel hidden">
+              <div class="dropdown-user-header">
+                <div class="dropdown-avatar-circle">
+                  <span id="dropdown-user-initial">U</span>
+                </div>
+                <div class="dropdown-user-details">
+                  <div id="dropdown-user-name" class="dropdown-name">User Name</div>
+                  <div id="dropdown-user-email" class="dropdown-email">user@example.com</div>
+                  <span id="dropdown-user-badge" class="dropdown-badge">User Profile</span>
+                </div>
+              </div>
+              <div class="dropdown-divider"></div>
+              <ul class="dropdown-menu-list">
+                <li>
+                  <button id="btn-dropdown-edit-profile" class="dropdown-item">
+                    <i class="fa-solid fa-user-pen text-emerald"></i>
+                    <span>Edit Profile</span>
+                  </button>
+                </li>
+                <li class="dropdown-divider"></li>
+                <li>
+                  <button id="btn-dropdown-logout" class="dropdown-item text-danger">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                    <span>Sign Out</span>
+                  </button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </header>
 
@@ -579,6 +617,37 @@
           Explore On My Own
         </button>
       </div>
+  <!-- Edit Profile Modal -->
+  <div id="edit-profile-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel profile-modal-card">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-user-pen text-emerald"></i> Edit Profile</h3>
+        <button id="edit-profile-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="edit-profile-form">
+        <div class="modal-body">
+          <div class="form-group">
+            <label for="edit-profile-name">Full Name</label>
+            <input type="text" id="edit-profile-name" placeholder="Your Full Name" required />
+          </div>
+          <div class="form-group">
+            <label for="edit-profile-gender">Gender / Title Prefix</label>
+            <select id="edit-profile-gender" class="form-control" style="width: 100%; padding: 0.75rem 0.9rem; background: rgba(15, 23, 42, 0.7); border: 1px solid var(--glass-border); border-radius: var(--radius-md); color: var(--text-high); font-size: 0.9rem;">
+              <option value="male">Male (Mr.)</option>
+              <option value="female">Female (Ms./Mrs.)</option>
+              <option value="other">Other / Prefer not to say</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="edit-profile-email">Email Address</label>
+            <input type="email" id="edit-profile-email" disabled style="opacity: 0.6; cursor: not-allowed;" />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="edit-profile-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
+        </div>
+      </form>
     </div>
   </div>
 

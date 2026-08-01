@@ -189,11 +189,14 @@ if (isFirebaseConfigured && auth) {
       }
 
       let prefix = '';
-      if (gender === 'male') prefix = 'Mr. ';
-      else if (gender === 'female') prefix = 'Ms. ';
+      let genderText = 'User Profile';
+      if (gender === 'male') { prefix = 'Mr. '; genderText = 'Male (Mr.)'; }
+      else if (gender === 'female') { prefix = 'Ms. '; genderText = 'Female (Ms.)'; }
 
       const fullName = `${prefix}${rawName}`;
+      const initial = rawName.charAt(0).toUpperCase() || 'U';
 
+      // Update Sidebar profile info
       if (userAvatarEl) {
         if (user && user.photoURL) {
           userAvatarEl.src = user.photoURL;
@@ -202,9 +205,33 @@ if (isFirebaseConfigured && auth) {
           userAvatarEl.style.display = 'none';
         }
       }
-
       if (userNameEl) userNameEl.textContent = fullName;
       if (userEmailEl) userEmailEl.textContent = (user && user.email) || '';
+
+      // Update Topbar Profile Avatar & Dropdown
+      const topbarImg = document.getElementById('topbar-user-img');
+      const topbarInitial = document.getElementById('topbar-user-initial');
+      const dropInitial = document.getElementById('dropdown-user-initial');
+      const dropName = document.getElementById('dropdown-user-name');
+      const dropEmail = document.getElementById('dropdown-user-email');
+      const dropBadge = document.getElementById('dropdown-user-badge');
+
+      if (user && user.photoURL && topbarImg) {
+        topbarImg.src = user.photoURL;
+        topbarImg.classList.remove('hidden');
+        if (topbarInitial) topbarInitial.classList.add('hidden');
+      } else {
+        if (topbarImg) topbarImg.classList.add('hidden');
+        if (topbarInitial) {
+          topbarInitial.textContent = initial;
+          topbarInitial.classList.remove('hidden');
+        }
+      }
+
+      if (dropInitial) dropInitial.textContent = initial;
+      if (dropName) dropName.textContent = fullName;
+      if (dropEmail) dropEmail.textContent = (user && user.email) || 'Local Account';
+      if (dropBadge) dropBadge.textContent = genderText;
 
       const viewSubtitle = document.getElementById('view-subtitle');
       if (viewSubtitle) {
@@ -222,6 +249,101 @@ if (isFirebaseConfigured && auth) {
           setTimeout(() => modal.classList.remove('hidden'), 600);
         }
       }
+    }
+
+    // Topbar Profile Avatar Dropdown Toggle
+    document.addEventListener('click', (e) => {
+      const profileBtn = e.target.closest('#btn-topbar-profile');
+      const dropdown = document.getElementById('user-dropdown-menu');
+      if (profileBtn) {
+        e.stopPropagation();
+        if (dropdown) dropdown.classList.toggle('hidden');
+        return;
+      }
+      if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('#user-dropdown-menu')) {
+        dropdown.classList.add('hidden');
+      }
+    });
+
+    // Dropdown Item Event Listeners
+    document.addEventListener('click', (e) => {
+      if (e.target.closest('#btn-dropdown-logout')) {
+        const dropdown = document.getElementById('user-dropdown-menu');
+        if (dropdown) dropdown.classList.add('hidden');
+        handleSignOut(e);
+        return;
+      }
+
+      if (e.target.closest('#btn-dropdown-edit-profile')) {
+        const dropdown = document.getElementById('user-dropdown-menu');
+        if (dropdown) dropdown.classList.add('hidden');
+        
+        const modal = document.getElementById('edit-profile-modal');
+        const nameInput = document.getElementById('edit-profile-name');
+        const genderSelect = document.getElementById('edit-profile-gender');
+        const emailInput = document.getElementById('edit-profile-email');
+
+        const currentUser = auth ? auth.currentUser : null;
+        const currentName = currentUser ? (currentUser.displayName || '') : '';
+        const currentUid = currentUser ? currentUser.uid : '';
+        const currentGender = currentUid ? (localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male') : 'male';
+
+        if (nameInput) nameInput.value = currentName;
+        if (genderSelect) genderSelect.value = currentGender;
+        if (emailInput) emailInput.value = (currentUser && currentUser.email) || 'Local Mode';
+
+        if (modal) modal.classList.remove('hidden');
+        return;
+      }
+
+      if (e.target.closest('#edit-profile-close, #edit-profile-cancel')) {
+        const modal = document.getElementById('edit-profile-modal');
+        if (modal) modal.classList.add('hidden');
+        return;
+      }
+    });
+
+    // Edit Profile Form Submit Handler
+    const editProfileForm = document.getElementById('edit-profile-form');
+    if (editProfileForm) {
+      editProfileForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const nameInput = document.getElementById('edit-profile-name');
+        const genderSelect = document.getElementById('edit-profile-gender');
+        const modal = document.getElementById('edit-profile-modal');
+
+        const newName = nameInput ? nameInput.value.trim() : '';
+        const newGender = genderSelect ? genderSelect.value : 'male';
+        const currentUser = auth ? auth.currentUser : null;
+
+        if (!newName) return;
+
+        if (currentUser) {
+          try {
+            await currentUser.updateProfile({ displayName: newName });
+          } catch(err) { console.error('Error updating auth profile:', err); }
+
+          localStorage.setItem('expense_cal_user_gender_' + currentUser.uid, newGender);
+
+          if (db) {
+            try {
+              await db.collection('users').doc(currentUser.uid).set({
+                profile: { name: newName, gender: newGender },
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+              }, { merge: true });
+            } catch(err) { console.error('Error updating firestore profile:', err); }
+          }
+
+          showApp(currentUser);
+        } else {
+          showApp({ displayName: newName, email: 'Local Mode' });
+        }
+
+        if (modal) modal.classList.add('hidden');
+        if (typeof showAlert === 'function') {
+          showAlert('Profile Updated!', 'Your profile information has been saved successfully.');
+        }
+      });
     }
 
     function showLoginScreen() {
