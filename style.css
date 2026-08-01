@@ -20,7 +20,7 @@
   /* Typography Colors */
   --text-hi: #F2F5FA;
   --text-mid: #A6B0C3;
-  --text-low: #5F6A80;
+  --text-low: #828EA4;
 
   /* Accent Color Palette */
   --emerald: #34D399;
@@ -994,29 +994,38 @@ select option {
 }
 
 /* Empty States */
+.empty-state-card {
+  grid-column: 1 / -1;
+  width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--radius-lg);
+}
 .empty-state-card, .empty-state-table, .empty-state-small {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 2.5rem 1.5rem;
+  padding: 3.5rem 1.5rem;
   color: var(--text-mid);
 }
 .empty-state-icon, .empty-icon {
-  font-size: 2.2rem;
-  color: var(--text-low);
-  margin-bottom: 0.75rem;
+  font-size: 2.5rem;
+  color: var(--emerald);
+  opacity: 0.85;
+  margin-bottom: 0.85rem;
 }
 .empty-state-title, .empty-title {
-  font-size: 1rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-hi);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.35rem;
 }
 .empty-state-sub, .empty-sub {
-  font-size: 0.8rem;
+  font-size: 0.84rem;
   color: var(--text-low);
+  max-width: 420px;
 }
 .hidden { display: none !important; }
 
