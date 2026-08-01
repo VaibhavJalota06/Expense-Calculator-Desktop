@@ -169,12 +169,16 @@ function showConfirm(title, message, isDanger = false) {
       okBtn.onclick = null;
       if (cancelBtn) cancelBtn.onclick = null;
       if (closeBtn) closeBtn.onclick = null;
+      modal.onclick = null;
       resolve(res);
     }
 
     okBtn.onclick = () => done(true);
     if (cancelBtn) cancelBtn.onclick = () => done(false);
     if (closeBtn) closeBtn.onclick = () => done(false);
+    modal.onclick = (e) => {
+      if (e.target === modal) done(false);
+    };
   });
 }
 
@@ -196,11 +200,15 @@ function showAlert(title, message) {
       modal.classList.add('hidden');
       okBtn.onclick = null;
       if (closeBtn) closeBtn.onclick = null;
+      modal.onclick = null;
       resolve();
     }
 
     okBtn.onclick = () => done();
     if (closeBtn) closeBtn.onclick = () => done();
+    modal.onclick = (e) => {
+      if (e.target === modal) done();
+    };
   });
 }
 
@@ -1084,6 +1092,45 @@ async function deleteTransaction(id) {
   }
 }
 
+// Event Delegation for Table Delete Buttons
+if (transactionsTbody) {
+  transactionsTbody.addEventListener('click', (e) => {
+    const btn = e.target.closest('[data-delete-tx]');
+    if (btn) {
+      const id = btn.getAttribute('data-delete-tx');
+      if (id) deleteTransaction(id);
+    }
+  });
+}
+
+// Event Delegation for Subscription Delete & Pay Buttons
+if (subsGridContainer) {
+  subsGridContainer.addEventListener('click', (e) => {
+    const delBtn = e.target.closest('[data-delete-sub]');
+    if (delBtn) {
+      const id = delBtn.getAttribute('data-delete-sub');
+      if (id) deleteSubscription(id);
+      return;
+    }
+    const payBtn = e.target.closest('[data-pay-sub]');
+    if (payBtn) {
+      const id = payBtn.getAttribute('data-pay-sub');
+      if (id) markSubAsPaid(id);
+      return;
+    }
+  });
+}
+
+if (dashSubsPreviewContainer) {
+  dashSubsPreviewContainer.addEventListener('click', (e) => {
+    const payBtn = e.target.closest('[data-pay-sub]');
+    if (payBtn) {
+      const id = payBtn.getAttribute('data-pay-sub');
+      if (id) markSubAsPaid(id);
+    }
+  });
+}
+
 if (filterSearchInput) filterSearchInput.addEventListener('input', updateUI);
 if (filterCategorySelect) filterCategorySelect.addEventListener('change', updateUI);
 
@@ -1287,17 +1334,18 @@ if (btnResetAll) {
       // Push reset to Firestore (if logged in)
       if (currentUserId && db) {
         if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-        db.collection('users').doc(currentUserId).set({
-          budget: 0,
-          expenses: [],
-          subscriptions: [],
-          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-        }).then(() => {
+        try {
+          await db.collection('users').doc(currentUserId).set({
+            budget: 0,
+            expenses: [],
+            subscriptions: [],
+            lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+          });
           if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-        }).catch((err) => {
+        } catch (err) {
           console.error('Reset Firestore error:', err);
           if (typeof setSyncStatus === 'function') setSyncStatus('error');
-        });
+        }
       }
       isSyncingFromFirestore = false;
       updateMonthPickerOptions();
