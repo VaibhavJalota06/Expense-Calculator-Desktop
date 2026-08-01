@@ -1444,34 +1444,44 @@ document.addEventListener('click', (e) => {
 });
 
 // ---------- Sidebar Toggle for Small Screens ----------
-const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
-const sidebarEl = document.querySelector('.sidebar');
-const sidebarOverlayEl = document.getElementById('sidebar-overlay');
-
-function toggleSidebar() {
-  if (sidebarEl) sidebarEl.classList.toggle('sidebar-open');
-  if (sidebarOverlayEl) sidebarOverlayEl.classList.toggle('active');
+function toggleSidebar(e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar) {
+    sidebar.classList.toggle('sidebar-open');
+    sidebar.classList.toggle('active');
+  }
+  if (overlay) {
+    overlay.classList.toggle('active');
+  }
 }
 
 function closeSidebar() {
-  if (sidebarEl) sidebarEl.classList.remove('sidebar-open');
-  if (sidebarOverlayEl) sidebarOverlayEl.classList.remove('active');
+  const sidebar = document.querySelector('.sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar) {
+    sidebar.classList.remove('sidebar-open', 'active');
+  }
+  if (overlay) {
+    overlay.classList.remove('active');
+  }
 }
 
-if (sidebarToggleBtn) {
-  sidebarToggleBtn.addEventListener('click', toggleSidebar);
-}
-
-// Overlay tap closes sidebar cleanly without swallowing the underlying click
-if (sidebarOverlayEl) {
-  sidebarOverlayEl.addEventListener('click', closeSidebar);
-}
-
-// Auto-close sidebar when a nav item is clicked on small screens
-document.querySelectorAll('.nav-item').forEach(nav => {
-  nav.addEventListener('click', () => {
-    if (window.innerWidth <= 900) closeSidebar();
-  });
+document.addEventListener('click', (e) => {
+  const toggleBtn = e.target.closest('#btn-sidebar-toggle');
+  if (toggleBtn) {
+    toggleSidebar(e);
+    return;
+  }
+  const overlay = e.target.closest('#sidebar-overlay');
+  if (overlay) {
+    closeSidebar();
+    return;
+  }
+  if (e.target.closest('.nav-item') && window.innerWidth <= 992) {
+    closeSidebar();
+  }
 });
 
 // Initialization
