@@ -252,29 +252,44 @@ if (isFirebaseConfigured && auth) {
     }
 
     // Topbar Profile Avatar Dropdown Toggle
-    document.addEventListener('click', (e) => {
-      const profileBtn = e.target.closest('#btn-topbar-profile');
-      const dropdown = document.getElementById('user-dropdown-menu');
-      if (profileBtn) {
+    const topbarProfileBtn = document.getElementById('btn-topbar-profile');
+    const userDropdownMenu = document.getElementById('user-dropdown-menu');
+
+    if (topbarProfileBtn && userDropdownMenu) {
+      topbarProfileBtn.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
-        if (dropdown) dropdown.classList.toggle('hidden');
-        return;
-      }
-      if (dropdown && !dropdown.classList.contains('hidden') && !e.target.closest('#user-dropdown-menu')) {
-        dropdown.classList.add('hidden');
+        userDropdownMenu.classList.toggle('hidden');
+      });
+    }
+
+    // Close dropdown on click outside
+    document.addEventListener('click', (e) => {
+      const dropdown = document.getElementById('user-dropdown-menu');
+      const profileBtn = document.getElementById('btn-topbar-profile');
+      if (dropdown && !dropdown.classList.contains('hidden')) {
+        if (profileBtn && profileBtn.contains(e.target)) return;
+        if (!dropdown.contains(e.target)) {
+          dropdown.classList.add('hidden');
+        }
       }
     });
 
     // Dropdown Item Event Listeners
-    document.addEventListener('click', (e) => {
-      if (e.target.closest('#btn-dropdown-logout')) {
+    const btnDropdownLogout = document.getElementById('btn-dropdown-logout');
+    if (btnDropdownLogout) {
+      btnDropdownLogout.addEventListener('click', (e) => {
+        e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) dropdown.classList.add('hidden');
         handleSignOut(e);
-        return;
-      }
+      });
+    }
 
-      if (e.target.closest('#btn-dropdown-edit-profile')) {
+    const btnEditProfile = document.getElementById('btn-dropdown-edit-profile');
+    if (btnEditProfile) {
+      btnEditProfile.addEventListener('click', (e) => {
+        e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) dropdown.classList.add('hidden');
         
@@ -284,22 +299,29 @@ if (isFirebaseConfigured && auth) {
         const emailInput = document.getElementById('edit-profile-email');
 
         const currentUser = auth ? auth.currentUser : null;
-        const currentName = currentUser ? (currentUser.displayName || '') : '';
-        const currentUid = currentUser ? currentUser.uid : '';
-        const currentGender = currentUid ? (localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male') : 'male';
+        let currentName = currentUser ? (currentUser.displayName || '') : '';
+        if (!currentName && userNameEl) {
+          currentName = userNameEl.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
+        }
+        const currentUid = currentUser ? currentUser.uid : 'local';
+        const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
 
         if (nameInput) nameInput.value = currentName;
         if (genderSelect) genderSelect.value = currentGender;
         if (emailInput) emailInput.value = (currentUser && currentUser.email) || 'Local Mode';
 
         if (modal) modal.classList.remove('hidden');
-        return;
-      }
+      });
+    }
 
-      if (e.target.closest('#edit-profile-close, #edit-profile-cancel')) {
-        const modal = document.getElementById('edit-profile-modal');
-        if (modal) modal.classList.add('hidden');
-        return;
+    ['edit-profile-close', 'edit-profile-cancel'].forEach(id => {
+      const btn = document.getElementById(id);
+      if (btn) {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
+          const modal = document.getElementById('edit-profile-modal');
+          if (modal) modal.classList.add('hidden');
+        });
       }
     });
 
