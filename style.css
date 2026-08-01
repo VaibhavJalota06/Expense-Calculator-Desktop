@@ -61,9 +61,10 @@
 }
 
 html, body {
-  width: 100%;
+  width: 100vw;
+  max-width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow-x: hidden;
   font-family: var(--font-sans);
   background-color: var(--bg-base);
   color: var(--text-hi);
@@ -197,9 +198,10 @@ html, body {
 .app-layout {
   display: flex;
   width: 100vw;
+  max-width: 100%;
   height: 100vh;
   position: relative;
-  overflow: hidden;
+  overflow-x: hidden;
   z-index: 1;
 }
 
@@ -411,10 +413,11 @@ html, body {
 /* Main Content Workspace */
 .main-workspace {
   flex: 1;
+  min-width: 0;
   height: 100vh;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  overflow-x: hidden;
   position: relative;
 }
 
@@ -504,8 +507,11 @@ html, body {
 .views-container {
   flex: 1;
   overflow-y: auto;
+  overflow-x: hidden;
   padding: 1.75rem;
   position: relative;
+  width: 100%;
+  max-width: 100%;
 }
 .view-panel {
   display: none;
@@ -926,12 +932,16 @@ select option {
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.25rem;
+  flex-wrap: wrap;
+  width: 100%;
+  max-width: 100%;
 }
 .filter-controls {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
+  max-width: 100%;
 }
 .filter-chips {
   display: inline-flex;
@@ -975,7 +985,7 @@ select option {
   outline: none;
   cursor: pointer;
   transition: var(--transition);
-  flex-shrink: 0;
+  max-width: 165px;
 }
 .filter-select:focus {
   border-color: var(--emerald);
@@ -989,6 +999,7 @@ select option {
   position: relative;
   display: flex;
   align-items: center;
+  max-width: 200px;
 }
 .search-box i {
   position: absolute;
@@ -999,7 +1010,8 @@ select option {
 .search-box input {
   height: 38px;
   padding-left: 2.3rem;
-  width: 210px;
+  width: 100%;
+  max-width: 200px;
 }
 
 .table-responsive {
