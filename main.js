@@ -158,6 +158,7 @@ function createWindow(port) {
   mainWindow.loadURL(`http://localhost:${port}`);
 
   mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
     mainWindow.show();
     
     // Check for updates on GitHub Releases automatically on desktop app launch
