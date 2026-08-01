@@ -53,6 +53,8 @@ const statSubsCountEl = document.getElementById('stat-subs-count');
 
 const progressBarFillEl = document.getElementById('progress-bar-fill');
 const progressPercentLabelEl = document.getElementById('progress-percent-label');
+const gaugeLimitLabelEl = document.getElementById('gauge-limit-label');
+const statPercentDetailEl = document.getElementById('stat-percent-detail');
 
 const radialGaugeContainer = document.getElementById('radial-gauge-container');
 
@@ -102,7 +104,6 @@ const modalCancelBtn = document.getElementById('modal-cancel-btn');
 const modalCloseBtn = document.getElementById('modal-close-btn');
 const modalTitleText = document.getElementById('modal-title-text');
 const statBudgetCard = document.getElementById('stat-budget-card');
-const btnCardBudgetEdit = document.getElementById('btn-card-budget-edit');
 
 const subModal = document.getElementById('sub-modal');
 const subForm = document.getElementById('sub-form');
@@ -461,10 +462,12 @@ function updateUI() {
     }
   }
 
-  // Progress Bar
+  // Progress Bar & Gauge Labels
   const clampPercent = Math.min(100, Math.max(0, spentRatio));
   if (progressBarFillEl) progressBarFillEl.style.width = `${clampPercent}%`;
   if (progressPercentLabelEl) progressPercentLabelEl.textContent = budget > 0 ? `${clampPercent.toFixed(1)}% Used` : '0% Used';
+  if (gaugeLimitLabelEl) gaugeLimitLabelEl.textContent = `${formatCurrency(budget)} Limit`;
+  if (statPercentDetailEl) statPercentDetailEl.textContent = budget > 0 ? `${clampPercent.toFixed(1)}% Used` : '0% Used';
 
   if (progressBarFillEl) {
     if (spentRatio > 100) {
@@ -1046,7 +1049,6 @@ function openBudgetModal() {
 
 if (btnEditBudget) btnEditBudget.addEventListener('click', openBudgetModal);
 if (btnSidebarBudgetEdit) btnSidebarBudgetEdit.addEventListener('click', openBudgetModal);
-if (btnCardBudgetEdit) btnCardBudgetEdit.addEventListener('click', (e) => { e.stopPropagation(); openBudgetModal(); });
 if (statBudgetCard) statBudgetCard.addEventListener('click', openBudgetModal);
 
 function closeModal(targetModal) {

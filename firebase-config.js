@@ -1,4 +1,8 @@
-// Firebase Configuration - Expense OS
+// Firebase Configuration - Expense OS Web
+// ============================================================
+// SETUP: Replace placeholder values with your Firebase project credentials.
+// Get these from: https://console.firebase.google.com
+//   → Your Project → Project Settings (gear icon) → General → Your apps → Web app
 // ============================================================
 
 const firebaseConfig = {
@@ -10,6 +14,7 @@ const firebaseConfig = {
   appId: "1:923139726274:web:d5188f177600a2716e945b",
   measurementId: "G-7XJJ0XN5GS"
 };
+
 
 // Check if Firebase is properly configured
 const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_');
