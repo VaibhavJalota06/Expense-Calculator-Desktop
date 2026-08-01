@@ -1424,24 +1424,46 @@ document.addEventListener('DOMContentLoaded', () => {
 // ---------- Interactive Onboarding & Feature Tour ----------
 const tourSteps = [
   {
+    view: 'dashboard',
     target: '#stat-budget-card',
-    title: '🎯 Step 1: Set Monthly Budget Cap',
-    msg: 'Stay on top of your financial goals! Click here anytime to set or edit your target monthly spending limit.'
+    title: '🎯 Step 1: Set & Edit Monthly Budget Cap',
+    msg: 'Stay on top of your financial goals! Click here or use the "Budget" button in the header anytime to set or re-edit your target monthly spending limit.'
   },
   {
+    view: 'dashboard',
     target: '#exp-form',
     title: '💸 Step 2: Log Daily Expenses',
-    msg: 'Easily log daily purchases, groceries, and shopping items here with instant categorization and automatic calculations.'
+    msg: 'Quickly log daily purchases, groceries, and shopping items here with instant categorization and automatic calculations.'
   },
   {
-    target: '#btn-add-sub',
-    title: '🔄 Step 3: Track Recurring Bills',
-    msg: 'Never miss a due date! Add monthly subscriptions like Netflix, Spotify, or utility bills to track upcoming payments.'
+    view: 'transactions',
+    target: '[data-view="transactions"]',
+    title: '📜 Step 3: Transactions Log & Filters',
+    msg: 'Switch to the Transactions Log tab to view, search, filter by category or time period, and delete any logged expense item.'
   },
   {
+    view: 'bills',
+    target: '[data-view="bills"]',
+    title: '🔄 Step 4: Recurring Bills & Subscriptions',
+    msg: 'Never miss a due date! Add monthly subscriptions (like Netflix, Spotify, utilities) and click "Paid" to mark them completed each month.'
+  },
+  {
+    view: 'analytics',
+    target: '[data-view="analytics"]',
+    title: '📈 Step 5: Category Analytics & Charts',
+    msg: 'Explore Category Analytics to view interactive spending charts and visual breakdowns of where your money goes each month.'
+  },
+  {
+    view: 'dashboard',
     target: '#month-picker',
-    title: '📊 Step 4: Analyze Monthly Trends',
-    msg: 'Use the month selector to jump between months or check Category Analytics to see exactly where your money goes.'
+    title: '📅 Step 6: Month Selector & Export CSV',
+    msg: 'Use the month picker in the header to jump between months, or click "Export CSV" in the sidebar to download your spreadsheet records.'
+  },
+  {
+    view: 'dashboard',
+    target: '#btn-reset-all',
+    title: '⚠️ Step 7: Reset All Data Anytime',
+    msg: 'Need a fresh start? Click "Reset Data" in the sidebar anytime to safely clear all expense records and reset your budget back to zero.'
   }
 ];
 
@@ -1455,6 +1477,11 @@ function renderTourStep(stepIdx) {
 
   currentTourStep = stepIdx;
   const step = tourSteps[stepIdx];
+
+  // Auto-switch to target tab/view if specified
+  if (step.view && typeof switchView === 'function') {
+    switchView(step.view);
+  }
 
   document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
 
@@ -1476,25 +1503,27 @@ function renderTourStep(stepIdx) {
   if (prevBtn) prevBtn.style.display = stepIdx === 0 ? 'none' : 'inline-flex';
   if (nextBtn) nextBtn.innerHTML = stepIdx === tourSteps.length - 1 ? 'Finish 🎉' : 'Next <i class="fa-solid fa-arrow-right"></i>';
 
-  const targetEl = document.querySelector(step.target);
-  if (targetEl) {
-    targetEl.classList.add('tour-highlight');
-    try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e) {}
+  setTimeout(() => {
+    const targetEl = document.querySelector(step.target);
+    if (targetEl) {
+      targetEl.classList.add('tour-highlight');
+      try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e) {}
 
-    const rect = targetEl.getBoundingClientRect();
-    const cardWidth = 340;
-    let top = rect.bottom + 12;
-    let left = Math.max(16, rect.left + (rect.width / 2) - (cardWidth / 2));
+      const rect = targetEl.getBoundingClientRect();
+      const cardWidth = 340;
+      let top = rect.bottom + 12;
+      let left = Math.max(16, rect.left + (rect.width / 2) - (cardWidth / 2));
 
-    if (left + cardWidth > window.innerWidth) left = window.innerWidth - cardWidth - 20;
-    if (top + 200 > window.innerHeight) top = Math.max(20, rect.top - 180);
+      if (left + cardWidth > window.innerWidth) left = window.innerWidth - cardWidth - 20;
+      if (top + 200 > window.innerHeight) top = Math.max(20, rect.top - 180);
 
-    tourCard.style.top = `${Math.max(20, top)}px`;
-    tourCard.style.left = `${Math.max(16, left)}px`;
-  } else {
-    tourCard.style.top = '30%';
-    tourCard.style.left = '50%';
-  }
+      tourCard.style.top = `${Math.max(20, top)}px`;
+      tourCard.style.left = `${Math.max(16, left)}px`;
+    } else {
+      tourCard.style.top = '30%';
+      tourCard.style.left = '50%';
+    }
+  }, 50);
 }
 
 function startGuidedTour() {
@@ -1507,6 +1536,7 @@ function endGuidedTour() {
   document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
   const tourOverlay = document.getElementById('tour-overlay');
   if (tourOverlay) tourOverlay.classList.add('hidden');
+  if (typeof switchView === 'function') switchView('dashboard');
 }
 
 // Event Listeners for Welcome Modal & Guided Tour
