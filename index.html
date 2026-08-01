@@ -1,0 +1,488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Expense OS - Web</title>
+  <meta name="description" content="Expense OS — Track expenses, set budgets, and manage recurring bills. Syncs between web and desktop." />
+  <link rel="icon" type="image/png" href="icon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Ambient Background Glow Blobs -->
+  <div class="bg-glow bg-glow-1"></div>
+  <div class="bg-glow bg-glow-2"></div>
+
+  <!-- ============================================================ -->
+  <!-- LOGIN / SIGNUP SCREEN -->
+  <!-- ============================================================ -->
+  <div id="login-screen" class="login-screen">
+    <div class="login-container">
+      <div class="login-brand">
+        <img src="icon.png" alt="Expense OS Logo" class="login-logo" />
+        <h1 class="login-title">Expense OS</h1>
+        <p class="login-subtitle">Your personal finance command center</p>
+      </div>
+
+      <!-- Login Card -->
+      <div id="login-card" class="auth-card glass-panel">
+        <h2>Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to sync your expenses across devices</p>
+
+        <button class="btn btn-google btn-block btn-google-login" type="button">
+          <svg class="google-icon" viewBox="0 0 48 48" width="20" height="20">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="auth-divider"><span>or sign in with email</span></div>
+
+        <form id="login-form">
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" placeholder="••••••••" required />
+          </div>
+          <div id="login-error" class="auth-error hidden"></div>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+        </form>
+
+        <p class="auth-switch">Don't have an account? <a href="#" id="btn-show-signup">Create one</a></p>
+      </div>
+
+      <!-- Signup Card -->
+      <div id="signup-card" class="auth-card glass-panel hidden">
+        <h2>Create Account</h2>
+        <p class="auth-subtitle">Start tracking your expenses today</p>
+
+        <button class="btn btn-google btn-block btn-google-login" type="button">
+          <svg class="google-icon" viewBox="0 0 48 48" width="20" height="20">
+            <path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>
+            <path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>
+            <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
+            <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
+          </svg>
+          Continue with Google
+        </button>
+
+        <div class="auth-divider"><span>or sign up with email</span></div>
+
+        <form id="signup-form">
+          <div class="form-group">
+            <label for="signup-email">Email</label>
+            <input type="email" id="signup-email" placeholder="you@example.com" required />
+          </div>
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="Min 6 characters" required />
+          </div>
+          <div class="form-group">
+            <label for="signup-confirm-password">Confirm Password</label>
+            <input type="password" id="signup-confirm-password" placeholder="••••••••" required />
+          </div>
+          <div id="signup-error" class="auth-error hidden"></div>
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+        </form>
+
+        <p class="auth-switch">Already have an account? <a href="#" id="btn-show-login">Sign in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APP (hidden until authenticated) -->
+  <!-- ============================================================ -->
+  <div class="app-layout hidden">
+    <!-- Sidebar Navigation -->
+    <aside class="sidebar">
+      <div class="sidebar-brand">
+        <img src="icon.png" alt="Expense OS Logo" class="brand-logo-img" />
+        <div class="brand-text">
+          <h2>Expense OS</h2>
+          <span class="brand-badge"><i class="fa-solid fa-bolt"></i> Web v2</span>
+        </div>
+      </div>
+
+      <!-- User Profile Section -->
+      <div id="user-profile" class="sidebar-user-profile">
+        <img id="user-avatar" src="" alt="" class="user-avatar" />
+        <div class="user-info">
+          <span id="user-name" class="user-display-name">User</span>
+          <span id="user-email-display" class="user-display-email"></span>
+        </div>
+        <button id="btn-logout" class="icon-btn" title="Sign Out">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+
+      <nav class="nav-menu">
+        <a href="#" class="nav-item active" data-view="dashboard">
+          <i class="fa-solid fa-chart-line"></i>
+          <span>Dashboard</span>
+        </a>
+        <a href="#" class="nav-item" data-view="transactions">
+          <i class="fa-solid fa-receipt"></i>
+          <span>Transactions Log</span>
+        </a>
+        <a href="#" class="nav-item" data-view="bills">
+          <i class="fa-solid fa-arrows-rotate"></i>
+          <span>Recurring Bills</span>
+        </a>
+        <a href="#" class="nav-item" data-view="analytics">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Category Analytics</span>
+        </a>
+      </nav>
+
+      <div class="sidebar-footer">
+        <!-- Sync Status Badge -->
+        <div id="sync-status" class="sync-status-badge sync-synced">
+          <i class="fa-solid fa-circle-check"></i> Synced
+        </div>
+        <div class="sidebar-budget-card">
+          <div class="sb-budget-header">
+            <span>Budget Cap</span>
+            <button id="btn-sidebar-budget-edit" class="icon-btn" title="Edit Budget"><i class="fa-solid fa-pen-to-square"></i></button>
+          </div>
+          <div id="sidebar-budget-val" class="sb-budget-val">₹0.00</div>
+        </div>
+        <div class="sidebar-actions">
+          <button id="btn-export-csv" class="btn btn-secondary btn-block" title="Export CSV">
+            <i class="fa-solid fa-file-csv"></i> Export CSV
+          </button>
+          <button id="btn-reset-all" class="btn btn-danger-outline btn-block" title="Reset All Data">
+            <i class="fa-solid fa-rotate-left"></i> Reset Data
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Workspace -->
+    <main class="main-workspace">
+      <!-- Mobile Sidebar Toggle -->
+      <button id="btn-sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Menu">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+
+      <!-- Topbar Header with Month Selector -->
+      <header class="topbar">
+        <div class="topbar-left">
+          <h1 id="view-title">Dashboard Overview</h1>
+          <p id="view-subtitle">Real-time financial analytics & budget control</p>
+        </div>
+        <div class="topbar-right">
+          <div class="month-selector-group">
+            <button id="btn-prev-month" class="icon-btn month-nav-btn" title="Previous Month"><i class="fa-solid fa-chevron-left"></i></button>
+            <select id="month-picker" class="month-picker-select"></select>
+            <button id="btn-next-month" class="icon-btn month-nav-btn" title="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
+          </div>
+          <button id="btn-add-sub" class="btn btn-secondary">
+            <i class="fa-solid fa-calendar-plus"></i> + Add Bill
+          </button>
+          <button id="btn-edit-budget" class="btn btn-primary">
+            <i class="fa-solid fa-sliders"></i> Set Budget
+          </button>
+        </div>
+      </header>
+
+      <!-- View Panels -->
+      <div class="views-container">
+        <!-- View 1: Dashboard Overview -->
+        <section id="view-dashboard" class="view-panel active">
+          <div class="stats-grid">
+            <div id="stat-budget-card" class="stat-card glass-panel clickable-card" title="Click to edit monthly budget cap">
+              <div class="stat-header">
+                <span>Total Budget</span>
+                <button id="btn-card-budget-edit" class="icon-btn icon-btn-sm" title="Edit Budget"><i class="fa-solid fa-pen-to-square"></i></button>
+              </div>
+              <div id="stat-budget" class="stat-value">₹0.00</div>
+              <div class="stat-subtext">Monthly Cap <span class="edit-hint">(Click to edit)</span></div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Total Spent</span>
+                <i class="fa-solid fa-arrow-trend-up stat-icon text-amber"></i>
+              </div>
+              <div id="stat-spent" class="stat-value text-amber">₹0.00</div>
+              <div id="stat-count" class="stat-subtext">0 transactions</div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Remaining Balance</span>
+                <i class="fa-solid fa-shield-halved stat-icon text-emerald" id="status-icon"></i>
+              </div>
+              <div id="stat-remaining" class="stat-value text-emerald">₹0.00</div>
+              <div id="stat-percent" class="stat-subtext">No budget set</div>
+            </div>
+            <div class="stat-card glass-panel">
+              <div class="stat-header">
+                <span>Recurring Bills</span>
+                <i class="fa-solid fa-bell stat-icon text-purple"></i>
+              </div>
+              <div id="stat-subs-total" class="stat-value text-purple">₹0.00</div>
+              <div id="stat-subs-count" class="stat-subtext">0 active subscriptions</div>
+            </div>
+          </div>
+
+          <div class="dashboard-grid">
+            <div class="dash-left-column">
+              <div class="glass-panel radial-gauge-card">
+                <div class="panel-title justify-between">
+                  <span><i class="fa-solid fa-gauge-high"></i> Budget Health Gauge</span>
+                  <span id="active-month-label" class="month-pill-badge">Current Month</span>
+                </div>
+                <div id="radial-gauge-container" class="gauge-center-container"></div>
+                <div class="progress-bar-bg">
+                  <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
+                </div>
+                <div class="gauge-sub-info">
+                  <span id="progress-percent-label">0% Used</span>
+                  <span>Spending Limit Indicator</span>
+                </div>
+              </div>
+
+              <div class="glass-panel form-card">
+                <div class="panel-title"><i class="fa-solid fa-circle-plus"></i> Log New Expense</div>
+                <form id="expense-form">
+                  <div class="form-row">
+                    <div class="form-group flex-1">
+                      <label for="exp-amount">Amount (₹)</label>
+                      <div class="input-with-icon">
+                        <span class="currency-symbol">₹</span>
+                        <input type="number" id="exp-amount" placeholder="0.00" step="0.01" min="0.01" required />
+                      </div>
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-category">Category</label>
+                      <select id="exp-category" required>
+                        <option value="Food &amp; Dining">🍔 Food &amp; Dining</option>
+                        <option value="Transportation">🚗 Transportation</option>
+                        <option value="Shopping">🛍️ Shopping</option>
+                        <option value="Bills &amp; Utilities">⚡ Bills &amp; Utilities</option>
+                        <option value="Entertainment">🎬 Entertainment</option>
+                        <option value="Health &amp; Fitness">💊 Health &amp; Fitness</option>
+                        <option value="Services &amp; Subscriptions">📱 Subscriptions</option>
+                        <option value="Miscellaneous">📦 Miscellaneous</option>
+                      </select>
+                    </div>
+                  </div>
+                  <div class="form-row">
+                    <div class="form-group flex-2">
+                      <label for="exp-description">Description / Note</label>
+                      <input type="text" id="exp-description" placeholder="e.g. Grocery items at Supermarket" required />
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-payment">Payment</label>
+                      <select id="exp-payment">
+                        <option value="UPI">💳 UPI</option>
+                        <option value="Credit Card">💳 Credit Card</option>
+                        <option value="Debit Card">💳 Debit Card</option>
+                        <option value="Cash">💵 Cash</option>
+                        <option value="Net Banking">🏦 Net Banking</option>
+                      </select>
+                    </div>
+                    <div class="form-group flex-1">
+                      <label for="exp-date">Date</label>
+                      <input type="date" id="exp-date" required />
+                    </div>
+                  </div>
+                  <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-plus"></i> Log Transaction
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div class="dash-right-column">
+              <div class="glass-panel breakdown-card">
+                <div class="panel-title"><i class="fa-solid fa-chart-pie"></i> Category Distribution</div>
+                <div id="breakdown-chart-container" class="chart-container"></div>
+                <div id="category-breakdown-list" class="breakdown-list">
+                  <p class="empty-state-sub">No transactions recorded yet.</p>
+                </div>
+              </div>
+              <div class="glass-panel bills-preview-card">
+                <div class="panel-title justify-between">
+                  <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Bills</span>
+                  <a href="#" class="view-all-link" data-view="bills">View All <i class="fa-solid fa-chevron-right"></i></a>
+                </div>
+                <div id="dash-subs-preview" class="dash-subs-list"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View 2: Transactions Log -->
+        <section id="view-transactions" class="view-panel">
+          <div class="glass-panel transactions-card">
+            <div class="transactions-header">
+              <div class="panel-title"><i class="fa-solid fa-list-check"></i> Transaction Records</div>
+              <div class="filter-controls">
+                <div class="filter-chips">
+                  <button class="filter-chip active" data-filter="ALL">All</button>
+                  <button class="filter-chip" data-filter="TODAY">Today</button>
+                </div>
+                <div class="search-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="filter-search" placeholder="Search description..." />
+                </div>
+                <select id="filter-category">
+                  <option value="ALL">All Categories</option>
+                  <option value="Food &amp; Dining">Food &amp; Dining</option>
+                  <option value="Transportation">Transportation</option>
+                  <option value="Shopping">Shopping</option>
+                  <option value="Bills &amp; Utilities">Bills &amp; Utilities</option>
+                  <option value="Entertainment">Entertainment</option>
+                  <option value="Health &amp; Fitness">Health &amp; Fitness</option>
+                  <option value="Services &amp; Subscriptions">Subscriptions</option>
+                  <option value="Miscellaneous">Miscellaneous</option>
+                </select>
+              </div>
+            </div>
+            <div class="table-responsive">
+              <table class="transactions-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Description</th>
+                    <th>Payment Method</th>
+                    <th class="text-right">Amount</th>
+                    <th class="text-center">Action</th>
+                  </tr>
+                </thead>
+                <tbody id="transactions-tbody"></tbody>
+              </table>
+              <div id="empty-table-msg" class="empty-state-table hidden">
+                <i class="fa-solid fa-receipt empty-icon"></i>
+                <p class="empty-title">No Transactions Recorded</p>
+                <p class="empty-sub">Use the dashboard form to log your first transaction.</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- View 3: Recurring Bills -->
+        <section id="view-bills" class="view-panel">
+          <div class="glass-panel subscriptions-card">
+            <div class="panel-title justify-between">
+              <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Subscriptions &amp; Monthly Bills</span>
+              <button class="btn btn-primary btn-sm" id="btn-add-sub-inline">
+                <i class="fa-solid fa-plus"></i> Add New Bill
+              </button>
+            </div>
+            <div id="subs-grid-container" class="subs-grid"></div>
+          </div>
+        </section>
+
+        <!-- View 4: Category & Monthly Analytics -->
+        <section id="view-analytics" class="view-panel">
+          <div class="analytics-top-grid">
+            <div class="glass-panel analytics-trend-card">
+              <div class="panel-title"><i class="fa-solid fa-chart-column"></i> Month-by-Month Spending Trend</div>
+              <div id="monthly-trend-chart-container" class="monthly-trend-container"></div>
+            </div>
+          </div>
+          <div class="analytics-grid">
+            <div class="glass-panel analytics-chart-card">
+              <div class="panel-title"><i class="fa-solid fa-chart-pie"></i> Category Distribution</div>
+              <div id="full-analytics-chart-container" class="chart-container-large"></div>
+            </div>
+            <div class="glass-panel analytics-list-card">
+              <div class="panel-title"><i class="fa-solid fa-bars-staggered"></i> Category Spending Breakdown</div>
+              <div id="full-analytics-list" class="breakdown-list-large"></div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- Budget Edit Modal -->
+  <div id="budget-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-sliders"></i> <span id="modal-title-text">Set Monthly Budget Cap</span></h3>
+        <button id="modal-close-btn" type="button" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="budget-form" class="modal-form">
+        <div class="modal-body">
+          <label for="modal-budget-input">Enter total monthly budget limit (₹):</label>
+          <div class="input-with-icon">
+            <span class="currency-symbol">₹</span>
+            <input type="text" id="modal-budget-input" inputmode="decimal" pattern="[0-9.]*" placeholder="e.g. 50000" autocomplete="off" required />
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button type="submit" id="modal-save-btn" class="btn btn-primary">Save Budget</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- New Subscription Modal -->
+  <div id="sub-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel">
+      <div class="modal-header">
+        <h3><i class="fa-solid fa-calendar-plus"></i> Add Recurring Bill</h3>
+        <button id="sub-modal-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="sub-form" class="modal-form">
+        <div class="modal-body modal-form-gap">
+          <div class="form-group">
+            <label for="sub-name">Subscription / Bill Name</label>
+            <input type="text" id="sub-name" placeholder="e.g. Netflix Premium, House Rent, Wifi" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="sub-amount">Monthly Amount (₹)</label>
+              <input type="number" id="sub-amount" placeholder="e.g. 649" min="1" step="1" required />
+            </div>
+            <div class="form-group flex-1">
+              <label for="sub-due-day">Due Day of Month</label>
+              <input type="number" id="sub-due-day" placeholder="1 to 31" min="1" max="31" required />
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="sub-category">Category</label>
+            <select id="sub-category">
+              <option value="Services &amp; Subscriptions">📱 Subscriptions</option>
+              <option value="Bills &amp; Utilities">⚡ Bills &amp; Utilities</option>
+              <option value="Entertainment">🎬 Entertainment</option>
+              <option value="Health &amp; Fitness">💊 Health &amp; Fitness</option>
+              <option value="Miscellaneous">📦 Miscellaneous</option>
+            </select>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" id="sub-modal-cancel" class="btn btn-secondary">Cancel</button>
+          <button type="submit" class="btn btn-primary">Add Subscription</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDK (compat for vanilla JS) -->
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+
+  <!-- App Scripts (order matters) -->
+  <script src="firebase-config.js"></script>
+  <script src="script.js"></script>
+  <script src="auth.js"></script>
+</body>
+</html>
