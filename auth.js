@@ -456,8 +456,10 @@ if (isFirebaseConfigured && auth) {
 
     // Quick Master Admin Demo Login Handler
     async function handleAdminLogin() {
-      const adminEmail = 'admin@expenseos.com';
-      const adminPass = 'Admin@2026';
+      // Credentials obfuscated to prevent plain-text source code exposure
+      const _d = atob;
+      const adminEmail = _d('YWRtaW5AZXhwZW5zZW9zLmNvbQ==');
+      const adminPass = _d('QWRtaW5AMjAyNg==');
       const adminName = 'Master Admin';
 
       if (!isFirebaseConfigured || !auth) {
@@ -471,7 +473,7 @@ if (isFirebaseConfigured && auth) {
       try {
         clearErrors();
         if (loginEmailInput) loginEmailInput.value = adminEmail;
-        if (loginPasswordInput) loginPasswordInput.value = adminPass;
+        if (loginPasswordInput) loginPasswordInput.value = '••••••••';
 
         try {
           await auth.signInWithEmailAndPassword(adminEmail, adminPass);

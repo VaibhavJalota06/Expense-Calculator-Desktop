@@ -69,10 +69,24 @@ const mimeTypes = {
   '.ico': 'image/x-icon',
 };
 
+const webRoot = path.join(__dirname, 'web');
+
 const server = http.createServer((req, res) => {
-  let filePath = path.join(__dirname, 'web', req.url === '/' ? 'index.html' : req.url.split('?')[0]);
+  // Decode and strip query strings
+  let requestedPath = decodeURIComponent(req.url.split('?')[0]);
+
+  // Resolve absolute path within the web directory
+  let filePath = path.resolve(webRoot, requestedPath === '/' ? 'index.html' : '.' + requestedPath);
+
+  // SECURITY: Block path traversal — ensure resolved path stays inside web/
+  if (!filePath.startsWith(webRoot)) {
+    res.writeHead(403);
+    res.end('Forbidden');
+    return;
+  }
+
   if (!fs.existsSync(filePath) || fs.statSync(filePath).isDirectory()) {
-    filePath = path.join(__dirname, 'web', 'index.html');
+    filePath = path.join(webRoot, 'index.html');
   }
 
   const extname = String(path.extname(filePath)).toLowerCase();
@@ -81,7 +95,7 @@ const server = http.createServer((req, res) => {
   fs.readFile(filePath, (error, content) => {
     if (error) {
       res.writeHead(500);
-      res.end('Error loading ' + filePath);
+      res.end('Internal Server Error');
     } else {
       res.writeHead(200, {
         'Content-Type': contentType,

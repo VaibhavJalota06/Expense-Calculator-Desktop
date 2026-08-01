@@ -937,7 +937,7 @@ function renderCategoryBreakdown(filteredList, totalSpent) {
           <div class="breakdown-info">
             <span class="breakdown-label">
               <span class="cat-dot" style="background: ${color};"></span>
-              ${catName} (${percent}%)
+              ${escapeHtml(catName)} (${percent}%)
             </span>
             <strong class="mono">${formatCurrency(catAmount)}</strong>
           </div>
@@ -1083,13 +1083,13 @@ function renderTransactionsTable(monthFilteredExpenses) {
     const color = categoryColors[item.category] || '#3b82f6';
 
     tr.innerHTML = `
-      <td data-label="Date" class="font-medium mono">${item.date}</td>
-      <td data-label="Category"><span class="category-badge" style="border-left: 3px solid ${color};">${item.category}</span></td>
+      <td data-label="Date" class="font-medium mono">${escapeHtml(item.date)}</td>
+      <td data-label="Category"><span class="category-badge" style="border-left: 3px solid ${color};">${escapeHtml(item.category)}</span></td>
       <td data-label="Description" class="description-cell">${escapeHtml(item.description)}</td>
-      <td data-label="Payment"><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>
+      <td data-label="Payment"><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${escapeHtml(item.payment)}</span></td>
       <td data-label="Amount" class="text-right font-bold text-amount">${formatCurrency(item.amount)}</td>
       <td class="text-center td-action">
-        <button type="button" class="icon-btn action-btn-del" data-delete-tx="${item.id}" title="Delete Transaction">
+        <button type="button" class="icon-btn action-btn-del" data-delete-tx="${escapeHtml(item.id)}" title="Delete Transaction">
           <i class="fa-solid fa-trash-can"></i>
         </button>
       </td>
@@ -1122,8 +1122,12 @@ if (expenseForm) {
     const payment = expPaymentSelect.value;
     const date = expDateInput.value;
 
-    if (isNaN(amount) || amount <= 0) {
-      showAlert('Invalid Input', 'Please enter a valid expense amount.');
+    if (isNaN(amount) || amount <= 0 || amount > 99999999) {
+      showAlert('Invalid Input', 'Please enter a valid expense amount (max ₹99,999,999).');
+      return;
+    }
+    if (description.length > 200) {
+      showAlert('Invalid Input', 'Description is too long (max 200 characters).');
       return;
     }
 
