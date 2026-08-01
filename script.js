@@ -386,14 +386,14 @@ function updateMonthPickerOptions() {
   // Option for All Time
   const allOpt = document.createElement('option');
   allOpt.value = 'ALL';
-  allOpt.textContent = 'Ã°Å¸â€œâ€¦ All Time';
+  allOpt.textContent = '📅 All Time';
   if (selectedMonth === 'ALL') allOpt.selected = true;
   monthPickerSelect.appendChild(allOpt);
 
   months.forEach(ym => {
     const opt = document.createElement('option');
     opt.value = ym;
-    opt.textContent = `Ã°Å¸â€œâ€¦ ${formatMonthLabel(ym)}`;
+    opt.textContent = `📅 ${formatMonthLabel(ym)}`;
     if (selectedMonth === ym) opt.selected = true;
     monthPickerSelect.appendChild(opt);
   });
@@ -513,8 +513,8 @@ function updateUI() {
   if (sidebarBudgetVal) sidebarBudgetVal.textContent = formatCurrency(budget);
 
   if (budget === 0) {
-    if (statRemainingEl) statRemainingEl.textContent = 'Ã¢â€šÂ¹0.00';
-    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set Ã¢Å“ÂÃ¯Â¸Â)';
+    if (statRemainingEl) statRemainingEl.textContent = '₹0.00';
+    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set ✏️)';
   } else {
     if (statRemainingEl) statRemainingEl.textContent = formatCurrency(remaining);
     if (statPercentEl) statPercentEl.textContent = `${remainingPercent.toFixed(1)}% Left`;
@@ -964,7 +964,7 @@ function renderMonthlyTrendChart() {
             ticks: {
               color: '#5F6A80',
               font: { family: 'IBM Plex Mono', size: 10 },
-              callback: function(val) { return 'Ã¢â€šÂ¹' + val; }
+              callback: function(val) { return '₹' + val; }
             }
           }
         }
