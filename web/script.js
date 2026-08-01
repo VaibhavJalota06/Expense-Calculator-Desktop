@@ -231,7 +231,7 @@ function saveState() {
       expenses,
       subscriptions,
       lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    }, { merge: true }).then(() => {
+    }).then(() => {
       if (typeof setSyncStatus === 'function') setSyncStatus('synced');
     }).catch((error) => {
       console.error('Firestore save error:', error);
