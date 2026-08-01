@@ -1120,16 +1120,16 @@ if (btnExportCsv) {
 // Reset All Data
 if (btnResetAll) {
   btnResetAll.addEventListener('click', () => {
-    if (confirm('Warning: This will clear all recorded transactions, budget cap, and recurring bills. Continue?')) {
+    if (confirm('⚠️ WARNING: This will permanently reset and delete ALL logged expenses, budget caps, and subscriptions! Continue?')) {
       budget = 0;
       expenses = [];
       subscriptions = [];
       selectedMonth = getCurrentYearMonth();
-      localStorage.removeItem('expense_cal_desktop_budget');
-      localStorage.removeItem('expense_cal_desktop_expenses');
-      localStorage.removeItem('expense_cal_desktop_subscriptions');
+      localStorage.clear();
+      saveState();
       updateMonthPickerOptions();
       updateUI();
+      alert('All expense records, budget limits, and cloud data have been completely reset.');
     }
   });
 }
