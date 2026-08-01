@@ -1,4 +1,4 @@
-// Authentication Module - Expense OS
+// Authentication Module - Expense OS Web
 // Handles Google Sign-In, Email/Password Auth, and Auth State Management
 
 if (isFirebaseConfigured && auth) {
@@ -103,8 +103,18 @@ if (isFirebaseConfigured && auth) {
       console.error('Redirect result error:', error);
     });
 
+    function hideLoader() {
+      const loader = document.getElementById('app-loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.visibility = 'hidden';
+        setTimeout(() => { loader.style.display = 'none'; }, 300);
+      }
+    }
+
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
+      hideLoader();
       if (user) {
         showApp(user);
         startFirestoreSync(user.uid);
@@ -203,26 +213,17 @@ if (isFirebaseConfigured && auth) {
         const email = signupEmailInput ? signupEmailInput.value.trim() : '';
         const password = signupPasswordInput ? signupPasswordInput.value : '';
         const confirm = signupConfirmInput ? signupConfirmInput.value : '';
+
         if (!email || !password || !confirm) { showError(signupError, 'Please fill in all fields.'); return; }
         if (password !== confirm) { showError(signupError, 'Passwords do not match.'); return; }
         if (password.length < 6) { showError(signupError, 'Password must be at least 6 characters.'); return; }
+
         signUpWithEmail(email, password);
       });
     }
 
-    if (btnLogout) btnLogout.addEventListener('click', handleSignOut);
-  })();
-} else {
-  // Firebase not configured — run in offline/localStorage mode
-  (function offlineMode() {
-    const loginScreen = document.getElementById('login-screen');
-    const appLayout = document.querySelector('.app-layout');
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appLayout) appLayout.classList.remove('hidden');
-    const userProfile = document.getElementById('user-profile');
-    if (userProfile) userProfile.style.display = 'none';
-    const syncStatus = document.getElementById('sync-status');
-    if (syncStatus) syncStatus.style.display = 'none';
-    window.setSyncStatus = function() {};
+    if (btnLogout) {
+      btnLogout.addEventListener('click', handleSignOut);
+    }
   })();
 }

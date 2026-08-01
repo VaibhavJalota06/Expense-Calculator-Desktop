@@ -103,8 +103,18 @@ if (isFirebaseConfigured && auth) {
       console.error('Redirect result error:', error);
     });
 
+    function hideLoader() {
+      const loader = document.getElementById('app-loader');
+      if (loader) {
+        loader.style.opacity = '0';
+        loader.style.visibility = 'hidden';
+        setTimeout(() => { loader.style.display = 'none'; }, 300);
+      }
+    }
+
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
+      hideLoader();
       if (user) {
         showApp(user);
         startFirestoreSync(user.uid);
