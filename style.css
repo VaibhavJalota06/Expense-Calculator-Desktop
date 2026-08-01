@@ -1337,6 +1337,20 @@ input:focus, select:focus {
     transform: translateX(0);
   }
 
+  /* Mobile sidebar overlay backdrop */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.active {
+    display: block;
+  }
+
   .sidebar-toggle-btn {
     display: flex;
     align-items: center;
@@ -1503,6 +1517,73 @@ input:focus, select:focus {
   .filter-controls {
     width: 100%;
     justify-content: space-between;
+  }
+
+  /* ── Mobile Card-style Transactions Table ── */
+  .table-responsive {
+    overflow-x: visible;
+  }
+
+  .transactions-table thead {
+    display: none; /* Hide table header — labels shown via data-label */
+  }
+
+  .transactions-table,
+  .transactions-table tbody,
+  .transactions-table tr {
+    display: block;
+    width: 100%;
+  }
+
+  .transactions-table tr {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border-glass);
+    border-radius: var(--radius-md);
+    margin-bottom: 0.7rem;
+    padding: 0.85rem;
+    transition: background 0.2s ease;
+  }
+
+  .transactions-table tr:hover {
+    background: rgba(255, 255, 255, 0.06);
+  }
+
+  .transactions-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.32rem 0;
+    border-bottom: none;
+    font-size: 0.86rem;
+    min-height: 28px;
+  }
+
+  .transactions-table td::before {
+    content: attr(data-label);
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+  }
+
+  /* Hide action cell label — icon is self-explanatory */
+  .transactions-table td.td-action::before {
+    display: none;
+  }
+
+  .transactions-table td.td-action {
+    justify-content: flex-end;
+    padding-top: 0.5rem;
+    margin-top: 0.25rem;
+    border-top: 1px solid var(--border-glass);
+  }
+
+  .description-cell {
+    max-width: 160px;
+    text-align: right;
   }
 }
 

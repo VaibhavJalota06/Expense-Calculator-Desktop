@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Expense OS - Personal Finance Command Center</title>
+  <meta name="description" content="Expense OS — a personal finance command center to track expenses, manage budgets, and analyze spending habits with real-time cloud sync." />
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -110,6 +111,8 @@
   <!-- MAIN APP (hidden until authenticated) -->
   <!-- ============================================================ -->
   <div class="app-layout hidden">
+    <!-- Mobile Sidebar Overlay (tap to close sidebar on mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-brand">
@@ -440,7 +443,7 @@
   <div id="budget-modal" class="modal-overlay hidden">
     <div class="modal-card glass-panel">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-sliders text-indigo"></i> Set Monthly Budget Cap</h3>
+        <h3><i class="fa-solid fa-sliders text-indigo"></i> <span id="modal-title-text">Set Monthly Budget Cap</span></h3>
         <button id="modal-close-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <form id="budget-form" class="modal-form">
