@@ -454,6 +454,54 @@ if (isFirebaseConfigured && auth) {
       btn.addEventListener('click', continueAsGuest);
     });
 
+    // Quick Master Admin Demo Login Handler
+    async function handleAdminLogin() {
+      const adminEmail = 'admin@expenseos.com';
+      const adminPass = 'Admin@2026';
+      const adminName = 'Master Admin';
+
+      if (!isFirebaseConfigured || !auth) {
+        hideLoader();
+        localStorage.setItem('expense_cal_user_gender_admin', 'male');
+        showApp({ uid: 'admin_master', displayName: adminName, email: adminEmail, photoURL: '' });
+        if (typeof loadStateFromLocal === 'function') loadStateFromLocal();
+        return;
+      }
+
+      try {
+        clearErrors();
+        if (loginEmailInput) loginEmailInput.value = adminEmail;
+        if (loginPasswordInput) loginPasswordInput.value = adminPass;
+
+        try {
+          await auth.signInWithEmailAndPassword(adminEmail, adminPass);
+        } catch (signInErr) {
+          if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
+            const cred = await auth.createUserWithEmailAndPassword(adminEmail, adminPass);
+            if (cred && cred.user) {
+              await cred.user.updateProfile({ displayName: adminName });
+              if (db) {
+                await db.collection('users').doc(cred.user.uid).set({
+                  profile: { name: adminName, gender: 'male', role: 'admin' },
+                  lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+              }
+            }
+          } else {
+            throw signInErr;
+          }
+        }
+      } catch (err) {
+        console.error('Admin Login error:', err);
+        showError(loginError, getAuthErrorMessage(err));
+      }
+    }
+
+    const btnAdminLogin = document.getElementById('btn-admin-login');
+    if (btnAdminLogin) {
+      btnAdminLogin.addEventListener('click', handleAdminLogin);
+    }
+
     document.addEventListener('click', (e) => {
       const gBtn = e.target.closest('.btn-guest-login');
       if (gBtn) {
