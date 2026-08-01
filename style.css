@@ -72,6 +72,31 @@ html, body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Dark Glass Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-pill);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--emerald);
+}
+
+/* Seamless Sidebar Scrollbar Hiding */
+.sidebar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.sidebar::-webkit-scrollbar {
+  display: none;
+}
+
 /* Monospace Ledger Signature */
 .mono,
 .stat-value,
