@@ -511,6 +511,37 @@
         </div>
       </form>
     </div>
+  <!-- Custom Glassmorphic Confirmation Modal -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel confirm-modal-card">
+      <div class="modal-header">
+        <h3 id="confirm-modal-title"><i class="fa-solid fa-triangle-exclamation text-amber"></i> Confirmation</h3>
+        <button id="confirm-modal-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="confirm-modal-msg" class="confirm-msg-text"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="confirm-modal-cancel" class="btn btn-secondary">Cancel</button>
+        <button type="button" id="confirm-modal-ok" class="btn btn-danger-outline">Confirm</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Custom Glassmorphic Notification Alert Modal -->
+  <div id="alert-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel alert-modal-card">
+      <div class="modal-header">
+        <h3 id="alert-modal-title"><i class="fa-solid fa-circle-info text-emerald"></i> Notice</h3>
+        <button id="alert-modal-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="modal-body">
+        <p id="alert-modal-msg" class="confirm-msg-text"></p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" id="alert-modal-ok" class="btn btn-primary btn-block">OK</button>
+      </div>
+    </div>
   </div>
 
   <!-- Chart.js CDN -->

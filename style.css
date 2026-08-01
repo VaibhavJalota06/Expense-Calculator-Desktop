@@ -1928,3 +1928,19 @@ select option {
     justify-content: flex-start;
   }
 }
+
+/* Custom Confirm & Alert Modals */
+.confirm-modal-card {
+  max-width: 440px;
+  width: 100%;
+}
+.alert-modal-card {
+  max-width: 400px;
+  width: 100%;
+}
+.confirm-msg-text {
+  font-size: 0.92rem;
+  color: var(--text-mid);
+  line-height: 1.55;
+  margin: 0.5rem 0;
+}
