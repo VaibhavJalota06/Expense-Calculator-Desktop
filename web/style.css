@@ -924,37 +924,65 @@ select option {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  flex-wrap: wrap;
   gap: 1rem;
   margin-bottom: 1.25rem;
 }
 .filter-controls {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  flex-wrap: wrap;
+  gap: 0.65rem;
+  flex-wrap: nowrap;
 }
 .filter-chips {
-  display: flex;
+  display: inline-flex;
+  align-items: center;
+  height: 38px;
   background: var(--bg-input);
   border: 1px solid var(--glass-border);
   border-radius: var(--radius-pill);
   padding: 3px;
+  flex-shrink: 0;
 }
 .filter-chip {
   background: transparent;
   border: none;
   color: var(--text-mid);
-  padding: 0.35rem 0.85rem;
+  height: 100%;
+  padding: 0 0.85rem;
   font-size: 0.8rem;
   font-weight: 700;
   border-radius: var(--radius-pill);
   cursor: pointer;
   transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
 }
 .filter-chip.active {
   background: var(--emerald);
   color: #061B12;
+}
+
+.filter-select {
+  height: 38px;
+  padding: 0 0.85rem;
+  background: var(--bg-input);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-md);
+  color: var(--text-hi);
+  font-family: var(--font-sans);
+  font-size: 0.84rem;
+  font-weight: 600;
+  outline: none;
+  cursor: pointer;
+  transition: var(--transition);
+  flex-shrink: 0;
+}
+.filter-select:focus {
+  border-color: var(--emerald);
+}
+.filter-select option {
+  background: var(--bg-elevated);
+  color: var(--text-hi);
 }
 
 .search-box {
@@ -969,8 +997,9 @@ select option {
   font-size: 0.84rem;
 }
 .search-box input {
+  height: 38px;
   padding-left: 2.3rem;
-  width: 220px;
+  width: 210px;
 }
 
 .table-responsive {
