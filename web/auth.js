@@ -53,9 +53,25 @@ if (isFirebaseConfigured && auth) {
         if (auth && auth.setPersistence) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
-        await auth.signInWithPopup(googleProvider);
+        if (isMobileBrowser) {
+          isRedirectPending = true;
+          await auth.signInWithRedirect(googleProvider);
+        } else {
+          try {
+            await auth.signInWithPopup(googleProvider);
+          } catch (popupErr) {
+            const code = popupErr ? popupErr.code : '';
+            if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request') {
+              isRedirectPending = true;
+              await auth.signInWithRedirect(googleProvider);
+            } else {
+              throw popupErr;
+            }
+          }
+        }
       } catch (error) {
         console.error('Google Sign-In error:', error);
+        isRedirectPending = false;
         const code = error ? (error.code || '') : '';
         const msg = error ? (error.message || '') : '';
 
@@ -63,11 +79,7 @@ if (isFirebaseConfigured && auth) {
           showError(loginError, 'Domain Unauthorized: Please add this URL/IP to Firebase Console > Authentication > Settings > Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Cross-Site Restriction: Please use Email Sign Up or tap "Continue as Guest".');
-        } else if (code === 'auth/popup-blocked') {
-          showError(loginError, 'Popup was blocked by your browser. Please allow popups for this site and tap Continue with Google again.');
-        } else if (code === 'auth/cancelled-popup-request') {
-          showError(loginError, 'Sign-in popup request was interrupted. Please tap Continue with Google again.');
-        } else if (code !== 'auth/popup-closed-by-user') {
+        } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
       } finally {
