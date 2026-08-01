@@ -18,10 +18,7 @@ if (isFirebaseConfigured && auth) {
     const signupError = document.getElementById('signup-error');
     const btnShowSignup = document.getElementById('btn-show-signup');
     const btnShowLogin = document.getElementById('btn-show-login');
-    const btnLogout = document.getElementById('btn-logout');
-    const userAvatarEl = document.getElementById('user-avatar');
-    const userNameEl = document.getElementById('user-name');
-    const userEmailEl = document.getElementById('user-email-display');
+    // Topbar profile elements (sidebar profile was removed)
     const syncStatusEl = document.getElementById('sync-status');
     const googleProvider = new firebase.auth.GoogleAuthProvider();
 
@@ -196,17 +193,7 @@ if (isFirebaseConfigured && auth) {
       const fullName = `${prefix}${rawName}`;
       const initial = rawName.charAt(0).toUpperCase() || 'U';
 
-      // Update Sidebar profile info
-      if (userAvatarEl) {
-        if (user && user.photoURL) {
-          userAvatarEl.src = user.photoURL;
-          userAvatarEl.style.display = 'block';
-        } else {
-          userAvatarEl.style.display = 'none';
-        }
-      }
-      if (userNameEl) userNameEl.textContent = fullName;
-      if (userEmailEl) userEmailEl.textContent = (user && user.email) || '';
+
 
       // Update Topbar Profile Avatar & Dropdown
       const topbarImg = document.getElementById('topbar-user-img');
@@ -300,8 +287,9 @@ if (isFirebaseConfigured && auth) {
 
         const currentUser = auth ? auth.currentUser : null;
         let currentName = currentUser ? (currentUser.displayName || '') : '';
-        if (!currentName && userNameEl) {
-          currentName = userNameEl.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
+        if (!currentName) {
+          const dropName = document.getElementById('dropdown-user-name');
+          if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
         }
         const currentUid = currentUser ? currentUser.uid : 'local';
         const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
@@ -473,7 +461,7 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
-    if (btnLogout) btnLogout.addEventListener('click', handleSignOut);
+
   })();
 } else {
   // Firebase not configured — run in offline/localStorage mode
@@ -489,8 +477,7 @@ if (isFirebaseConfigured && auth) {
     const appLayout = document.querySelector('.app-layout');
     if (loginScreen) loginScreen.classList.add('hidden');
     if (appLayout) appLayout.classList.remove('hidden');
-    const userProfile = document.getElementById('user-profile');
-    if (userProfile) userProfile.style.display = 'none';
+
     const syncStatus = document.getElementById('sync-status');
     if (syncStatus) syncStatus.style.display = 'none';
     window.setSyncStatus = function() {};
