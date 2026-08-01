@@ -114,7 +114,7 @@ function createWindow(port) {
     minHeight: 500,
     title: 'Expense OS - Desktop Studio',
     backgroundColor: '#050811',
-    icon: path.join(__dirname, 'icon.png'),
+    icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
