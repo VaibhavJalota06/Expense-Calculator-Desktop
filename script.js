@@ -1218,3 +1218,39 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // If Firebase IS configured, auth.js onAuthStateChanged will trigger data loading
 });
+
+// Mobile Web App Link & QR Code Modal Logic
+const mobileLinkModal = document.getElementById('mobile-link-modal');
+const btnOpenMobileModal = document.getElementById('btn-open-mobile-modal');
+const btnSidebarMobileModal = document.getElementById('btn-sidebar-mobile-modal');
+const mobileModalClose = document.getElementById('mobile-modal-close');
+const mobileModalCancel = document.getElementById('mobile-modal-cancel');
+const btnCopyWebLink = document.getElementById('btn-copy-web-link');
+const webLinkUrlInput = document.getElementById('web-link-url');
+const copyToastMsg = document.getElementById('copy-toast-msg');
+
+function openMobileModal() {
+  if (mobileLinkModal) mobileLinkModal.classList.remove('hidden');
+}
+function closeMobileModal() {
+  if (mobileLinkModal) mobileLinkModal.classList.add('hidden');
+  if (copyToastMsg) copyToastMsg.classList.add('hidden');
+}
+
+if (btnOpenMobileModal) btnOpenMobileModal.addEventListener('click', openMobileModal);
+if (btnSidebarMobileModal) btnSidebarMobileModal.addEventListener('click', openMobileModal);
+if (mobileModalClose) mobileModalClose.addEventListener('click', closeMobileModal);
+if (mobileModalCancel) mobileModalCancel.addEventListener('click', closeMobileModal);
+
+if (btnCopyWebLink && webLinkUrlInput) {
+  btnCopyWebLink.addEventListener('click', () => {
+    webLinkUrlInput.select();
+    navigator.clipboard.writeText(webLinkUrlInput.value).then(() => {
+      if (copyToastMsg) copyToastMsg.classList.remove('hidden');
+      setTimeout(() => { if (copyToastMsg) copyToastMsg.classList.add('hidden'); }, 3000);
+    }).catch(err => {
+      console.error('Clipboard copy error:', err);
+    });
+  });
+}
+
