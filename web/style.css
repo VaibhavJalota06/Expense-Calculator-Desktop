@@ -425,6 +425,8 @@ html, body {
 .form-group select,
 .form-group textarea {
   width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
   padding: 0.7rem 0.9rem;
   background: var(--bg-input);
   border: 1px solid var(--glass-border);
@@ -440,6 +442,32 @@ html, body {
   outline: none;
   border-color: var(--emerald);
   box-shadow: 0 0 0 2px rgba(52, 211, 153, 0.2);
+}
+
+/* Cross-Platform & Mobile HTML5 Date Input Overflow Fix */
+input[type="date"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  min-height: 42px;
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Fix iOS Safari native date value overflow & center alignment */
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  min-height: 1.4em;
+  margin: 0;
+}
+
+/* Style calendar icon indicator */
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.85) sepia(1) saturate(5) hue-rotate(110deg);
+  cursor: pointer;
+  opacity: 0.85;
+  padding: 0.2rem;
 }
 .form-row {
   display: flex;

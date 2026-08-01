@@ -147,7 +147,7 @@ function showConfirm(title, message, isDanger = false) {
     const cancelBtn = document.getElementById('confirm-modal-cancel');
     const closeBtn = document.getElementById('confirm-modal-close');
 
-    if (!modal) { resolve(confirm(message)); return; }
+    if (!modal || !okBtn) { resolve(confirm(message)); return; }
 
     titleEl.innerHTML = isDanger
       ? `<i class="fa-solid fa-triangle-exclamation text-rose"></i> ${title}`
@@ -164,20 +164,17 @@ function showConfirm(title, message, isDanger = false) {
 
     modal.classList.remove('hidden');
 
-    function cleanup(result) {
+    function done(res) {
       modal.classList.add('hidden');
-      okBtn.removeEventListener('click', onOk);
-      cancelBtn.removeEventListener('click', onCancel);
-      closeBtn.removeEventListener('click', onCancel);
-      resolve(result);
+      okBtn.onclick = null;
+      if (cancelBtn) cancelBtn.onclick = null;
+      if (closeBtn) closeBtn.onclick = null;
+      resolve(res);
     }
 
-    function onOk() { cleanup(true); }
-    function onCancel() { cleanup(false); }
-
-    okBtn.addEventListener('click', onOk);
-    cancelBtn.addEventListener('click', onCancel);
-    closeBtn.addEventListener('click', onCancel);
+    okBtn.onclick = () => done(true);
+    if (cancelBtn) cancelBtn.onclick = () => done(false);
+    if (closeBtn) closeBtn.onclick = () => done(false);
   });
 }
 
@@ -189,23 +186,21 @@ function showAlert(title, message) {
     const okBtn = document.getElementById('alert-modal-ok');
     const closeBtn = document.getElementById('alert-modal-close');
 
-    if (!modal) { alert(message); resolve(); return; }
+    if (!modal || !okBtn) { alert(message); resolve(); return; }
 
     titleEl.innerHTML = `<i class="fa-solid fa-circle-info text-emerald"></i> ${title}`;
     msgEl.textContent = message;
     modal.classList.remove('hidden');
 
-    function cleanup() {
+    function done() {
       modal.classList.add('hidden');
-      okBtn.removeEventListener('click', onOk);
-      closeBtn.removeEventListener('click', onOk);
+      okBtn.onclick = null;
+      if (closeBtn) closeBtn.onclick = null;
       resolve();
     }
 
-    function onOk() { cleanup(); }
-
-    okBtn.addEventListener('click', onOk);
-    closeBtn.addEventListener('click', onOk);
+    okBtn.onclick = () => done();
+    if (closeBtn) closeBtn.onclick = () => done();
   });
 }
 
@@ -1082,7 +1077,6 @@ if (expenseForm) {
 async function deleteTransaction(id) {
   const ok = await showConfirm('Delete Transaction', 'Are you sure you want to delete this expense transaction record?', true);
   if (ok) {
-    expenses = expenses.filter(item => item.id !== item.id ? item : item.id !== id);
     expenses = expenses.filter(item => item.id !== id);
     saveState();
     updateMonthPickerOptions();
@@ -1238,31 +1232,37 @@ if (subForm) {
 // Export CSV
 if (btnExportCsv) {
   btnExportCsv.addEventListener('click', () => {
-    const exportList = expenses.filter(item => selectedMonth === 'ALL' || (item.date && item.date.startsWith(selectedMonth)));
+    const exportList = selectedMonth === 'ALL'
+      ? expenses
+      : expenses.filter(item => item.date && item.date.startsWith(selectedMonth));
+
     if (exportList.length === 0) {
-      showAlert('No Data to Export', 'No transactions available to export for selected month.');
+      showAlert('No Data to Export', 'No expense records found for ' + (selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth)) + '.');
       return;
     }
 
-    let csvContent = 'Date,Category,Description,Payment Method,Amount (INR)\n';
+    let csvContent = '\uFEFFDate,Category,Description,Payment Method,Amount (INR)\n';
     exportList.forEach(item => {
-      const safeDesc = (item.description || '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ');
+      const safeDate = (item.date || '').replace(/"/g, '""');
       const safeCat = (item.category || '').replace(/"/g, '""');
+      const safeDesc = (item.description || '').replace(/"/g, '""').replace(/[\r\n]+/g, ' ');
       const safePay = (item.payment || '').replace(/"/g, '""');
-      const row = `"${item.date}","${safeCat}","${safeDesc}","${safePay}",${item.amount}`;
+      const row = `"${safeDate}","${safeCat}","${safeDesc}","${safePay}",${item.amount}`;
       csvContent += row + '\n';
     });
 
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', url);
+    link.href = url;
     const monthLabel = selectedMonth === 'ALL' ? 'AllTime' : selectedMonth;
-    link.setAttribute('download', `Expense_Report_${monthLabel}_${new Date().toISOString().split('T')[0]}.csv`);
+    link.download = `Expense_Report_${monthLabel}_${new Date().toISOString().split('T')[0]}.csv`;
     document.body.appendChild(link);
     link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+    setTimeout(() => {
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    }, 100);
   });
 }
 
