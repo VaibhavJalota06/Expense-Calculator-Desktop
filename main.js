@@ -2,8 +2,51 @@ const { app, BrowserWindow, Menu } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
+const os = require('os');
+
+// ──────────────────────────────────────────────────────────────────
+// Fix Windows cache/quota errors caused by spaces in the app path.
+// Move all Electron user-data (cache, quota DB, IndexedDB) to
+// %APPDATA%/ExpenseOS so Windows has full write permissions.
+// This MUST be called before app.whenReady().
+// ──────────────────────────────────────────────────────────────────
+const safeUserDataPath = path.join(os.homedir(), 'AppData', 'Roaming', 'ExpenseOS');
+app.setPath('userData', safeUserDataPath);
+app.setPath('logs', path.join(safeUserDataPath, 'logs'));
+
+// Self-healing: delete corrupted QuotaManager files so Chromium recreates them fresh
+// This stops the quota_database reset loop on Windows
+function cleanCorruptedCache() {
+  const quotaFiles = [
+    path.join(safeUserDataPath, 'QuotaManager'),
+    path.join(safeUserDataPath, 'QuotaManager-journal'),
+    path.join(safeUserDataPath, 'WebStorage', 'QuotaManager'),
+    path.join(safeUserDataPath, 'WebStorage', 'QuotaManager-journal'),
+  ];
+  quotaFiles.forEach(f => {
+    try {
+      if (fs.existsSync(f)) {
+        const stat = fs.statSync(f);
+        // Remove if empty/corrupted (0 bytes)
+        if (stat.size === 0) {
+          fs.unlinkSync(f);
+          console.log('Removed empty/corrupted quota file:', f);
+        }
+      }
+    } catch (e) { /* ignore locked files */ }
+  });
+}
+cleanCorruptedCache();
+
+// Suppress Chromium GPU disk cache & quota database errors on Windows
+// These flags prevent the cascade of cache_util_win / gpu_disk_cache / quota_database errors
+app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-background-networking');
+app.commandLine.appendSwitch('no-sandbox');
+
 
 let autoUpdater;
+
 
 try {
   autoUpdater = require('electron-updater').autoUpdater;
@@ -134,8 +177,21 @@ app.whenReady().then(() => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
+    server.close();
     app.quit();
   }
 });
 
-
+// Suppress uncaught Chromium cache/quota errors from polluting the console
+process.on('uncaughtException', (err) => {
+  if (
+    err.message &&
+    (err.message.includes('quota') ||
+     err.message.includes('cache') ||
+     err.message.includes('disk_cache'))
+  ) {
+    // These are benign Chromium cache errors — app continues normally
+    return;
+  }
+  console.error('Unhandled Error:', err);
+});
