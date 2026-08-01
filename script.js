@@ -1230,6 +1230,28 @@ const webLinkUrlInput = document.getElementById('web-link-url');
 const copyToastMsg = document.getElementById('copy-toast-msg');
 
 function openMobileModal() {
+  const userEmailDisplay = document.getElementById('user-email-display');
+  const modalEmailEl = document.getElementById('modal-user-account-email');
+  const modalEmailSubEl = document.getElementById('modal-user-account-email-sub');
+  const btnShareWhatsapp = document.getElementById('btn-share-whatsapp');
+  const webLinkUrlInput = document.getElementById('web-link-url');
+  const qrImg = document.getElementById('qr-code-img');
+
+  const currentEmail = userEmailDisplay ? (userEmailDisplay.textContent || 'your account') : 'your account';
+  if (modalEmailEl) modalEmailEl.textContent = currentEmail;
+  if (modalEmailSubEl) modalEmailSubEl.textContent = currentEmail;
+
+  const targetUrl = webLinkUrlInput ? webLinkUrlInput.value : 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/';
+  
+  if (qrImg) {
+    qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(targetUrl)}`;
+  }
+
+  if (btnShareWhatsapp) {
+    const shareText = `📱 Open Expense OS on your phone:\n${targetUrl}\n\nSign in with: ${currentEmail} to sync all your expenses in real-time!`;
+    btnShareWhatsapp.href = `https://api.whatsapp.com/send?text=${encodeURIComponent(shareText)}`;
+  }
+
   if (mobileLinkModal) mobileLinkModal.classList.remove('hidden');
 }
 function closeMobileModal() {
@@ -1253,4 +1275,5 @@ if (btnCopyWebLink && webLinkUrlInput) {
     });
   });
 }
+
 
