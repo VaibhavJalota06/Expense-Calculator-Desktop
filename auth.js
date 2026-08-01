@@ -49,32 +49,32 @@ if (isFirebaseConfigured && auth) {
     async function signInWithGoogle() {
       try {
         clearErrors();
-        if (isMobileBrowser) {
-          await auth.signInWithRedirect(googleProvider);
-        } else {
-          try {
-            await auth.signInWithPopup(googleProvider);
-          } catch (popupErr) {
-            console.warn('Google Auth popup error:', popupErr);
-            const msg = popupErr && (popupErr.message || popupErr.code || '');
-            if (popupErr.code === 'auth/popup-blocked' ||
-                popupErr.code === 'auth/popup-closed-by-user' ||
-                popupErr.code === 'auth/operation-not-supported-in-this-environment' ||
-                msg.includes('Cross-Origin-Opener-Policy') ||
-                msg.includes('closed')) {
-              try {
-                await auth.signInWithRedirect(googleProvider);
-              } catch (redErr) {
-                showError(loginError, 'Google auth popup was blocked by browser security. Click "Continue as Guest" below to use the app immediately.');
-              }
-            } else {
-              showError(loginError, getAuthErrorMessage(popupErr) + ' Or click "Continue as Guest" below to use the app immediately.');
+        try {
+          await auth.signInWithPopup(googleProvider);
+        } catch (popupErr) {
+          console.warn('Google Auth popup error:', popupErr);
+          const code = popupErr ? (popupErr.code || '') : '';
+          const msg = popupErr ? (popupErr.message || '') : '';
+          
+          if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
+            showError(loginError, 'Domain Unauthorized: Please add this URL/IP to Firebase Console > Authentication > Settings > Authorized Domains.');
+            return;
+          }
+
+          if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment' || msg.includes('popup')) {
+            isRedirectPending = true;
+            try {
+              await auth.signInWithRedirect(googleProvider);
+            } catch (redErr) {
+              showError(loginError, getAuthErrorMessage(redErr));
             }
+          } else {
+            showError(loginError, getAuthErrorMessage(popupErr));
           }
         }
       } catch (error) {
         console.error('Google Sign-In error:', error);
-        showError(loginError, getAuthErrorMessage(error) + ' Or click "Continue as Guest" below to use the app immediately.');
+        showError(loginError, getAuthErrorMessage(error));
       }
     }
 
