@@ -3,7 +3,7 @@
    Cool, modern, financial terminal design system
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Poppins:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Core Backgrounds */
@@ -39,7 +39,7 @@
   --grad-violet: linear-gradient(135deg, #A78BFA 0%, #7C3AED 100%);
 
   /* Typography Fonts */
-  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-sans: 'Poppins', system-ui, -apple-system, sans-serif;
   --font-mono: 'IBM Plex Mono', monospace;
 
   /* Radius & Shadows */
