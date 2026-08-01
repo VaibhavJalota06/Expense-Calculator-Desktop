@@ -73,10 +73,6 @@
           <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
 
-        <button type="button" class="btn btn-secondary btn-block btn-guest-login" style="margin-top: 0.75rem;">
-          <i class="fa-solid fa-user"></i> Continue as Guest (Offline)
-        </button>
-
         <p class="auth-switch">Don't have an account? <a href="#" id="btn-show-signup">Create one</a></p>
       </div>
 
@@ -113,10 +109,6 @@
           <div id="signup-error" class="auth-error hidden"></div>
           <button type="submit" class="btn btn-primary btn-block">Create Account</button>
         </form>
-
-        <button type="button" class="btn btn-secondary btn-block btn-guest-login" style="margin-top: 0.75rem;">
-          <i class="fa-solid fa-user"></i> Continue as Guest (Offline)
-        </button>
 
         <p class="auth-switch">Already have an account? <a href="#" id="btn-show-login">Sign in</a></p>
       </div>
@@ -563,8 +555,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- App Scripts (order matters) -->
-  <script src="firebase-config.js"></script>
-  <script src="script.js"></script>
-  <script src="auth.js"></script>
+  <script src="firebase-config.js?v=3.0.2"></script>
+  <script src="script.js?v=3.0.2"></script>
+  <script src="auth.js?v=3.0.2"></script>
 </body>
 </html>

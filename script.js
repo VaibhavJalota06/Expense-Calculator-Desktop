@@ -252,6 +252,13 @@ function saveState() {
 }
 
 function loadStateFromLocal() {
+  try {
+    ['expense_cal_web_budget', 'expense_cal_web_expenses', 'expense_cal_web_subscriptions'].forEach(k => {
+      const v = localStorage.getItem(k);
+      if (v && (v.includes('Ã') || v.includes('Â'))) localStorage.removeItem(k);
+    });
+  } catch (err) {}
+
   const savedBudget = localStorage.getItem('expense_cal_web_budget');
   const savedExpenses = localStorage.getItem('expense_cal_web_expenses');
   const savedSubs = localStorage.getItem('expense_cal_web_subscriptions');
