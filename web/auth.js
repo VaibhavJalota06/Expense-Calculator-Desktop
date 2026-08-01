@@ -88,10 +88,26 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    async function signUpWithEmail(email, password) {
+    async function signUpWithEmail(name, gender, email, password) {
       try {
         clearErrors();
-        await auth.createUserWithEmailAndPassword(email, password);
+        const cred = await auth.createUserWithEmailAndPassword(email, password);
+        if (cred && cred.user) {
+          if (name) {
+            try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
+          }
+          if (gender) {
+            localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
+          }
+          if (db) {
+            try {
+              await db.collection('users').doc(cred.user.uid).set({
+                profile: { name, gender },
+                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+              }, { merge: true });
+            } catch (e) {}
+          }
+        }
       } catch (error) {
         console.error('Email Sign-Up error:', error);
         showError(signupError, getAuthErrorMessage(error));
@@ -158,19 +174,45 @@ if (isFirebaseConfigured && auth) {
       }
     });
 
-    function showApp(user) {
+    async function showApp(user) {
       if (loginScreen) loginScreen.classList.add('hidden');
       if (appLayout) appLayout.classList.remove('hidden');
+
+      const rawName = (user && (user.displayName || user.email)) ? (user.displayName || user.email.split('@')[0]) : 'User';
+      let gender = user ? localStorage.getItem('expense_cal_user_gender_' + user.uid) : null;
+
+      if (!gender && user && db) {
+        try {
+          const doc = await db.collection('users').doc(user.uid).get();
+          if (doc.exists && doc.data() && doc.data().profile) {
+            gender = doc.data().profile.gender;
+            if (gender) localStorage.setItem('expense_cal_user_gender_' + user.uid, gender);
+          }
+        } catch (e) {}
+      }
+
+      let prefix = '';
+      if (gender === 'male') prefix = 'Mr. ';
+      else if (gender === 'female') prefix = 'Ms. ';
+
+      const fullName = `${prefix}${rawName}`;
+
       if (userAvatarEl) {
-        if (user.photoURL) {
+        if (user && user.photoURL) {
           userAvatarEl.src = user.photoURL;
           userAvatarEl.style.display = 'block';
         } else {
           userAvatarEl.style.display = 'none';
         }
       }
-      if (userNameEl) userNameEl.textContent = user.displayName || 'User';
-      if (userEmailEl) userEmailEl.textContent = user.email || '';
+
+      if (userNameEl) userNameEl.textContent = fullName;
+      if (userEmailEl) userEmailEl.textContent = (user && user.email) || '';
+
+      const viewSubtitle = document.getElementById('view-subtitle');
+      if (viewSubtitle) {
+        viewSubtitle.textContent = `Welcome back, ${fullName}! Real-time financial analytics & budget control`;
+      }
     }
 
     function showLoginScreen() {
@@ -263,13 +305,18 @@ if (isFirebaseConfigured && auth) {
     if (signupForm) {
       signupForm.addEventListener('submit', (e) => {
         e.preventDefault();
+        const nameInput = document.getElementById('signup-name');
+        const genderSelect = document.getElementById('signup-gender');
+        const name = nameInput ? nameInput.value.trim() : '';
+        const gender = genderSelect ? genderSelect.value : 'male';
         const email = signupEmailInput ? signupEmailInput.value.trim() : '';
         const password = signupPasswordInput ? signupPasswordInput.value : '';
         const confirm = signupConfirmInput ? signupConfirmInput.value : '';
-        if (!email || !password || !confirm) { showError(signupError, 'Please fill in all fields.'); return; }
+
+        if (!name || !email || !password || !confirm) { showError(signupError, 'Please fill in all fields.'); return; }
         if (password !== confirm) { showError(signupError, 'Passwords do not match.'); return; }
         if (password.length < 6) { showError(signupError, 'Password must be at least 6 characters.'); return; }
-        signUpWithEmail(email, password);
+        signUpWithEmail(name, gender, email, password);
       });
     }
 
