@@ -21,6 +21,11 @@ const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.inc
 
 if (isFirebaseConfigured) {
   firebase.initializeApp(firebaseConfig);
+  try {
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+  } catch (e) {
+    console.warn('Auth persistence set error:', e);
+  }
 
   // Enable Firestore offline persistence
   firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch((err) => {

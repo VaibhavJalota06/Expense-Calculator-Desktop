@@ -49,32 +49,24 @@ if (isFirebaseConfigured && auth) {
     async function signInWithGoogle() {
       try {
         clearErrors();
-        try {
-          await auth.signInWithPopup(googleProvider);
-        } catch (popupErr) {
-          console.warn('Google Auth popup error:', popupErr);
-          const code = popupErr ? (popupErr.code || '') : '';
-          const msg = popupErr ? (popupErr.message || '') : '';
-          
-          if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
-            showError(loginError, 'Domain Unauthorized: Please add this URL/IP to Firebase Console > Authentication > Settings > Authorized Domains.');
-            return;
-          }
-
-          if (code === 'auth/popup-blocked' || code === 'auth/operation-not-supported-in-this-environment' || msg.includes('popup')) {
-            isRedirectPending = true;
-            try {
-              await auth.signInWithRedirect(googleProvider);
-            } catch (redErr) {
-              showError(loginError, getAuthErrorMessage(redErr));
-            }
-          } else {
-            showError(loginError, getAuthErrorMessage(popupErr));
-          }
+        if (auth && auth.setPersistence) {
+          try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
+        await auth.signInWithPopup(googleProvider);
       } catch (error) {
         console.error('Google Sign-In error:', error);
-        showError(loginError, getAuthErrorMessage(error));
+        const code = error ? (error.code || '') : '';
+        const msg = error ? (error.message || '') : '';
+
+        if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
+          showError(loginError, 'Domain Unauthorized: Please add this URL/IP to Firebase Console > Authentication > Settings > Authorized Domains.');
+        } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
+          showError(loginError, 'Safari Cross-Site Restriction: Please use Email Sign Up or tap "Continue as Guest".');
+        } else if (code === 'auth/popup-blocked') {
+          showError(loginError, 'Popup was blocked by your browser. Please allow popups for this site and tap Continue with Google again.');
+        } else if (code !== 'auth/popup-closed-by-user') {
+          showError(loginError, getAuthErrorMessage(error));
+        }
       }
     }
 
@@ -130,24 +122,22 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    let isRedirectPending = true;
+    let isRedirectPending = false;
 
     // Handle Mobile OAuth Redirect Result
-    auth.getRedirectResult().then((result) => {
-      isRedirectPending = false;
-      if (result && result.user) {
-        hideLoader();
-        showApp(result.user);
-        startFirestoreSync(result.user.uid);
-      }
-    }).catch((error) => {
-      isRedirectPending = false;
-      if (error && error.code) {
-        console.error('Redirect result error:', error);
-        showError(loginError, getAuthErrorMessage(error));
-        showError(signupError, getAuthErrorMessage(error));
-      }
-    });
+    if (auth && auth.getRedirectResult) {
+      auth.getRedirectResult().then((result) => {
+        isRedirectPending = false;
+        if (result && result.user) {
+          hideLoader();
+          showApp(result.user);
+          startFirestoreSync(result.user.uid);
+        }
+      }).catch((error) => {
+        isRedirectPending = false;
+        console.warn('Redirect result handled cleanly:', error);
+      });
+    }
 
     function hideLoader() {
       const loader = document.getElementById('app-loader');
