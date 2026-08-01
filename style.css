@@ -2235,6 +2235,34 @@ select option {
   overflow-y: auto;
 }
 
+/* Sidebar Overlay */
+.sidebar-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 999;
+  display: none;
+  pointer-events: none;
+}
+.sidebar-overlay.active {
+  display: block !important;
+  pointer-events: auto !important;
+}
+
+/* App Loader Overlay */
+.app-loader-screen {
+  position: fixed;
+  inset: 0;
+  background: var(--bg-base);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
 @media (max-width: 900px) {
   .sidebar {
     position: fixed;
@@ -2247,17 +2275,6 @@ select option {
   }
   .sidebar.active {
     transform: translateX(0);
-  }
-  .sidebar-overlay {
-    position: fixed;
-    inset: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    z-index: 999;
-    display: none;
-  }
-  .sidebar-overlay.active {
-    display: block;
   }
   .main-workspace {
     padding: 1rem;
