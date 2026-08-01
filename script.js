@@ -173,9 +173,9 @@ function showConfirm(title, message, isDanger = false) {
       resolve(res);
     }
 
-    okBtn.onclick = () => done(true);
-    if (cancelBtn) cancelBtn.onclick = () => done(false);
-    if (closeBtn) closeBtn.onclick = () => done(false);
+    okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(true); };
+    if (cancelBtn) cancelBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
+    if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(false); };
     modal.onclick = (e) => {
       if (e.target === modal) done(false);
     };
@@ -204,8 +204,8 @@ function showAlert(title, message) {
       resolve();
     }
 
-    okBtn.onclick = () => done();
-    if (closeBtn) closeBtn.onclick = () => done();
+    okBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
+    if (closeBtn) closeBtn.onclick = (e) => { if (e) { e.preventDefault(); e.stopPropagation(); } done(); };
     modal.onclick = (e) => {
       if (e.target === modal) done();
     };
@@ -1315,7 +1315,8 @@ if (btnExportCsv) {
 
 // Reset All Data
 if (btnResetAll) {
-  btnResetAll.addEventListener('click', async () => {
+  btnResetAll.addEventListener('click', async (e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
     const ok = await showConfirm(
       'Reset All Financial Data',
       '⚠️ WARNING: This will permanently reset and delete ALL logged expenses, budget caps, and subscriptions! Continue?',

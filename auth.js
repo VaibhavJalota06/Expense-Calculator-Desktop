@@ -97,14 +97,18 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
+    let isRedirectPending = true;
+
     // Handle Mobile OAuth Redirect Result
     auth.getRedirectResult().then((result) => {
+      isRedirectPending = false;
       if (result && result.user) {
         hideLoader();
         showApp(result.user);
         startFirestoreSync(result.user.uid);
       }
     }).catch((error) => {
+      isRedirectPending = false;
       if (error && error.code) {
         console.error('Redirect result error:', error);
         showError(loginError, getAuthErrorMessage(error));
@@ -127,13 +131,20 @@ if (isFirebaseConfigured && auth) {
 
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
-      hideLoader();
       if (user) {
+        isRedirectPending = false;
+        hideLoader();
         showApp(user);
         startFirestoreSync(user.uid);
       } else {
-        showLoginScreen();
-        stopFirestoreSync();
+        // Wait briefly for redirect result on mobile before dropping back to login screen
+        setTimeout(() => {
+          if (!auth.currentUser && !isRedirectPending) {
+            hideLoader();
+            showLoginScreen();
+            stopFirestoreSync();
+          }
+        }, 800);
       }
     });
 
