@@ -10,8 +10,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Custom Stylesheet (Cache Busted v2.0.3) -->
-  <link rel="stylesheet" href="style.css?v=2.0.3" />
+  <!-- Custom Stylesheet (Cache Busted v2.0.4) -->
+  <link rel="stylesheet" href="style.css?v=2.0.4" />
 </head>
 <body>
   <!-- Instant App Startup Loader -->
@@ -198,16 +198,16 @@
 
     <!-- Main Content Workspace -->
     <main class="main-workspace">
-      <!-- Mobile Sidebar Toggle -->
-      <button id="btn-sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Menu">
-        <i class="fa-solid fa-bars"></i>
-      </button>
-
       <!-- Topbar Header with Month Selector -->
       <header class="topbar">
         <div class="topbar-left">
-          <h1 id="view-title">Dashboard Overview</h1>
-          <p id="view-subtitle">Real-time financial analytics & budget control</p>
+          <button id="btn-sidebar-toggle" class="sidebar-toggle-btn" title="Toggle Menu">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="topbar-title-group">
+            <h1 id="view-title">Dashboard Overview</h1>
+            <p id="view-subtitle">Real-time financial analytics & budget control</p>
+          </div>
         </div>
         <div class="topbar-right">
           <div class="month-selector-group">
@@ -215,11 +215,11 @@
             <select id="month-picker" class="month-picker-select"></select>
             <button id="btn-next-month" class="icon-btn month-nav-btn" title="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
           </div>
-          <button id="btn-add-sub" class="btn btn-secondary">
-            <i class="fa-solid fa-calendar-plus"></i> + Add Bill
+          <button id="btn-add-sub" class="btn btn-secondary btn-topbar-action">
+            <i class="fa-solid fa-calendar-plus"></i> <span class="btn-text">+ Bill</span>
           </button>
-          <button id="btn-edit-budget" class="btn btn-primary">
-            <i class="fa-solid fa-sliders"></i> Set Budget
+          <button id="btn-edit-budget" class="btn btn-primary btn-topbar-action">
+            <i class="fa-solid fa-sliders"></i> <span class="btn-text">Budget</span>
           </button>
         </div>
       </header>
@@ -230,10 +230,10 @@
         <section id="view-dashboard" class="view-panel active">
           <!-- Overview Key Metrics Grid -->
           <div class="stats-grid">
-            <div class="glass-panel stat-card clickable-card" id="stat-budget-card" title="Click to Edit Monthly Budget Target">
+            <div class="glass-panel stat-card clickable-card" id="stat-budget-card" title="Click to change monthly budget cap">
               <div class="stat-header">
-                <span>Total Budget</span>
-                <i class="fa-solid fa-pen-to-square text-indigo"></i>
+                <span>Monthly Budget Cap</span>
+                <i class="fa-solid fa-wallet text-indigo"></i>
               </div>
               <div id="stat-budget" class="stat-value text-indigo">₹0.00</div>
               <div id="stat-percent" class="stat-subtext">Monthly Target Cap</div>
