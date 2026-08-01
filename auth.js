@@ -49,8 +49,16 @@ if (isFirebaseConfigured && auth) {
         clearErrors();
         await auth.signInWithPopup(googleProvider);
       } catch (error) {
-        console.error('Google Sign-In error:', error);
-        if (error.code !== 'auth/popup-closed-by-user') {
+        console.error('Google Sign-In popup error:', error);
+        // Fallback to redirect sign-in for mobile browsers and popup blockers
+        if (error.code === 'auth/popup-blocked' || error.code === 'auth/popup-closed-by-user' || error.code === 'auth/operation-not-supported-in-this-environment') {
+          try {
+            await auth.signInWithRedirect(googleProvider);
+          } catch (redErr) {
+            console.error('Google Sign-In redirect error:', redErr);
+            showError(loginError, getAuthErrorMessage(redErr));
+          }
+        } else {
           showError(loginError, getAuthErrorMessage(error));
         }
       }
@@ -84,6 +92,16 @@ if (isFirebaseConfigured && auth) {
         console.error('Sign out error:', error);
       }
     }
+
+    // Handle Mobile OAuth Redirect Result
+    auth.getRedirectResult().then((result) => {
+      if (result && result.user) {
+        showApp(result.user);
+        startFirestoreSync(result.user.uid);
+      }
+    }).catch((error) => {
+      console.error('Redirect result error:', error);
+    });
 
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
