@@ -245,46 +245,9 @@ if (isFirebaseConfigured && auth) {
       }
     });
 
-    const githubProvider = new firebase.auth.GithubAuthProvider();
-    const appleProvider = new firebase.auth.OAuthProvider('apple.com');
-
-    async function signInWithGitHub() {
-      try {
-        clearErrors();
-        try {
-          await auth.signInWithPopup(githubProvider);
-        } catch (popupErr) {
-          await auth.signInWithRedirect(githubProvider);
-        }
-      } catch (error) {
-        console.error('GitHub Sign-In error:', error);
-        showError(loginError, getAuthErrorMessage(error));
-      }
-    }
-
-    async function signInWithApple() {
-      try {
-        clearErrors();
-        try {
-          await auth.signInWithPopup(appleProvider);
-        } catch (popupErr) {
-          await auth.signInWithRedirect(appleProvider);
-        }
-      } catch (error) {
-        console.error('Apple Sign-In error:', error);
-        showError(loginError, getAuthErrorMessage(error));
-      }
-    }
-
     // Event Listeners
     document.querySelectorAll('.btn-google-login').forEach(btn => {
       btn.addEventListener('click', signInWithGoogle);
-    });
-    document.querySelectorAll('.btn-github-login').forEach(btn => {
-      btn.addEventListener('click', signInWithGitHub);
-    });
-    document.querySelectorAll('.btn-apple-login').forEach(btn => {
-      btn.addEventListener('click', signInWithApple);
     });
 
     if (loginForm) {
