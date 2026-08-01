@@ -117,6 +117,7 @@ if (isFirebaseConfigured && auth) {
       if (loader) {
         loader.style.opacity = '0';
         loader.style.visibility = 'hidden';
+        loader.style.pointerEvents = 'none';
         setTimeout(() => { loader.style.display = 'none'; }, 300);
       }
     }
