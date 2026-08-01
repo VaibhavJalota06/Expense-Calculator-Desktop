@@ -115,7 +115,13 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    async function handleSignOut() {
+    async function handleSignOut(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const ok = typeof showConfirm === 'function'
+        ? await showConfirm('Sign Out Confirmation', 'Are you sure you want to sign out of your Expense OS account?', false)
+        : window.confirm('Are you sure you want to sign out of your Expense OS account?');
+      if (!ok) return;
+
       try {
         stopFirestoreSync();
         await auth.signOut();
