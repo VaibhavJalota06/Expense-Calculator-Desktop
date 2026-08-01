@@ -10,18 +10,23 @@
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Custom Stylesheet (Cache Busted) -->
-  <link rel="stylesheet" href="style.css?v=2.0.2" />
+  <!-- Custom Stylesheet (Cache Busted v2.0.3) -->
+  <link rel="stylesheet" href="style.css?v=2.0.3" />
 </head>
 <body>
-  <!-- Ambient Background Glows -->
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
+  <!-- Instant App Startup Loader -->
+  <div id="app-loader" class="app-loader-screen">
+    <div class="loader-content">
+      <img src="icon.png" alt="Expense OS" class="loader-logo" />
+      <div class="loader-spinner"></div>
+      <p class="loader-text">Loading Expense OS...</p>
+    </div>
+  </div>
 
   <!-- ============================================================ -->
   <!-- AUTHENTICATION SCREEN (Shown when user is not logged in) -->
   <!-- ============================================================ -->
-  <div id="login-screen" class="login-screen">
+  <div id="login-screen" class="login-screen hidden">
     <div class="login-container">
       <div class="login-brand">
         <img src="icon.png" alt="Expense OS Logo" class="login-logo" />
