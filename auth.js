@@ -42,8 +42,12 @@ if (isFirebaseConfigured && auth) {
 
     const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 
+    let isAuthInProgress = false;
+
     // Auth Actions
     async function signInWithGoogle() {
+      if (isAuthInProgress) return;
+      isAuthInProgress = true;
       try {
         clearErrors();
         if (auth && auth.setPersistence) {
@@ -61,9 +65,13 @@ if (isFirebaseConfigured && auth) {
           showError(loginError, 'Safari Cross-Site Restriction: Please use Email Sign Up or tap "Continue as Guest".');
         } else if (code === 'auth/popup-blocked') {
           showError(loginError, 'Popup was blocked by your browser. Please allow popups for this site and tap Continue with Google again.');
+        } else if (code === 'auth/cancelled-popup-request') {
+          showError(loginError, 'Sign-in popup request was interrupted. Please tap Continue with Google again.');
         } else if (code !== 'auth/popup-closed-by-user') {
           showError(loginError, getAuthErrorMessage(error));
         }
+      } finally {
+        isAuthInProgress = false;
       }
     }
 
@@ -420,6 +428,7 @@ if (isFirebaseConfigured && auth) {
         'auth/email-already-in-use': 'An account with this email already exists. Try signing in.',
         'auth/weak-password': 'Password must be at least 6 characters.',
         'auth/popup-closed-by-user': 'Sign-in popup was closed before completion.',
+        'auth/cancelled-popup-request': 'Sign-in popup request was interrupted. Please try again.',
         'auth/network-request-failed': 'Network error. Please check your internet connection.',
         'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
         'auth/invalid-credential': 'Invalid email or password. Please check your credentials or click "Create one" below to sign up.',
