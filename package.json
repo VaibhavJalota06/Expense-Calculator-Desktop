@@ -32,7 +32,7 @@
       "output": "dist"
     },
     "win": {
-      "icon": "icon.png",
+      "icon": "icon.ico",
       "target": [
         "nsis",
         "portable"
@@ -62,6 +62,7 @@
   },
   "devDependencies": {
     "electron": "^30.0.0",
-    "electron-builder": "^24.13.3"
+    "electron-builder": "^24.13.3",
+    "png-to-ico": "^3.0.2"
   }
 }
