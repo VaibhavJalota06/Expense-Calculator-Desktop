@@ -569,6 +569,73 @@ function updateUI() {
   renderCategoryBreakdown(filteredMonthExpenses, totalSpent);
   renderMonthlyTrendChart();
   renderTransactionsTable(filteredMonthExpenses);
+  checkAndSendSubscriptionReminders();
+}
+
+// Automated Email Reminder Engine for Subscriptions Due Soon
+function checkAndSendSubscriptionReminders() {
+  if (!subscriptions || subscriptions.length === 0) return;
+  const now = new Date();
+  const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+  const currentDay = now.getDate();
+
+  const currentUser = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
+  const userEmail = currentUser ? currentUser.email : null;
+
+  subscriptions.forEach(sub => {
+    const isPaidThisMonth = sub.lastPaidMonth === currentYM;
+    if (isPaidThisMonth) return;
+
+    const daysLeft = sub.dueDay - currentDay;
+    if (daysLeft >= 0 && daysLeft <= 3) {
+      const reminderKey = `expense_cal_sub_reminded_${sub.id}_${currentYM}_${daysLeft}d`;
+      if (!localStorage.getItem(reminderKey)) {
+        localStorage.setItem(reminderKey, 'true');
+
+        if (typeof db !== 'undefined' && db && userEmail) {
+          try {
+            db.collection('mail').add({
+              to: [userEmail],
+              message: {
+                subject: `⏰ Subscription Due Reminder: ${sub.name} is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}!`,
+                html: `
+                  <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #090c11; color: #f8fafc; padding: 30px 15px;">
+                    <div style="max-width: 580px; margin: 0 auto; background-color: #141820; border: 1px solid #f97316; border-radius: 16px; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
+                      <div style="text-align: center; margin-bottom: 24px;">
+                        <span style="display: inline-block; background: rgba(249,115,22,0.15); color: #f97316; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">Subscription Reminder</span>
+                        <h1 style="color: #f8fafc; font-size: 24px; margin: 16px 0 8px 0;">${sub.name} Payment Due Soon ⏰</h1>
+                        <p style="color: #f97316; font-size: 16px; font-weight: bold; margin: 0;">${daysLeft === 0 ? '🚨 Due Today!' : `Due in ${daysLeft} days (Day ${sub.dueDay})`}</p>
+                      </div>
+
+                      <div style="font-size: 15px; line-height: 1.6; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
+                        <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin-bottom: 20px;">
+                          <table style="width: 100%; border-collapse: collapse; font-size: 14px;">
+                            <tr><td style="color: #94a3b8; padding: 6px 0;">Subscription Name:</td><td style="color: #f8fafc; font-weight: bold; text-align: right;">${sub.name}</td></tr>
+                            <tr><td style="color: #94a3b8; padding: 6px 0;">Category:</td><td style="color: #f8fafc; font-weight: bold; text-align: right;">${sub.category}</td></tr>
+                            <tr><td style="color: #94a3b8; padding: 6px 0;">Renewal Amount:</td><td style="color: #34d399; font-weight: bold; font-size: 16px; text-align: right;">₹${sub.amount.toFixed(2)}</td></tr>
+                            <tr><td style="color: #94a3b8; padding: 6px 0;">Billing Due Day:</td><td style="color: #f97316; font-weight: bold; text-align: right;">Day ${sub.dueDay} of month</td></tr>
+                          </table>
+                        </div>
+                        
+                        <p style="text-align: center; margin-top: 24px;">
+                          <a href="http://localhost:4200" style="display: inline-block; background: linear-gradient(135deg, #f97316, #ea580c); color: #ffffff; font-weight: 800; padding: 12px 28px; border-radius: 8px; text-decoration: none;">Open Expense OS & Mark Paid &rarr;</a>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                `
+              },
+              createdAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+          } catch(e) {}
+        }
+
+        if (typeof showAlert === 'function') {
+          showAlert('⏰ Subscription Due Reminder', `${sub.name} (₹${sub.amount.toFixed(2)}) is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}. Reminder email dispatched!`);
+        }
+      }
+    }
+  });
 }
 
 // Render Radial SVG Budget Gauge Ring
