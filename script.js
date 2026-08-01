@@ -567,6 +567,7 @@ function renderSubscriptions() {
     subsGridContainer.innerHTML = '';
 
     if (subscriptions.length === 0) {
+      subsGridContainer.classList.add('empty-grid');
       subsGridContainer.innerHTML = `
         <div class="empty-state-card">
           <i class="fa-solid fa-calendar-check empty-state-icon"></i>
@@ -575,6 +576,7 @@ function renderSubscriptions() {
         </div>
       `;
     } else {
+      subsGridContainer.classList.remove('empty-grid');
       subscriptions.forEach(sub => {
         const isPaidThisMonth = sub.lastPaidMonth === currentYM;
         let statusClass = 'due';
