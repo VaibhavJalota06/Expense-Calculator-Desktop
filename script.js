@@ -1419,3 +1419,120 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   // If Firebase IS configured, auth.js onAuthStateChanged will trigger data loading
 });
+
+// ---------- Interactive Onboarding & Feature Tour ----------
+const tourSteps = [
+  {
+    target: '#stat-budget-card',
+    title: '🎯 Step 1: Set Monthly Budget Cap',
+    msg: 'Stay on top of your financial goals! Click here anytime to set or edit your target monthly spending limit.'
+  },
+  {
+    target: '#exp-form',
+    title: '💸 Step 2: Log Daily Expenses',
+    msg: 'Easily log daily purchases, groceries, and shopping items here with instant categorization and automatic calculations.'
+  },
+  {
+    target: '#btn-add-sub',
+    title: '🔄 Step 3: Track Recurring Bills',
+    msg: 'Never miss a due date! Add monthly subscriptions like Netflix, Spotify, or utility bills to track upcoming payments.'
+  },
+  {
+    target: '#month-picker',
+    title: '📊 Step 4: Analyze Monthly Trends',
+    msg: 'Use the month selector to jump between months or check Category Analytics to see exactly where your money goes.'
+  }
+];
+
+let currentTourStep = 0;
+
+function renderTourStep(stepIdx) {
+  if (stepIdx < 0 || stepIdx >= tourSteps.length) {
+    endGuidedTour();
+    return;
+  }
+
+  currentTourStep = stepIdx;
+  const step = tourSteps[stepIdx];
+
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+
+  const tourOverlay = document.getElementById('tour-overlay');
+  const tourCard = document.getElementById('tour-card');
+  const stepBadge = document.getElementById('tour-step-badge');
+  const titleEl = document.getElementById('tour-title');
+  const msgEl = document.getElementById('tour-msg');
+  const prevBtn = document.getElementById('btn-tour-prev');
+  const nextBtn = document.getElementById('btn-tour-next');
+
+  if (!tourOverlay || !tourCard) return;
+
+  tourOverlay.classList.remove('hidden');
+  if (stepBadge) stepBadge.textContent = `Step ${stepIdx + 1} of ${tourSteps.length}`;
+  if (titleEl) titleEl.textContent = step.title;
+  if (msgEl) msgEl.textContent = step.msg;
+
+  if (prevBtn) prevBtn.style.display = stepIdx === 0 ? 'none' : 'inline-flex';
+  if (nextBtn) nextBtn.innerHTML = stepIdx === tourSteps.length - 1 ? 'Finish 🎉' : 'Next <i class="fa-solid fa-arrow-right"></i>';
+
+  const targetEl = document.querySelector(step.target);
+  if (targetEl) {
+    targetEl.classList.add('tour-highlight');
+    try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e) {}
+
+    const rect = targetEl.getBoundingClientRect();
+    const cardWidth = 340;
+    let top = rect.bottom + 12;
+    let left = Math.max(16, rect.left + (rect.width / 2) - (cardWidth / 2));
+
+    if (left + cardWidth > window.innerWidth) left = window.innerWidth - cardWidth - 20;
+    if (top + 200 > window.innerHeight) top = Math.max(20, rect.top - 180);
+
+    tourCard.style.top = `${Math.max(20, top)}px`;
+    tourCard.style.left = `${Math.max(16, left)}px`;
+  } else {
+    tourCard.style.top = '30%';
+    tourCard.style.left = '50%';
+  }
+}
+
+function startGuidedTour() {
+  const welcomeModal = document.getElementById('welcome-modal');
+  if (welcomeModal) welcomeModal.classList.add('hidden');
+  renderTourStep(0);
+}
+
+function endGuidedTour() {
+  document.querySelectorAll('.tour-highlight').forEach(el => el.classList.remove('tour-highlight'));
+  const tourOverlay = document.getElementById('tour-overlay');
+  if (tourOverlay) tourOverlay.classList.add('hidden');
+}
+
+// Event Listeners for Welcome Modal & Guided Tour
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#btn-start-tour')) {
+    startGuidedTour();
+    return;
+  }
+  if (e.target.closest('#btn-skip-tour')) {
+    const welcomeModal = document.getElementById('welcome-modal');
+    if (welcomeModal) welcomeModal.classList.add('hidden');
+    return;
+  }
+  if (e.target.closest('#btn-sidebar-tour')) {
+    startGuidedTour();
+    return;
+  }
+  if (e.target.closest('#btn-tour-next')) {
+    renderTourStep(currentTourStep + 1);
+    return;
+  }
+  if (e.target.closest('#btn-tour-prev')) {
+    renderTourStep(currentTourStep - 1);
+    return;
+  }
+  if (e.target.closest('#btn-tour-skip, #btn-tour-close')) {
+    endGuidedTour();
+    return;
+  }
+});

@@ -99,6 +99,7 @@ if (isFirebaseConfigured && auth) {
           if (gender) {
             localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
           }
+          localStorage.setItem('expense_cal_show_welcome_' + cred.user.uid, 'true');
           if (db) {
             try {
               await db.collection('users').doc(cred.user.uid).set({
@@ -212,6 +213,18 @@ if (isFirebaseConfigured && auth) {
       const viewSubtitle = document.getElementById('view-subtitle');
       if (viewSubtitle) {
         viewSubtitle.textContent = `Welcome back, ${fullName}! Real-time financial analytics & budget control`;
+      }
+
+      if (user && localStorage.getItem('expense_cal_show_welcome_' + user.uid) === 'true') {
+        localStorage.removeItem('expense_cal_show_welcome_' + user.uid);
+        const modal = document.getElementById('welcome-modal');
+        const titleEl = document.getElementById('welcome-modal-title');
+        const msgEl = document.getElementById('welcome-modal-msg');
+        if (modal) {
+          if (titleEl) titleEl.textContent = `Welcome Aboard, ${fullName}! 🎉`;
+          if (msgEl) msgEl.textContent = `We are thrilled to have you here! Your personal finance command center is ready to help you track expenses, manage budget caps, and organize recurring bills effortlessly.`;
+          setTimeout(() => modal.classList.remove('hidden'), 500);
+        }
       }
     }
 

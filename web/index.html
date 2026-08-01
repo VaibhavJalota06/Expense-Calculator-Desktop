@@ -558,6 +558,49 @@
     </div>
   </div>
 
+  <!-- Welcome Onboarding Modal -->
+  <div id="welcome-modal" class="modal-overlay hidden">
+    <div class="modal-card glass-panel welcome-modal-card">
+      <div class="welcome-badge"><i class="fa-solid fa-sparkles"></i> Welcome to Expense OS</div>
+      <h2 id="welcome-modal-title" class="welcome-title">Welcome Aboard! 🎉</h2>
+      <p id="welcome-modal-msg" class="welcome-msg">We are thrilled to have you here! Let's make tracking expenses, managing monthly budget caps, and organizing recurring bills effortless and enjoyable.</p>
+      
+      <div class="welcome-features-mini">
+        <div class="mini-feature"><i class="fa-solid fa-wallet text-emerald"></i> <span>Budget Control</span></div>
+        <div class="mini-feature"><i class="fa-solid fa-receipt text-amber"></i> <span>Expense Log</span></div>
+        <div class="mini-feature"><i class="fa-solid fa-arrows-rotate text-sky"></i> <span>Recurring Bills</span></div>
+      </div>
+
+      <div class="welcome-actions">
+        <button id="btn-start-tour" class="btn btn-primary btn-block">
+          <i class="fa-solid fa-compass"></i> Take Quick 1-Minute Tour
+        </button>
+        <button id="btn-skip-tour" class="btn btn-secondary btn-block" style="margin-top: 0.5rem;">
+          Explore On My Own
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Interactive Guided Onboarding Tour Popover -->
+  <div id="tour-overlay" class="tour-overlay hidden">
+    <div id="tour-card" class="tour-card glass-panel">
+      <div class="tour-header">
+        <span id="tour-step-badge" class="tour-badge">Step 1 of 4</span>
+        <button id="btn-tour-close" class="icon-btn" title="Close Tour"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <h3 id="tour-title" class="tour-title">Title</h3>
+      <p id="tour-msg" class="tour-msg">Description</p>
+      <div class="tour-footer">
+        <button id="btn-tour-prev" class="btn btn-secondary btn-sm"><i class="fa-solid fa-arrow-left"></i> Back</button>
+        <div class="tour-footer-right">
+          <button id="btn-tour-skip" class="btn btn-ghost btn-sm">Skip</button>
+          <button id="btn-tour-next" class="btn btn-primary btn-sm">Next <i class="fa-solid fa-arrow-right"></i></button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
