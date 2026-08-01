@@ -53,20 +53,16 @@ if (isFirebaseConfigured && auth) {
         if (auth && auth.setPersistence) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
-        if (isMobileBrowser) {
-          isRedirectPending = true;
-          await auth.signInWithRedirect(googleProvider);
-        } else {
-          try {
-            await auth.signInWithPopup(googleProvider);
-          } catch (popupErr) {
-            const code = popupErr ? popupErr.code : '';
-            if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request') {
-              isRedirectPending = true;
-              await auth.signInWithRedirect(googleProvider);
-            } else {
-              throw popupErr;
-            }
+        
+        try {
+          await auth.signInWithPopup(googleProvider);
+        } catch (popupErr) {
+          const code = popupErr ? popupErr.code : '';
+          if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request') {
+            isRedirectPending = true;
+            await auth.signInWithRedirect(googleProvider);
+          } else {
+            throw popupErr;
           }
         }
       } catch (error) {
@@ -76,9 +72,9 @@ if (isFirebaseConfigured && auth) {
         const msg = error ? (error.message || '') : '';
 
         if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
-          showError(loginError, 'Domain Unauthorized: Please add this URL/IP to Firebase Console > Authentication > Settings > Authorized Domains.');
+          showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
-          showError(loginError, 'Safari Cross-Site Restriction: Please use Email Sign Up or tap "Continue as Guest".');
+          showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email or tap "Continue as Guest".');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
