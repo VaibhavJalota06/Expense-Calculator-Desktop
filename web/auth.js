@@ -94,13 +94,13 @@ if (isFirebaseConfigured && auth) {
     }
 
     // Handle Mobile OAuth Redirect Result
-    auth.getRedirectResult().then((result) => {
-      if (result && result.user) {
-        showApp(result.user);
-        startFirestoreSync(result.user.uid);
+    // NOTE: onAuthStateChanged already fires after redirect, so we only use
+    // getRedirectResult to detect the redirect case for logging purposes.
+    // We do NOT call showApp/startFirestoreSync here to avoid double listener registration.
+    auth.getRedirectResult().catch((error) => {
+      if (error && error.code) {
+        console.error('Redirect result error:', error);
       }
-    }).catch((error) => {
-      console.error('Redirect result error:', error);
     });
 
     function hideLoader() {

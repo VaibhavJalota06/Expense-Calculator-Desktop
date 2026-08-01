@@ -109,54 +109,40 @@ const subModalCloseBtn = document.getElementById('sub-modal-close');
 const subModalCancelBtn = document.getElementById('sub-modal-cancel');
 
 // ---------- Helper Functions ----------
+function formatCurrency(val) {
+  return new Intl.NumberFormat('en-IN', {
+    style: 'currency',
+    currency: 'INR',
+    maximumFractionDigits: 2
+  }).format(val || 0);
+}
+
 function getCurrentYearMonth() {
   const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  return `${year}-${month}`;
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
-function getLocalDateString() {
-  const d = new Date();
-  const year = d.getFullYear();
-  const month = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-}
-
-function setTodayDateDefault() {
-  if (expDateInput && !expDateInput.value) {
-    expDateInput.value = getLocalDateString();
-  }
-}
-
-function formatCurrency(val) {
-  const num = Number(val) || 0;
-  return '₹' + num.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-}
-
-function formatMonthLabel(ym) {
-  if (!ym || ym === 'ALL') return 'All Time';
-  const parts = ym.split('-');
-  if (parts.length !== 2) return ym;
+function formatMonthLabel(ymStr) {
+  if (!ymStr || ymStr === 'ALL') return 'All Months';
+  const parts = ymStr.split('-');
+  if (parts.length < 2) return ymStr;
+  const year = parts[0];
   const monthIdx = parseInt(parts[1], 10) - 1;
-  const mName = monthNames[monthIdx] || parts[1];
-  return `${mName} ${parts[0]}`;
+  return `${monthNames[monthIdx] || parts[1]} ${year}`;
 }
 
-// ---------- State Management (Cloud Firestore + Local Fallback) ----------
+// ---------- State Persistence (Firestore + localStorage fallback) ----------
 let currentUserId = null;
 let firestoreUnsubscribe = null;
 let isSyncingFromFirestore = false;
 
 function saveState() {
-  localStorage.setItem('expense_cal_desktop_budget', budget.toString());
-  localStorage.setItem('expense_cal_desktop_expenses', JSON.stringify(expenses));
-  localStorage.setItem('expense_cal_desktop_subscriptions', JSON.stringify(subscriptions));
+  // Always save to localStorage as backup
   localStorage.setItem('expense_cal_web_budget', budget.toString());
   localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
   localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
 
+  // Save to Firestore if logged in
   if (currentUserId && db && !isSyncingFromFirestore) {
     if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
     db.collection('users').doc(currentUserId).set({
@@ -174,24 +160,41 @@ function saveState() {
 }
 
 function loadStateFromLocal() {
-  const savedBudget = localStorage.getItem('expense_cal_desktop_budget') || localStorage.getItem('expense_cal_web_budget');
-  const savedExpenses = localStorage.getItem('expense_cal_desktop_expenses') || localStorage.getItem('expense_cal_web_expenses');
-  const savedSubs = localStorage.getItem('expense_cal_desktop_subscriptions') || localStorage.getItem('expense_cal_web_subscriptions');
+  const savedBudget = localStorage.getItem('expense_cal_web_budget');
+  const savedExpenses = localStorage.getItem('expense_cal_web_expenses');
+  const savedSubs = localStorage.getItem('expense_cal_web_subscriptions');
 
-  budget = savedBudget ? parseFloat(savedBudget) : 0;
-  expenses = savedExpenses ? JSON.parse(savedExpenses) : [];
-  subscriptions = savedSubs ? JSON.parse(savedSubs) : [];
+  const parsedBudget = savedBudget !== null ? parseFloat(savedBudget) : 0;
+  budget = Number.isFinite(parsedBudget) && parsedBudget >= 0 ? parsedBudget : 0;
+  if (savedExpenses) {
+    try {
+      const parsedExpenses = JSON.parse(savedExpenses);
+      expenses = Array.isArray(parsedExpenses) ? parsedExpenses.filter(isValidExpense) : [];
+    } catch (e) { expenses = []; }
+  } else {
+    expenses = [];
+  }
+  if (savedSubs) {
+    try {
+      const parsedSubscriptions = JSON.parse(savedSubs);
+      subscriptions = Array.isArray(parsedSubscriptions) ? parsedSubscriptions.filter(isValidSubscription) : [];
+    } catch (e) { subscriptions = []; }
+  } else {
+    subscriptions = [];
+  }
 
   updateMonthPickerOptions();
   updateUI();
 }
 
+// Kept for offline / non-Firebase mode
+function loadState() {
+  loadStateFromLocal();
+}
+
 function startFirestoreSync(userId) {
   currentUserId = userId;
-  if (!db) {
-    loadStateFromLocal();
-    return;
-  }
+  if (!db) { loadStateFromLocal(); return; }
 
   if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
 
@@ -202,8 +205,8 @@ function startFirestoreSync(userId) {
     if (doc.exists) {
       const data = doc.data();
       budget = typeof data.budget === 'number' ? data.budget : 0;
-      expenses = Array.isArray(data.expenses) ? data.expenses : [];
-      subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions : [];
+      expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
+      subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
     } else {
       budget = 0;
       expenses = [];
@@ -211,9 +214,10 @@ function startFirestoreSync(userId) {
       userDocRef.set({ budget: 0, expenses: [], subscriptions: [] });
     }
 
-    localStorage.setItem('expense_cal_desktop_budget', budget.toString());
-    localStorage.setItem('expense_cal_desktop_expenses', JSON.stringify(expenses));
-    localStorage.setItem('expense_cal_desktop_subscriptions', JSON.stringify(subscriptions));
+    // Also cache locally
+    localStorage.setItem('expense_cal_web_budget', budget.toString());
+    localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
+    localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
 
     updateMonthPickerOptions();
     updateUI();
@@ -234,11 +238,42 @@ function stopFirestoreSync() {
   currentUserId = null;
 }
 
-// ---------- Month Selection Logic ----------
-function getAllAvailableMonths() {
+function isValidExpense(item) {
+  return item && typeof item === 'object' &&
+    typeof item.id === 'string' &&
+    Number.isFinite(Number(item.amount)) && Number(item.amount) > 0 &&
+    typeof item.category === 'string' &&
+    typeof item.description === 'string' &&
+    typeof item.payment === 'string' &&
+    /^\d{4}-\d{2}-\d{2}$/.test(item.date);
+}
+
+function isValidSubscription(item) {
+  return item && typeof item === 'object' &&
+    typeof item.id === 'string' &&
+    typeof item.name === 'string' &&
+    Number.isFinite(Number(item.amount)) && Number(item.amount) > 0 &&
+    Number.isInteger(Number(item.dueDay)) && Number(item.dueDay) >= 1 && Number(item.dueDay) <= 31 &&
+    typeof item.category === 'string';
+}
+
+function getLocalDateString() {
+  const d = new Date();
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function setTodayDateDefault() {
+  const today = getLocalDateString();
+  if (expDateInput) expDateInput.value = today;
+}
+
+// ---------- Month-Wise Selection & Navigation ----------
+function getAvailableMonths() {
   const monthSet = new Set();
-  const currentYM = getCurrentYearMonth();
-  monthSet.add(currentYM);
+  monthSet.add(getCurrentYearMonth()); // Always include current month
 
   expenses.forEach(item => {
     if (item.date && item.date.length >= 7) {
@@ -246,33 +281,30 @@ function getAllAvailableMonths() {
     }
   });
 
-  const sortedMonths = Array.from(monthSet).sort().reverse();
-  return sortedMonths;
+  const sorted = Array.from(monthSet).sort().reverse();
+  return sorted;
 }
 
 function updateMonthPickerOptions() {
   if (!monthPickerSelect) return;
+  const months = getAvailableMonths();
 
-  const months = getAllAvailableMonths();
-  const currentYM = getCurrentYearMonth();
   monthPickerSelect.innerHTML = '';
-
-  const optAll = document.createElement('option');
-  optAll.value = 'ALL';
-  optAll.textContent = 'All Time History';
-  monthPickerSelect.appendChild(optAll);
+  
+  // Option for All Time
+  const allOpt = document.createElement('option');
+  allOpt.value = 'ALL';
+  allOpt.textContent = '📅 All Time';
+  if (selectedMonth === 'ALL') allOpt.selected = true;
+  monthPickerSelect.appendChild(allOpt);
 
   months.forEach(ym => {
     const opt = document.createElement('option');
     opt.value = ym;
-    opt.textContent = formatMonthLabel(ym) + (ym === currentYM ? ' (Current)' : '');
+    opt.textContent = `📅 ${formatMonthLabel(ym)}`;
+    if (selectedMonth === ym) opt.selected = true;
     monthPickerSelect.appendChild(opt);
   });
-
-  if (selectedMonth !== 'ALL' && !months.includes(selectedMonth)) {
-    selectedMonth = currentYM;
-  }
-  monthPickerSelect.value = selectedMonth;
 }
 
 if (monthPickerSelect) {
@@ -282,378 +314,238 @@ if (monthPickerSelect) {
   });
 }
 
-if (btnPrevMonth) {
+if (btnPrevMonth && btnNextMonth) {
   btnPrevMonth.addEventListener('click', () => {
-    const months = getAllAvailableMonths();
-    const idx = months.indexOf(selectedMonth);
-    if (idx !== -1 && idx < months.length - 1) {
-      selectedMonth = months[idx + 1];
-      monthPickerSelect.value = selectedMonth;
-      updateUI();
+    const months = getAvailableMonths();
+    if (selectedMonth === 'ALL') {
+      selectedMonth = months[0] || getCurrentYearMonth();
+    } else {
+      const idx = months.indexOf(selectedMonth);
+      if (idx !== -1 && idx < months.length - 1) {
+        selectedMonth = months[idx + 1];
+      }
     }
+    updateMonthPickerOptions();
+    updateUI();
   });
-}
 
-if (btnNextMonth) {
   btnNextMonth.addEventListener('click', () => {
-    const months = getAllAvailableMonths();
-    const idx = months.indexOf(selectedMonth);
-    if (idx > 0) {
-      selectedMonth = months[idx - 1];
-      monthPickerSelect.value = selectedMonth;
-      updateUI();
+    const months = getAvailableMonths();
+    if (selectedMonth === 'ALL') {
+      selectedMonth = months[0] || getCurrentYearMonth();
+    } else {
+      const idx = months.indexOf(selectedMonth);
+      if (idx > 0) {
+        selectedMonth = months[idx - 1];
+      }
     }
+    updateMonthPickerOptions();
+    updateUI();
   });
 }
 
-// ---------- Navigation / Tab Switching ----------
+// ---------- Tab / View Switching ----------
 function switchView(viewName) {
-  if (!viewHeadings[viewName]) return;
   currentView = viewName;
-
-  document.querySelectorAll('.nav-item').forEach(item => {
-    if (item.dataset.view === viewName) {
-      item.classList.add('active');
-    } else {
-      item.classList.remove('active');
-    }
-  });
-
   document.querySelectorAll('.view-panel').forEach(panel => {
-    if (panel.id === `view-${viewName}`) {
-      panel.classList.add('active');
+    panel.classList.remove('active');
+  });
+
+  const targetPanel = document.getElementById(`view-${viewName}`);
+  if (targetPanel) {
+    targetPanel.classList.add('active');
+  }
+
+  document.querySelectorAll('.nav-item').forEach(nav => {
+    if (nav.dataset.view === viewName) {
+      nav.classList.add('active');
     } else {
-      panel.classList.remove('active');
+      nav.classList.remove('active');
     }
   });
 
-  if (viewTitleEl) viewTitleEl.textContent = viewHeadings[viewName].title;
-  if (viewSubtitleEl) viewSubtitleEl.textContent = viewHeadings[viewName].subtitle;
+  if (viewHeadings[viewName]) {
+    viewTitleEl.textContent = viewHeadings[viewName].title;
+    viewSubtitleEl.textContent = viewHeadings[viewName].subtitle;
+  }
+
+  updateUI();
 }
 
-document.querySelectorAll('.nav-item').forEach(item => {
-  item.addEventListener('click', (e) => {
+document.querySelectorAll('.nav-item').forEach(nav => {
+  nav.addEventListener('click', (e) => {
     e.preventDefault();
-    switchView(item.dataset.view);
+    const view = nav.dataset.view;
+    if (view) switchView(view);
   });
 });
 
-document.querySelectorAll('.view-all-link').forEach(link => {
-  link.addEventListener('click', (e) => {
+document.querySelectorAll('.view-all-link[data-view]').forEach(control => {
+  control.addEventListener('click', (e) => {
     e.preventDefault();
-    switchView(link.dataset.view);
+    switchView(control.dataset.view);
   });
 });
 
-// ---------- UI Rendering Core ----------
+// ---------- UI Render & Update ----------
 function updateUI() {
-  // 1. Filter expenses based on selected month
-  const monthFilteredExpenses = expenses.filter(item => {
+  // Filter Expenses by Selected Month
+  const filteredMonthExpenses = expenses.filter(item => {
     if (selectedMonth === 'ALL') return true;
     return item.date && item.date.startsWith(selectedMonth);
   });
 
-  // Calculate stats for filtered view
-  const totalSpent = monthFilteredExpenses.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  const totalSpent = filteredMonthExpenses.reduce((sum, item) => sum + Number(item.amount), 0);
   const remaining = budget - totalSpent;
-  const percentUsed = budget > 0 ? (totalSpent / budget) * 100 : 0;
-  const clampedPercent = Math.min(Math.max(0, percentUsed), 100);
+  const spentRatio = budget > 0 ? (totalSpent / budget) * 100 : 0;
+  const remainingPercent = Math.max(0, 100 - spentRatio);
 
-  // 2. Header Stat Cards
+  if (activeMonthLabelEl) {
+    activeMonthLabelEl.textContent = selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth);
+  }
+
+  // Update Stat Cards & Topbar Budget Edit Button Label
+  if (btnEditBudget) {
+    btnEditBudget.innerHTML = budget > 0 
+      ? '<i class="fa-solid fa-pen-to-square"></i> Edit Budget' 
+      : '<i class="fa-solid fa-sliders"></i> Set Budget';
+  }
+
   if (statBudgetEl) statBudgetEl.textContent = formatCurrency(budget);
+  if (statSpentEl) statSpentEl.textContent = formatCurrency(totalSpent);
+  if (statCountEl) statCountEl.textContent = `${filteredMonthExpenses.length} transaction${filteredMonthExpenses.length === 1 ? '' : 's'}`;
+
   const sidebarBudgetVal = document.getElementById('sidebar-budget-val');
   if (sidebarBudgetVal) sidebarBudgetVal.textContent = formatCurrency(budget);
 
-  if (statSpentEl) statSpentEl.textContent = formatCurrency(totalSpent);
-  if (statCountEl) statCountEl.textContent = `${monthFilteredExpenses.length} transaction${monthFilteredExpenses.length === 1 ? '' : 's'}`;
-
-  if (statRemainingEl) {
-    statRemainingEl.textContent = formatCurrency(remaining);
-    statRemainingEl.className = `stat-value ${remaining < 0 ? 'text-rose' : 'text-emerald'}`;
+  if (budget === 0) {
+    if (statRemainingEl) statRemainingEl.textContent = '₹0.00';
+    if (statPercentEl) statPercentEl.textContent = 'Budget Not Set (Click to Set ✏️)';
+  } else {
+    if (statRemainingEl) statRemainingEl.textContent = formatCurrency(remaining);
+    if (statPercentEl) statPercentEl.textContent = `${remainingPercent.toFixed(1)}% Left`;
   }
 
-  if (activeMonthLabelEl) {
-    activeMonthLabelEl.textContent = formatMonthLabel(selectedMonth);
-  }
+  // Balance Indicator Colors
+  if (statRemainingEl && statusIconEl) {
+    statRemainingEl.classList.remove('text-rose', 'text-amber', 'text-emerald', 'text-muted');
+    statusIconEl.className = 'fa-solid stat-icon';
 
-  if (statPercentEl) {
     if (budget === 0) {
-      statPercentEl.innerHTML = 'Budget Not Set <span class="edit-hint">(Click to Set ✏️)</span>';
-      statPercentEl.className = 'stat-subtext text-muted';
+      statRemainingEl.classList.add('text-muted');
+      statusIconEl.classList.add('fa-circle-info', 'text-muted');
     } else if (remaining < 0) {
-      statPercentEl.innerHTML = `Over budget by ${formatCurrency(Math.abs(remaining))}`;
-      statPercentEl.className = 'stat-subtext text-rose font-bold';
+      statRemainingEl.classList.add('text-rose');
+      statusIconEl.classList.add('fa-circle-exclamation', 'text-rose');
+    } else if (spentRatio >= 80) {
+      statRemainingEl.classList.add('text-amber');
+      statusIconEl.classList.add('fa-triangle-exclamation', 'text-amber');
     } else {
-      statPercentEl.innerHTML = `${percentUsed.toFixed(1)}% of monthly target spent`;
-      statPercentEl.className = 'stat-subtext text-muted';
+      statRemainingEl.classList.add('text-emerald');
+      statusIconEl.classList.add('fa-shield-halved', 'text-emerald');
     }
   }
 
-  if (statusIconEl) {
-    statusIconEl.className = remaining < 0 ? 'fa-solid fa-circle-exclamation text-rose' : 'fa-solid fa-shield-halved text-emerald';
-  }
+  // Progress Bar
+  const clampPercent = Math.min(100, Math.max(0, spentRatio));
+  if (progressBarFillEl) progressBarFillEl.style.width = `${clampPercent}%`;
+  if (progressPercentLabelEl) progressPercentLabelEl.textContent = budget > 0 ? `${clampPercent.toFixed(1)}% Used` : '0% Used';
 
-  // 3. Subscriptions Header Stat
-  const totalSubsAmount = subscriptions.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  if (statSubsTotalEl) statSubsTotalEl.textContent = formatCurrency(totalSubsAmount);
-  if (statSubsCountEl) statSubsCountEl.textContent = `${subscriptions.length} active subscription${subscriptions.length === 1 ? '' : 's'}`;
-
-  // 4. Linear Progress Bar Fill
   if (progressBarFillEl) {
-    progressBarFillEl.style.width = `${clampedPercent}%`;
-    if (budget === 0) {
-      progressBarFillEl.style.background = 'var(--primary-indigo)';
-    } else if (remaining < 0) {
+    if (spentRatio > 100) {
       progressBarFillEl.style.background = 'linear-gradient(90deg, #f59e0b, #f43f5e)';
-    } else if (percentUsed >= 85) {
+    } else if (spentRatio >= 80) {
       progressBarFillEl.style.background = 'linear-gradient(90deg, #10b981, #f59e0b)';
     } else {
       progressBarFillEl.style.background = 'linear-gradient(90deg, #10b981, #6366f1)';
     }
   }
 
-  if (progressPercentLabelEl) {
-    progressPercentLabelEl.textContent = budget > 0 ? `${percentUsed.toFixed(1)}% Used` : '0% Used';
-  }
-
-  // 5. SVG Radial Gauge Render
-  renderRadialGauge(budget, totalSpent, percentUsed);
-
-  // 6. Category Breakdown Render (Dashboard & Full Analytics View)
-  renderCategoryBreakdown(monthFilteredExpenses, totalSpent);
-
-  // 7. Render Subscriptions Preview (Dashboard) & Subscriptions Grid View
+  renderRadialGauge(spentRatio, totalSpent, budget);
   renderSubscriptions();
-
-  // 8. Render Transactions Table Log
-  renderTransactionsTable(monthFilteredExpenses);
-
-  // 9. Render Monthly Trend Chart (Analytics View)
+  renderCategoryBreakdown(filteredMonthExpenses, totalSpent);
   renderMonthlyTrendChart();
+  renderTransactionsTable(filteredMonthExpenses);
 }
 
-// ---------- SVG Radial Budget Gauge ----------
-function renderRadialGauge(budgetVal, totalSpentVal, percentVal) {
+// Render Radial SVG Budget Gauge Ring
+function renderRadialGauge(spentRatio, totalSpent, budgetLimit) {
   if (!radialGaugeContainer) return;
 
-  const radius = 64;
+  const size = 190;
+  const strokeWidth = 14;
+  const radius = (size - strokeWidth) / 2;
   const circumference = 2 * Math.PI * radius;
-  const clampedPct = Math.min(Math.max(0, percentVal), 100);
-  const strokeDashoffset = circumference - (clampedPct / 100) * circumference;
+  const clampPercent = Math.min(100, Math.max(0, spentRatio));
+  const strokeDashoffset = circumference - (clampPercent / 100) * circumference;
 
-  let gaugeColor = '#6366f1';
-  let badgeText = 'Healthy';
-  let badgeClass = 'gauge-success';
+  let strokeColor = '#6366f1';
+  let statusText = 'Normal Spending';
+  let badgeClass = 'gauge-normal';
 
-  if (budgetVal === 0) {
-    gaugeColor = 'rgba(255, 255, 255, 0.15)';
-    badgeText = 'No Target Set';
+  if (budgetLimit === 0) {
+    statusText = 'Set Budget Limit';
+    strokeColor = '#64748b';
     badgeClass = 'gauge-muted';
-  } else if (percentVal > 100) {
-    gaugeColor = '#f43f5e';
-    badgeText = 'Over Limit!';
+  } else if (spentRatio > 100) {
+    statusText = 'Over Budget Cap!';
+    strokeColor = '#f43f5e';
     badgeClass = 'gauge-danger';
-  } else if (percentVal >= 85) {
-    gaugeColor = '#f59e0b';
-    badgeText = 'Near Limit';
+  } else if (spentRatio >= 80) {
+    statusText = 'High Spending Warning';
+    strokeColor = '#f59e0b';
     badgeClass = 'gauge-warning';
+  } else {
+    statusText = 'Budget Healthy';
+    strokeColor = '#10b981';
+    badgeClass = 'gauge-success';
   }
 
   radialGaugeContainer.innerHTML = `
     <div class="radial-gauge-wrapper">
-      <svg width="170" height="170" viewBox="0 0 170 170" class="radial-gauge-svg">
-        <circle cx="85" cy="85" r="${radius}" fill="none" stroke="rgba(255, 255, 255, 0.08)" stroke-width="12" />
-        <circle cx="85" cy="85" r="${radius}" fill="none" stroke="${gaugeColor}" stroke-width="12"
-          stroke-dasharray="${circumference}" stroke-dashoffset="${strokeDashoffset}" stroke-linecap="round"
-          class="radial-gauge-progress" transform="rotate(-90 85 85)" />
+      <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="radial-gauge-svg">
+        <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
+          fill="transparent"
+          stroke="rgba(255, 255, 255, 0.08)"
+          stroke-width="${strokeWidth}"
+        />
+        <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
+          fill="transparent"
+          stroke="${strokeColor}"
+          stroke-width="${strokeWidth}"
+          stroke-dasharray="${circumference}"
+          stroke-dashoffset="${strokeDashoffset}"
+          stroke-linecap="round"
+          class="radial-gauge-progress"
+          transform="rotate(-90 ${size / 2} ${size / 2})"
+        />
       </svg>
       <div class="radial-gauge-center">
-        <span class="radial-percent-val">${budgetVal > 0 ? Math.round(percentVal) + '%' : '0%'}</span>
-        <span class="radial-percent-label">${budgetVal > 0 ? 'BUDGET USED' : 'SET BUDGET'}</span>
-        <button type="button" class="gauge-status-badge ${badgeClass}" id="btn-gauge-badge-action">${badgeText}</button>
+        <span class="radial-percent-val">${budgetLimit > 0 ? clampPercent.toFixed(1) + '%' : '0%'}</span>
+        <span class="radial-percent-label">Budget Used</span>
+        <span class="gauge-status-badge ${badgeClass}">${statusText}</span>
       </div>
     </div>
   `;
-
-  const btnAction = document.getElementById('btn-gauge-badge-action');
-  if (btnAction) {
-    btnAction.addEventListener('click', openBudgetModal);
-  }
 }
 
-// ---------- Category Breakdown (SVG Donut Chart + List) ----------
-function renderCategoryBreakdown(monthFilteredExpenses, totalSpent) {
-  // Aggregate category spending totals
-  const categoryTotals = {};
-  monthFilteredExpenses.forEach(exp => {
-    const cat = exp.category || 'Miscellaneous';
-    const amt = Number(exp.amount) || 0;
-    categoryTotals[cat] = (categoryTotals[cat] || 0) + amt;
-  });
-
-  const sortedCategories = Object.keys(categoryTotals).sort((a, b) => categoryTotals[b] - categoryTotals[a]);
-
-  // Dashboard Donut Chart
-  if (breakdownChartContainer) {
-    if (totalSpent === 0) {
-      breakdownChartContainer.innerHTML = `
-        <div class="empty-state-small">
-          <i class="fa-solid fa-chart-pie empty-state-icon"></i>
-          <p>No expense data for ${formatMonthLabel(selectedMonth)}</p>
-        </div>
-      `;
-    } else {
-      const radius = 54;
-      const circumference = 2 * Math.PI * radius;
-      let accumulatedPercent = 0;
-      let slicesSVG = '';
-
-      sortedCategories.forEach(cat => {
-        const catSpent = categoryTotals[cat];
-        const pct = catSpent / totalSpent;
-        const dashArray = `${pct * circumference} ${circumference}`;
-        const strokeOffset = -accumulatedPercent * circumference;
-        const color = categoryColors[cat] || '#64748b';
-
-        slicesSVG += `
-          <circle cx="70" cy="70" r="${radius}" fill="none" stroke="${color}" stroke-width="18"
-            stroke-dasharray="${dashArray}" stroke-dashoffset="${strokeOffset}" class="donut-slice" />
-        `;
-        accumulatedPercent += pct;
-      });
-
-      breakdownChartContainer.innerHTML = `
-        <div class="donut-chart-wrapper">
-          <svg width="140" height="140" viewBox="0 0 140 140" class="donut-svg">
-            ${slicesSVG}
-          </svg>
-          <div class="donut-center-text">
-            <span class="donut-total-title">Total Spent</span>
-            <span class="donut-total-val">${formatCurrency(totalSpent)}</span>
-          </div>
-        </div>
-      `;
-    }
-  }
-
-  // Dashboard Category Progress List
-  if (breakdownListEl) {
-    breakdownListEl.innerHTML = '';
-
-    if (sortedCategories.length === 0) {
-      breakdownListEl.innerHTML = '<p class="empty-state-sub">No expenses logged in ' + formatMonthLabel(selectedMonth) + '.</p>';
-    } else {
-      sortedCategories.forEach(cat => {
-        const amt = categoryTotals[cat];
-        const pct = totalSpent > 0 ? ((amt / totalSpent) * 100).toFixed(1) : 0;
-        const color = categoryColors[cat] || '#3b82f6';
-
-        const itemEl = document.createElement('div');
-        itemEl.className = 'breakdown-item';
-        itemEl.innerHTML = `
-          <div class="breakdown-info">
-            <span class="breakdown-label"><span class="cat-dot" style="background: ${color};"></span> ${cat}</span>
-            <span class="font-bold">${formatCurrency(amt)} (${pct}%)</span>
-          </div>
-          <div class="breakdown-bar-bg">
-            <div class="breakdown-bar-fill" style="width: ${pct}%; background: ${color};"></div>
-          </div>
-        `;
-        breakdownListEl.appendChild(itemEl);
-      });
-    }
-  }
-
-  // Full Analytics View Donut & List
-  if (fullAnalyticsChartContainer && fullAnalyticsListEl) {
-    if (totalSpent === 0) {
-      fullAnalyticsChartContainer.innerHTML = `<div class="empty-state-small"><i class="fa-solid fa-chart-pie empty-state-icon"></i><p>No analytics data available</p></div>`;
-      fullAnalyticsListEl.innerHTML = '<p class="empty-state-sub">Log transactions to populate category analytics.</p>';
-    } else {
-      const radius = 64;
-      const circumference = 2 * Math.PI * radius;
-      let accumulatedPercent = 0;
-      let slicesSVG = '';
-
-      sortedCategories.forEach(cat => {
-        const catSpent = categoryTotals[cat];
-        const pct = catSpent / totalSpent;
-        const dashArray = `${pct * circumference} ${circumference}`;
-        const strokeOffset = -accumulatedPercent * circumference;
-        const color = categoryColors[cat] || '#64748b';
-
-        slicesSVG += `
-          <circle cx="80" cy="80" r="${radius}" fill="none" stroke="${color}" stroke-width="22"
-            stroke-dasharray="${dashArray}" stroke-dashoffset="${strokeOffset}" class="donut-slice" />
-        `;
-        accumulatedPercent += pct;
-      });
-
-      fullAnalyticsChartContainer.innerHTML = `
-        <div class="donut-chart-wrapper">
-          <svg width="160" height="160" viewBox="0 0 160 160" class="donut-svg">
-            ${slicesSVG}
-          </svg>
-          <div class="donut-center-text">
-            <span class="donut-total-title">Total</span>
-            <span class="donut-total-val">${formatCurrency(totalSpent)}</span>
-          </div>
-        </div>
-      `;
-
-      fullAnalyticsListEl.innerHTML = '';
-      sortedCategories.forEach(cat => {
-        const amt = categoryTotals[cat];
-        const pct = totalSpent > 0 ? ((amt / totalSpent) * 100).toFixed(1) : 0;
-        const color = categoryColors[cat] || '#3b82f6';
-
-        const itemEl = document.createElement('div');
-        itemEl.className = 'breakdown-item';
-        itemEl.innerHTML = `
-          <div class="breakdown-info">
-            <span class="breakdown-label"><span class="cat-dot" style="background: ${color};"></span> ${cat}</span>
-            <span class="font-bold">${formatCurrency(amt)} (${pct}%)</span>
-          </div>
-          <div class="breakdown-bar-bg">
-            <div class="breakdown-bar-fill" style="width: ${pct}%; background: ${color};"></div>
-          </div>
-        `;
-        fullAnalyticsListEl.appendChild(itemEl);
-      });
-    }
-  }
-}
-
-// ---------- Subscriptions & Monthly Bills ----------
 function renderSubscriptions() {
   const currentYM = getCurrentYearMonth();
   const currentDay = new Date().getDate();
 
-  // Dashboard Preview
-  if (dashSubsPreviewContainer) {
-    dashSubsPreviewContainer.innerHTML = '';
+  let totalMonthlySubs = 0;
+  let dueSoonCount = 0;
 
-    if (subscriptions.length === 0) {
-      dashSubsPreviewContainer.innerHTML = '<p class="empty-state-sub">No active recurring bills.</p>';
-    } else {
-      const topSubs = subscriptions.slice(0, 3);
-      topSubs.forEach(sub => {
-        const isPaidThisMonth = sub.lastPaidMonth === currentYM;
-        const item = document.createElement('div');
-        item.className = 'dash-sub-item';
-        item.innerHTML = `
-          <div>
-            <div class="dash-sub-name">${escapeHtml(sub.name)}</div>
-            <div class="dash-sub-due">Due on Day ${sub.dueDay} of month</div>
-          </div>
-          <div class="dash-sub-right">
-            <div class="dash-sub-amount">${formatCurrency(sub.amount)}</div>
-          </div>
-        `;
-        dashSubsPreviewContainer.appendChild(item);
-      });
+  subscriptions.forEach(sub => {
+    totalMonthlySubs += Number(sub.amount);
+    const isPaidThisMonth = sub.lastPaidMonth === currentYM;
+    if (!isPaidThisMonth && (currentDay > sub.dueDay || sub.dueDay - currentDay <= 7)) {
+      dueSoonCount++;
     }
-  }
+  });
+
+  if (statSubsTotalEl) statSubsTotalEl.textContent = formatCurrency(totalMonthlySubs);
+  if (statSubsCountEl) statSubsCountEl.textContent = `${subscriptions.length} active subscription${subscriptions.length === 1 ? '' : 's'}`;
 
   // Dedicated Bills View Grid
   if (subsGridContainer) {
@@ -712,48 +604,200 @@ function renderSubscriptions() {
       });
     }
   }
+
+  // Dashboard Overview Bills Preview
+  if (dashSubsPreviewContainer) {
+    dashSubsPreviewContainer.innerHTML = '';
+    if (subscriptions.length === 0) {
+      dashSubsPreviewContainer.innerHTML = '<p class="empty-state-sub">No active recurring bills.</p>';
+    } else {
+      const topSubs = subscriptions.slice(0, 3);
+      topSubs.forEach(sub => {
+        const isPaidThisMonth = sub.lastPaidMonth === currentYM;
+        const item = document.createElement('div');
+        item.className = 'dash-sub-item';
+        item.innerHTML = `
+          <div class="dash-sub-info">
+            <span class="dash-sub-name">${escapeHtml(sub.name)}</span>
+            <span class="dash-sub-due">Due Day ${sub.dueDay}</span>
+          </div>
+          <div class="dash-sub-right">
+            <span class="dash-sub-amount">${formatCurrency(sub.amount)}</span>
+            ${isPaidThisMonth
+              ? '<span class="status-badge paid"><i class="fa-solid fa-check"></i> Paid</span>'
+              : `<button class="btn btn-secondary btn-xs" data-pay-sub="${sub.id}">Pay</button>`
+            }
+          </div>
+        `;
+        dashSubsPreviewContainer.appendChild(item);
+      });
+    }
+  }
 }
 
-function markSubAsPaid(id) {
+function markSubAsPaid(subId) {
+  const sub = subscriptions.find(s => s.id === subId);
+  if (!sub) return;
+
   const currentYM = getCurrentYearMonth();
-  subscriptions = subscriptions.map(sub => {
-    if (sub.id === id) {
-      return { ...sub, lastPaidMonth: currentYM };
-    }
-    return sub;
-  });
+  sub.lastPaidMonth = currentYM;
+
+  const today = getLocalDateString();
+  const newExpense = {
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 7),
+    amount: sub.amount,
+    category: sub.category || 'Services & Subscriptions',
+    description: `Bill Payment: ${sub.name}`,
+    payment: 'Auto-Pay',
+    date: today
+  };
+
+  expenses.push(newExpense);
   saveState();
+  updateMonthPickerOptions();
   updateUI();
 }
 
-function deleteSubscription(id) {
-  if (confirm('Are you sure you want to remove this recurring bill subscription?')) {
-    subscriptions = subscriptions.filter(sub => sub.id !== id);
+function deleteSubscription(subId) {
+  if (confirm('Delete this recurring subscription/bill?')) {
+    subscriptions = subscriptions.filter(s => s.id !== subId);
     saveState();
     updateUI();
   }
 }
 
-// ---------- Monthly Spending Trend Bar Chart ----------
-function renderMonthlyTrendChart() {
-  if (!monthlyTrendChartContainer) return;
+// SVG Category Donut & Analytics Breakdown
+function renderCategoryBreakdown(filteredList, totalSpent) {
+  const containers = [
+    { chart: breakdownChartContainer, list: breakdownListEl },
+    { chart: fullAnalyticsChartContainer, list: fullAnalyticsListEl }
+  ];
 
-  const monthlyTotals = {};
-  expenses.forEach(exp => {
-    if (exp.date && exp.date.length >= 7) {
-      const ym = exp.date.substring(0, 7);
-      monthlyTotals[ym] = (monthlyTotals[ym] || 0) + (Number(exp.amount) || 0);
+  containers.forEach(({ chart, list }) => {
+    if (list) list.innerHTML = '';
+    if (chart) chart.innerHTML = '';
+
+    if (filteredList.length === 0 || totalSpent === 0) {
+      if (chart) {
+        chart.innerHTML = `
+          <div class="empty-state-small">
+            <i class="fa-solid fa-chart-pie empty-state-icon"></i>
+            <p>No expense data for ${selectedMonth === 'ALL' ? 'All Time' : formatMonthLabel(selectedMonth)}</p>
+          </div>
+        `;
+      }
+      if (list) list.innerHTML = `<p class="empty-state-sub text-center">No expenses logged in ${selectedMonth === 'ALL' ? 'all time' : formatMonthLabel(selectedMonth)}.</p>`;
+      return;
+    }
+
+    const categoryTotals = {};
+    filteredList.forEach(item => {
+      categoryTotals[item.category] = (categoryTotals[item.category] || 0) + Number(item.amount);
+    });
+
+    const sortedCategories = Object.entries(categoryTotals).sort((a, b) => b[1] - a[1]);
+
+    // SVG Donut Chart
+    if (chart) {
+      let accumulatedAngle = 0;
+      const slices = [];
+      const size = 170;
+      const strokeWidth = 26;
+      const radius = (size - strokeWidth) / 2;
+      const circumference = 2 * Math.PI * radius;
+
+      sortedCategories.forEach(([catName, catAmount]) => {
+        const percentage = catAmount / totalSpent;
+        const strokeDasharray = `${percentage * circumference} ${circumference}`;
+        // Correct positive dashoffset: shift start point by already-drawn arc length
+        const strokeDashoffset = circumference * (1 - accumulatedAngle);
+        accumulatedAngle += percentage;
+        const color = categoryColors[catName] || '#6366f1';
+
+        slices.push(`
+          <circle cx="${size / 2}" cy="${size / 2}" r="${radius}"
+            fill="transparent"
+            stroke="${color}"
+            stroke-width="${strokeWidth}"
+            stroke-dasharray="${strokeDasharray}"
+            stroke-dashoffset="${strokeDashoffset}"
+            class="donut-slice"
+          >
+            <title>${catName}: ${formatCurrency(catAmount)} (${(percentage * 100).toFixed(1)}%)</title>
+          </circle>
+        `);
+      });
+
+      chart.innerHTML = `
+        <div class="donut-chart-wrapper">
+          <svg width="${size}" height="${size}" viewBox="0 0 ${size} ${size}" class="donut-svg">
+            ${slices.join('')}
+          </svg>
+          <div class="donut-center-text">
+            <span class="donut-total-title">Total Spent</span>
+            <span class="donut-total-val">${formatCurrency(totalSpent)}</span>
+          </div>
+        </div>
+      `;
+    }
+
+    // List Breakdown items
+    if (list) {
+      sortedCategories.forEach(([catName, catAmount]) => {
+        const percent = ((catAmount / totalSpent) * 100).toFixed(1);
+        const color = categoryColors[catName] || '#3b82f6';
+
+        const itemEl = document.createElement('div');
+        itemEl.className = 'breakdown-item';
+        itemEl.innerHTML = `
+          <div class="breakdown-info">
+            <span class="breakdown-label">
+              <span class="cat-dot" style="background: ${color};"></span>
+              ${catName} (${percent}%)
+            </span>
+            <strong>${formatCurrency(catAmount)}</strong>
+          </div>
+          <div class="breakdown-bar-bg">
+            <div class="breakdown-bar-fill" style="width: ${percent}%; background: ${color};"></div>
+          </div>
+        `;
+        list.appendChild(itemEl);
+      });
     }
   });
+}
 
-  const months = Object.keys(monthlyTotals).sort().slice(-6);
+// Render SVG Month-Wise Historical Trend Bar Chart
+function renderMonthlyTrendChart() {
+  if (!monthlyTrendChartContainer) return;
+  monthlyTrendChartContainer.innerHTML = '';
 
-  if (months.length === 0) {
-    monthlyTrendChartContainer.innerHTML = `<div class="empty-state-small"><i class="fa-solid fa-chart-column empty-state-icon"></i><p>No historical monthly data recorded</p></div>`;
+  if (expenses.length === 0) {
+    monthlyTrendChartContainer.innerHTML = `
+      <div class="empty-state-small">
+        <i class="fa-solid fa-chart-column empty-state-icon"></i>
+        <p>No historical data recorded yet.</p>
+      </div>
+    `;
     return;
   }
 
-  const maxSpent = Math.max(...months.map(ym => monthlyTotals[ym]), 1);
+  // Calculate monthly totals for all available months
+  const monthlyTotals = {};
+  expenses.forEach(item => {
+    if (item.date && item.date.length >= 7) {
+      const ym = item.date.substring(0, 7);
+      monthlyTotals[ym] = (monthlyTotals[ym] || 0) + Number(item.amount);
+    }
+  });
+
+  const months = Object.keys(monthlyTotals).sort();
+  if (months.length === 0) {
+    monthlyTrendChartContainer.innerHTML = '<p class="empty-state-sub">No monthly data available.</p>';
+    return;
+  }
+
+  const maxSpent = Math.max(...Object.values(monthlyTotals), budget || 1);
   const chartHeight = 160;
 
   const barElements = months.map(ym => {
@@ -1066,7 +1110,8 @@ if (btnExportCsv) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Expense_Report_${selectedMonth}_${new Date().toISOString().split('T')[0]}.csv`);
+    const monthLabel = selectedMonth === 'ALL' ? 'AllTime' : selectedMonth;
+    link.setAttribute('download', `Expense_Report_${monthLabel}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1082,8 +1127,26 @@ if (btnResetAll) {
       expenses = [];
       subscriptions = [];
       selectedMonth = getCurrentYearMonth();
+      // Clear local storage
       localStorage.clear();
-      saveState();
+      // Guard against the Firestore onSnapshot re-firing stale data during reset
+      isSyncingFromFirestore = true;
+      // Push reset to Firestore (if logged in)
+      if (currentUserId && db) {
+        if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+        db.collection('users').doc(currentUserId).set({
+          budget: 0,
+          expenses: [],
+          subscriptions: [],
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+        }).catch((err) => {
+          console.error('Reset Firestore error:', err);
+          if (typeof setSyncStatus === 'function') setSyncStatus('error');
+        });
+      }
+      isSyncingFromFirestore = false;
       updateMonthPickerOptions();
       updateUI();
       alert('All expense records, budget limits, and cloud data have been completely reset.');
@@ -1137,17 +1200,25 @@ document.addEventListener('click', (e) => {
 // ---------- Sidebar Toggle for Small Screens ----------
 const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
 const sidebarEl = document.querySelector('.sidebar');
+const sidebarOverlayEl = document.getElementById('sidebar-overlay');
 
 function toggleSidebar() {
   if (sidebarEl) sidebarEl.classList.toggle('sidebar-open');
+  if (sidebarOverlayEl) sidebarOverlayEl.classList.toggle('active');
 }
 
 function closeSidebar() {
   if (sidebarEl) sidebarEl.classList.remove('sidebar-open');
+  if (sidebarOverlayEl) sidebarOverlayEl.classList.remove('active');
 }
 
 if (sidebarToggleBtn) {
   sidebarToggleBtn.addEventListener('click', toggleSidebar);
+}
+
+// Overlay tap closes sidebar cleanly without swallowing the underlying click
+if (sidebarOverlayEl) {
+  sidebarOverlayEl.addEventListener('click', closeSidebar);
 }
 
 // Auto-close sidebar when a nav item is clicked on small screens
@@ -1155,15 +1226,6 @@ document.querySelectorAll('.nav-item').forEach(nav => {
   nav.addEventListener('click', () => {
     if (window.innerWidth <= 900) closeSidebar();
   });
-});
-
-// Close sidebar when clicking outside on mobile (on the main workspace)
-document.querySelector('.main-workspace')?.addEventListener('click', (e) => {
-  if (window.innerWidth <= 900 && sidebarEl?.classList.contains('sidebar-open')) {
-    if (!e.target.closest('.sidebar-toggle-btn')) {
-      closeSidebar();
-    }
-  }
 });
 
 // Initialization

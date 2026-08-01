@@ -94,13 +94,13 @@ if (isFirebaseConfigured && auth) {
     }
 
     // Handle Mobile OAuth Redirect Result
-    auth.getRedirectResult().then((result) => {
-      if (result && result.user) {
-        showApp(result.user);
-        startFirestoreSync(result.user.uid);
+    // NOTE: onAuthStateChanged already fires after redirect, so we only use
+    // getRedirectResult to detect the redirect case for logging purposes.
+    // We do NOT call showApp/startFirestoreSync here to avoid double listener registration.
+    auth.getRedirectResult().catch((error) => {
+      if (error && error.code) {
+        console.error('Redirect result error:', error);
       }
-    }).catch((error) => {
-      console.error('Redirect result error:', error);
     });
 
     function hideLoader() {
@@ -213,17 +213,26 @@ if (isFirebaseConfigured && auth) {
         const email = signupEmailInput ? signupEmailInput.value.trim() : '';
         const password = signupPasswordInput ? signupPasswordInput.value : '';
         const confirm = signupConfirmInput ? signupConfirmInput.value : '';
-
         if (!email || !password || !confirm) { showError(signupError, 'Please fill in all fields.'); return; }
         if (password !== confirm) { showError(signupError, 'Passwords do not match.'); return; }
         if (password.length < 6) { showError(signupError, 'Password must be at least 6 characters.'); return; }
-
         signUpWithEmail(email, password);
       });
     }
 
-    if (btnLogout) {
-      btnLogout.addEventListener('click', handleSignOut);
-    }
+    if (btnLogout) btnLogout.addEventListener('click', handleSignOut);
+  })();
+} else {
+  // Firebase not configured — run in offline/localStorage mode
+  (function offlineMode() {
+    const loginScreen = document.getElementById('login-screen');
+    const appLayout = document.querySelector('.app-layout');
+    if (loginScreen) loginScreen.classList.add('hidden');
+    if (appLayout) appLayout.classList.remove('hidden');
+    const userProfile = document.getElementById('user-profile');
+    if (userProfile) userProfile.style.display = 'none';
+    const syncStatus = document.getElementById('sync-status');
+    if (syncStatus) syncStatus.style.display = 'none';
+    window.setSyncStatus = function() {};
   })();
 }

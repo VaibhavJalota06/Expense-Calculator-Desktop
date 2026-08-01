@@ -1,5 +1,5 @@
 /* ============================================================
-   EXPENSE OS STUDIO v2.0.4 - LUXURY FINTECH GLASS DASHBOARD
+   EXPENSE OS STUDIO v2.0.3 - LUXURY FINTECH GLASS DASHBOARD
    FULL MOBILE & DESKTOP RESPONSIVE DESIGN SYSTEM
    ============================================================ */
 @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
@@ -853,8 +853,6 @@ input:focus, select:focus {
   justify-content: center;
   gap: 0.55rem;
   transition: var(--transition);
-  white-space: nowrap;
-  flex-shrink: 0;
 }
 
 .btn-primary {
@@ -1339,8 +1337,22 @@ input:focus, select:focus {
     transform: translateX(0);
   }
 
+  /* Mobile sidebar overlay backdrop */
+  .sidebar-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 998;
+    backdrop-filter: blur(2px);
+    -webkit-backdrop-filter: blur(2px);
+  }
+  .sidebar-overlay.active {
+    display: block;
+  }
+
   .sidebar-toggle-btn {
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
   }

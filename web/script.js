@@ -241,7 +241,7 @@ function stopFirestoreSync() {
 function isValidExpense(item) {
   return item && typeof item === 'object' &&
     typeof item.id === 'string' &&
-    Number.isFinite(Number(item.amount)) && Number(item.amount) >= 0 &&
+    Number.isFinite(Number(item.amount)) && Number(item.amount) > 0 &&
     typeof item.category === 'string' &&
     typeof item.description === 'string' &&
     typeof item.payment === 'string' &&
@@ -648,7 +648,7 @@ function markSubAsPaid(subId) {
     amount: sub.amount,
     category: sub.category || 'Services & Subscriptions',
     description: `Bill Payment: ${sub.name}`,
-    payment: 'UPI',
+    payment: 'Auto-Pay',
     date: today
   };
 
@@ -709,7 +709,8 @@ function renderCategoryBreakdown(filteredList, totalSpent) {
       sortedCategories.forEach(([catName, catAmount]) => {
         const percentage = catAmount / totalSpent;
         const strokeDasharray = `${percentage * circumference} ${circumference}`;
-        const strokeDashoffset = -accumulatedAngle * circumference;
+        // Correct positive dashoffset: shift start point by already-drawn arc length
+        const strokeDashoffset = circumference * (1 - accumulatedAngle);
         accumulatedAngle += percentage;
         const color = categoryColors[catName] || '#6366f1';
 
@@ -1109,7 +1110,8 @@ if (btnExportCsv) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.setAttribute('href', url);
-    link.setAttribute('download', `Expense_Report_${selectedMonth}_${new Date().toISOString().split('T')[0]}.csv`);
+    const monthLabel = selectedMonth === 'ALL' ? 'AllTime' : selectedMonth;
+    link.setAttribute('download', `Expense_Report_${monthLabel}_${new Date().toISOString().split('T')[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -1125,8 +1127,26 @@ if (btnResetAll) {
       expenses = [];
       subscriptions = [];
       selectedMonth = getCurrentYearMonth();
+      // Clear local storage
       localStorage.clear();
-      saveState();
+      // Guard against the Firestore onSnapshot re-firing stale data during reset
+      isSyncingFromFirestore = true;
+      // Push reset to Firestore (if logged in)
+      if (currentUserId && db) {
+        if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+        db.collection('users').doc(currentUserId).set({
+          budget: 0,
+          expenses: [],
+          subscriptions: [],
+          lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+        }).then(() => {
+          if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+        }).catch((err) => {
+          console.error('Reset Firestore error:', err);
+          if (typeof setSyncStatus === 'function') setSyncStatus('error');
+        });
+      }
+      isSyncingFromFirestore = false;
       updateMonthPickerOptions();
       updateUI();
       alert('All expense records, budget limits, and cloud data have been completely reset.');
@@ -1180,17 +1200,25 @@ document.addEventListener('click', (e) => {
 // ---------- Sidebar Toggle for Small Screens ----------
 const sidebarToggleBtn = document.getElementById('btn-sidebar-toggle');
 const sidebarEl = document.querySelector('.sidebar');
+const sidebarOverlayEl = document.getElementById('sidebar-overlay');
 
 function toggleSidebar() {
   if (sidebarEl) sidebarEl.classList.toggle('sidebar-open');
+  if (sidebarOverlayEl) sidebarOverlayEl.classList.toggle('active');
 }
 
 function closeSidebar() {
   if (sidebarEl) sidebarEl.classList.remove('sidebar-open');
+  if (sidebarOverlayEl) sidebarOverlayEl.classList.remove('active');
 }
 
 if (sidebarToggleBtn) {
   sidebarToggleBtn.addEventListener('click', toggleSidebar);
+}
+
+// Overlay tap closes sidebar cleanly without swallowing the underlying click
+if (sidebarOverlayEl) {
+  sidebarOverlayEl.addEventListener('click', closeSidebar);
 }
 
 // Auto-close sidebar when a nav item is clicked on small screens
@@ -1198,15 +1226,6 @@ document.querySelectorAll('.nav-item').forEach(nav => {
   nav.addEventListener('click', () => {
     if (window.innerWidth <= 900) closeSidebar();
   });
-});
-
-// Close sidebar when clicking outside on mobile (on the main workspace)
-document.querySelector('.main-workspace')?.addEventListener('click', (e) => {
-  if (window.innerWidth <= 900 && sidebarEl?.classList.contains('sidebar-open')) {
-    if (!e.target.closest('.sidebar-toggle-btn')) {
-      closeSidebar();
-    }
-  }
 });
 
 // Initialization

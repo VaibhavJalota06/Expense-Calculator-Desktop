@@ -4,14 +4,15 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Expense OS - Personal Finance Command Center</title>
+  <meta name="description" content="Expense OS — a personal finance command center to track expenses, manage budgets, and analyze spending habits with real-time cloud sync." />
   <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <!-- Font Awesome Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
-  <!-- Custom Stylesheet (Cache Busted v2.0.4) -->
-  <link rel="stylesheet" href="style.css?v=2.0.4" />
+  <!-- Custom Stylesheet (Cache Busted v2.0.3) -->
+  <link rel="stylesheet" href="style.css?v=2.0.3" />
 </head>
 <body>
   <!-- Instant App Startup Loader -->
@@ -22,10 +23,6 @@
       <p class="loader-text">Loading Expense OS...</p>
     </div>
   </div>
-
-  <!-- Ambient Background Glows -->
-  <div class="bg-glow bg-glow-1"></div>
-  <div class="bg-glow bg-glow-2"></div>
 
   <!-- ============================================================ -->
   <!-- AUTHENTICATION SCREEN (Shown when user is not logged in) -->
@@ -50,40 +47,31 @@
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
-          <span>Continue with Google</span>
+          Continue with Google
         </button>
 
-        <div class="auth-divider">
-          <span>or sign in with email</span>
-        </div>
+        <div class="auth-divider"><span>or sign in with email</span></div>
 
         <form id="login-form">
-          <div class="form-group" style="margin-bottom: 0.75rem;">
-            <label for="login-email">Email Address</label>
-            <input type="email" id="login-email" placeholder="name@example.com" required />
+          <div class="form-group">
+            <label for="login-email">Email</label>
+            <input type="email" id="login-email" placeholder="you@example.com" required />
           </div>
-          <div class="form-group" style="margin-bottom: 0.85rem;">
+          <div class="form-group">
             <label for="login-password">Password</label>
             <input type="password" id="login-password" placeholder="••••••••" required />
           </div>
-
           <div id="login-error" class="auth-error hidden"></div>
-
-          <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">
-            Sign In with Email
-          </button>
+          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
         </form>
 
-        <div class="auth-switch">
-          <span>Don't have an account?</span>
-          <a href="#" id="btn-show-signup">Create one</a>
-        </div>
+        <p class="auth-switch">Don't have an account? <a href="#" id="btn-show-signup">Create one</a></p>
       </div>
 
       <!-- Signup Card -->
       <div id="signup-card" class="auth-card glass-panel hidden">
         <h2>Create Account</h2>
-        <p class="auth-subtitle">Get started with your free cloud-synced account</p>
+        <p class="auth-subtitle">Start tracking your expenses today</p>
 
         <button class="btn btn-google btn-block btn-google-login" type="button">
           <svg class="google-icon" viewBox="0 0 48 48" width="20" height="20">
@@ -92,38 +80,29 @@
             <path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>
             <path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>
           </svg>
-          <span>Sign up with Google</span>
+          Continue with Google
         </button>
 
-        <div class="auth-divider">
-          <span>or sign up with email</span>
-        </div>
+        <div class="auth-divider"><span>or sign up with email</span></div>
 
         <form id="signup-form">
-          <div class="form-group" style="margin-bottom: 0.75rem;">
-            <label for="signup-email">Email Address</label>
-            <input type="email" id="signup-email" placeholder="name@example.com" required />
+          <div class="form-group">
+            <label for="signup-email">Email</label>
+            <input type="email" id="signup-email" placeholder="you@example.com" required />
           </div>
-          <div class="form-group" style="margin-bottom: 0.75rem;">
-            <label for="signup-password">Password (min. 6 characters)</label>
-            <input type="password" id="signup-password" placeholder="••••••••" required minlength="6" />
+          <div class="form-group">
+            <label for="signup-password">Password</label>
+            <input type="password" id="signup-password" placeholder="Min. 6 characters" required />
           </div>
-          <div class="form-group" style="margin-bottom: 0.85rem;">
+          <div class="form-group">
             <label for="signup-confirm-password">Confirm Password</label>
-            <input type="password" id="signup-confirm-password" placeholder="••••••••" required minlength="6" />
+            <input type="password" id="signup-confirm-password" placeholder="••••••••" required />
           </div>
-
           <div id="signup-error" class="auth-error hidden"></div>
-
-          <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">
-            Create Account
-          </button>
+          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
         </form>
 
-        <div class="auth-switch">
-          <span>Already have an account?</span>
-          <a href="#" id="btn-show-login">Sign in</a>
-        </div>
+        <p class="auth-switch">Already have an account? <a href="#" id="btn-show-login">Sign in</a></p>
       </div>
     </div>
   </div>
@@ -132,6 +111,8 @@
   <!-- MAIN APP (hidden until authenticated) -->
   <!-- ============================================================ -->
   <div class="app-layout hidden">
+    <!-- Mobile Sidebar Overlay (tap to close sidebar on mobile) -->
+    <div id="sidebar-overlay" class="sidebar-overlay" aria-hidden="true"></div>
     <!-- Sidebar Navigation -->
     <aside class="sidebar">
       <div class="sidebar-brand">
@@ -236,51 +217,51 @@
                 <i class="fa-solid fa-wallet text-indigo"></i>
               </div>
               <div id="stat-budget" class="stat-value text-indigo">₹0.00</div>
-              <div id="stat-percent" class="stat-subtext">Monthly Target Cap</div>
+              <div id="stat-percent" class="stat-subtext text-muted">No budget limit set <span class="edit-hint">(Edit)</span></div>
             </div>
 
-            <div class="glass-panel stat-card stat-spent">
+            <div class="glass-panel stat-card">
               <div class="stat-header">
-                <span>Total Spent</span>
-                <i class="fa-solid fa-arrow-trend-up text-amber"></i>
+                <span>Total Spent (<span id="active-month-label">Current</span>)</span>
+                <i class="fa-solid fa-receipt text-amber"></i>
               </div>
               <div id="stat-spent" class="stat-value text-amber">₹0.00</div>
-              <div id="stat-count" class="stat-subtext">0 transactions</div>
+              <div id="stat-count" class="stat-subtext text-muted">0 transactions recorded</div>
             </div>
 
-            <div class="glass-panel stat-card stat-remaining">
+            <div class="glass-panel stat-card">
               <div class="stat-header">
                 <span>Remaining Balance</span>
                 <i id="status-icon" class="fa-solid fa-shield-halved text-emerald"></i>
               </div>
               <div id="stat-remaining" class="stat-value text-emerald">₹0.00</div>
-              <div class="stat-subtext">For <span id="active-month-label">Current Month</span></div>
+              <div id="progress-percent-label" class="stat-subtext text-muted">0% Used</div>
             </div>
 
-            <div class="glass-panel stat-card stat-subs view-all-link" data-view="bills" style="cursor: pointer;" title="Click to View Recurring Bills">
+            <div class="glass-panel stat-card">
               <div class="stat-header">
-                <span>Recurring Bills</span>
+                <span>Monthly Subscriptions</span>
                 <i class="fa-solid fa-arrows-rotate text-purple"></i>
               </div>
               <div id="stat-subs-total" class="stat-value text-purple">₹0.00</div>
-              <div id="stat-subs-count" class="stat-subtext">0 active subscriptions</div>
+              <div id="stat-subs-count" class="stat-subtext text-muted">0 active bills</div>
             </div>
           </div>
 
-          <!-- Main Dashboard Split Grid -->
+          <!-- Main Dashboard Two-Column Grid -->
           <div class="dashboard-grid">
-            <!-- Left Column: Log Form & Category Breakdown -->
+            <!-- Left Column: Add Expense Form & Category Breakdown -->
             <div class="dash-left-column">
-              <!-- Log New Expense Card -->
+              <!-- Log New Expense Form -->
               <div class="glass-panel">
-                <h3 class="panel-title"><i class="fa-solid fa-circle-plus"></i> Log New Expense</h3>
+                <h3 class="panel-title"><i class="fa-solid fa-plus-circle"></i> Log New Expense</h3>
                 <form id="expense-form">
                   <div class="form-row">
                     <div class="form-group flex-1">
                       <label for="exp-amount">Amount (₹)</label>
                       <div class="input-with-icon">
                         <span class="currency-symbol">₹</span>
-                        <input type="number" id="exp-amount" step="0.01" min="0.01" placeholder="0.00" required />
+                        <input type="number" id="exp-amount" placeholder="0.00" min="0.01" step="0.01" required />
                       </div>
                     </div>
                     <div class="form-group flex-1">
@@ -292,7 +273,7 @@
                         <option value="Bills &amp; Utilities">⚡ Bills &amp; Utilities</option>
                         <option value="Entertainment">🎬 Entertainment</option>
                         <option value="Health &amp; Fitness">💊 Health &amp; Fitness</option>
-                        <option value="Services &amp; Subscriptions">📡 Services &amp; Subscriptions</option>
+                        <option value="Services &amp; Subscriptions">📱 Services &amp; Subscriptions</option>
                         <option value="Miscellaneous">📦 Miscellaneous</option>
                       </select>
                     </div>
@@ -300,20 +281,17 @@
 
                   <div class="form-row">
                     <div class="form-group flex-2">
-                      <label for="exp-description">Description / Note</label>
-                      <input type="text" id="exp-description" placeholder="e.g. Grocery items at Supermarket" required />
+                      <label for="exp-description">Description</label>
+                      <input type="text" id="exp-description" placeholder="e.g. Swiggy order, Grocery, Petrol" required />
                     </div>
-                  </div>
-
-                  <div class="form-row">
                     <div class="form-group flex-1">
                       <label for="exp-payment">Payment Method</label>
-                      <select id="exp-payment" required>
-                        <option value="UPI">💳 UPI / QR Code</option>
+                      <select id="exp-payment">
+                        <option value="UPI">📱 UPI / GPay</option>
                         <option value="Credit Card">💳 Credit Card</option>
-                        <option value="Debit Card">💳 Debit Card</option>
+                        <option value="Debit Card">🏦 Debit Card</option>
                         <option value="Cash">💵 Cash</option>
-                        <option value="Bank Transfer">🏦 Bank Transfer</option>
+                        <option value="Net Banking">🌐 Net Banking</option>
                       </select>
                     </div>
                     <div class="form-group flex-1">
@@ -322,44 +300,41 @@
                     </div>
                   </div>
 
-                  <button type="submit" class="btn btn-primary btn-block" style="margin-top: 0.5rem;">
-                    <i class="fa-solid fa-plus"></i> Log Transaction
+                  <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fa-solid fa-paper-plane"></i> Add Expense Record
                   </button>
                 </form>
               </div>
 
-              <!-- Category Distribution Donut & Breakdown -->
+              <!-- Category Spending Breakdown (Current Month) -->
               <div class="glass-panel">
-                <div class="panel-title justify-between">
-                  <span><i class="fa-solid fa-chart-pie"></i> Category Distribution</span>
-                  <a href="#" class="edit-hint view-all-link" data-view="analytics">View Full Analytics &rarr;</a>
-                </div>
+                <h3 class="panel-title"><i class="fa-solid fa-chart-pie"></i> Category Breakdown</h3>
                 <div id="breakdown-chart-container" class="chart-container"></div>
                 <div id="category-breakdown-list" class="breakdown-list"></div>
               </div>
             </div>
 
-            <!-- Right Column: Budget Gauge & Recurring Bills Preview -->
+            <!-- Right Column: Radial Budget Gauge & Subscriptions Preview -->
             <div class="dash-right-column">
-              <!-- Budget Health Radial Gauge -->
+              <!-- SVG Radial Gauge -->
               <div class="glass-panel">
-                <h3 class="panel-title"><i class="fa-solid fa-gauge-high"></i> Budget Health Gauge</h3>
+                <h3 class="panel-title"><i class="fa-solid fa-gauge-high"></i> Budget Limit Status</h3>
                 <div id="radial-gauge-container" class="gauge-center-container"></div>
                 <div class="progress-bar-bg" style="margin-top: 0.5rem;">
                   <div id="progress-bar-fill" class="progress-bar-fill" style="width: 0%;"></div>
                 </div>
-                <div class="stat-header" style="margin-top: 0.35rem;">
-                  <span id="progress-percent-label">0% Used</span>
-                  <span>Spending Limit Indicator</span>
+                <div class="gauge-sub-info">
+                  <span>₹0.00 Limit</span>
+                  <span id="stat-percent-detail">0% Used</span>
                 </div>
               </div>
 
-              <!-- Recurring Bills Preview Card -->
+              <!-- Upcoming Subscriptions / Recurring Bills Preview -->
               <div class="glass-panel">
-                <div class="panel-title justify-between">
-                  <span><i class="fa-solid fa-arrows-rotate"></i> Recurring Bills</span>
-                  <a href="#" class="edit-hint view-all-link" data-view="bills">Manage Bills &rarr;</a>
-                </div>
+                <h3 class="panel-title justify-between">
+                  <span><i class="fa-solid fa-arrows-rotate text-purple"></i> Recurring Bills</span>
+                  <a href="#" class="view-all-link" data-view="bills">View All <i class="fa-solid fa-arrow-right"></i></a>
+                </h3>
                 <div id="dash-subs-preview" class="dash-subs-list"></div>
               </div>
             </div>
@@ -370,12 +345,13 @@
         <section id="view-transactions" class="view-panel">
           <div class="glass-panel">
             <div class="transactions-header">
+              <h3 class="panel-title" style="margin-bottom: 0;"><i class="fa-solid fa-list-check"></i> Expense Log</h3>
               <div class="filter-controls">
                 <div class="filter-chips">
-                  <button class="filter-chip active" data-filter="ALL">All Time</button>
+                  <button class="filter-chip active" data-filter="ALL">All</button>
                   <button class="filter-chip" data-filter="TODAY">Today</button>
                 </div>
-                <select id="filter-category" style="width: 170px;">
+                <select id="filter-category" class="month-picker-select">
                   <option value="ALL">All Categories</option>
                   <option value="Food &amp; Dining">Food &amp; Dining</option>
                   <option value="Transportation">Transportation</option>
@@ -386,11 +362,10 @@
                   <option value="Services &amp; Subscriptions">Services &amp; Subscriptions</option>
                   <option value="Miscellaneous">Miscellaneous</option>
                 </select>
-              </div>
-
-              <div class="search-box">
-                <i class="fa-solid fa-magnifying-glass"></i>
-                <input type="text" id="filter-search" placeholder="Search transactions..." />
+                <div class="search-box">
+                  <i class="fa-solid fa-magnifying-glass"></i>
+                  <input type="text" id="filter-search" placeholder="Search description..." />
+                </div>
               </div>
             </div>
 
@@ -401,50 +376,58 @@
                     <th>Date</th>
                     <th>Category</th>
                     <th>Description</th>
-                    <th>Payment Method</th>
-                    <th class="text-right">Amount (₹)</th>
+                    <th>Payment</th>
+                    <th class="text-right">Amount</th>
                     <th class="text-center">Action</th>
                   </tr>
                 </thead>
                 <tbody id="transactions-tbody"></tbody>
               </table>
-              <div id="empty-table-msg" class="empty-state-card hidden">
-                <i class="fa-solid fa-folder-open empty-state-icon"></i>
-                <h4 class="empty-state-title">No Transactions Recorded</h4>
-                <p class="empty-state-sub">Log expenses using the dashboard form to build your transaction log.</p>
-              </div>
+            </div>
+
+            <div id="empty-table-msg" class="empty-state-table hidden">
+              <i class="fa-solid fa-folder-open empty-icon"></i>
+              <p class="empty-title">No transactions found</p>
+              <p class="empty-sub">Try adjusting your category filter or month selection.</p>
             </div>
           </div>
         </section>
 
-        <!-- 3. Recurring Bills View -->
+        <!-- 3. Recurring Bills & Subscriptions View -->
         <section id="view-bills" class="view-panel">
           <div class="glass-panel">
-            <div class="panel-title justify-between">
-              <span><i class="fa-solid fa-arrows-rotate"></i> Managed Subscriptions &amp; Monthly Bills</span>
+            <div class="transactions-header">
+              <div>
+                <h3 class="panel-title" style="margin-bottom: 0.2rem;"><i class="fa-solid fa-arrows-rotate text-purple"></i> Recurring Bills &amp; Subscriptions</h3>
+                <p class="stat-subtext">Manage upcoming monthly payments and due dates</p>
+              </div>
               <button id="btn-add-sub-inline" class="btn btn-primary btn-sm">
-                <i class="fa-solid fa-plus"></i> + Add New Bill
+                <i class="fa-solid fa-plus"></i> Add New Bill
               </button>
             </div>
-            <div id="subs-grid-container" class="subs-grid"></div>
+
+            <div id="subs-grid-container" class="subs-grid" style="margin-top: 1.25rem;"></div>
           </div>
         </section>
 
-        <!-- 4. Category Analytics View -->
+        <!-- 4. Category & Monthly Analytics View -->
         <section id="view-analytics" class="view-panel">
-          <div class="dashboard-grid">
-            <div class="dash-left-column">
-              <div class="glass-panel">
-                <h3 class="panel-title"><i class="fa-solid fa-chart-column"></i> Monthly Expenditure Trend</h3>
-                <div id="monthly-trend-chart-container" style="min-height: 220px;"></div>
-              </div>
+          <div class="analytics-top-grid">
+            <div class="glass-panel">
+              <h3 class="panel-title"><i class="fa-solid fa-chart-column"></i> 6-Month Expenditure Trend</h3>
+              <div id="monthly-trend-chart-container" class="monthly-trend-container"></div>
             </div>
-            <div class="dash-right-column">
-              <div class="glass-panel">
-                <h3 class="panel-title"><i class="fa-solid fa-chart-pie"></i> Category Breakdown (Selected Month)</h3>
-                <div id="full-analytics-chart-container" class="chart-container-large"></div>
-                <div id="full-analytics-list" class="breakdown-list-large"></div>
-              </div>
+          </div>
+
+          <div class="analytics-grid">
+            <div class="glass-panel">
+              <h3 class="panel-title"><i class="fa-solid fa-chart-pie"></i> Category Distribution</h3>
+              <div id="full-analytics-chart-container" class="chart-container-large"></div>
+            </div>
+
+            <div class="glass-panel">
+              <h3 class="panel-title"><i class="fa-solid fa-list-ol"></i> Expense Breakdown List</h3>
+              <div id="full-analytics-list" class="breakdown-list-large"></div>
             </div>
           </div>
         </section>
@@ -453,62 +436,60 @@
   </div>
 
   <!-- ============================================================ -->
-  <!-- MODAL DIALOGS -->
+  <!-- MODALS & DIALOGS -->
   <!-- ============================================================ -->
 
-  <!-- Edit Monthly Budget Target Modal -->
+  <!-- Budget Settings Modal -->
   <div id="budget-modal" class="modal-overlay hidden">
     <div class="modal-card glass-panel">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-sliders text-indigo"></i> Set Monthly Budget Target</h3>
+        <h3><i class="fa-solid fa-sliders text-indigo"></i> <span id="modal-title-text">Set Monthly Budget Cap</span></h3>
         <button id="modal-close-btn" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form id="budget-form">
-        <div class="form-group" style="margin-bottom: 1.25rem;">
-          <label for="modal-budget-input">Monthly Budget Cap (₹)</label>
+      <form id="budget-form" class="modal-form">
+        <div class="modal-body">
+          <label for="modal-budget-input">Enter Monthly Budget Target (₹)</label>
           <div class="input-with-icon">
             <span class="currency-symbol">₹</span>
-            <input type="number" id="modal-budget-input" step="100" min="0" placeholder="e.g. 50000" required />
+            <input type="number" id="modal-budget-input" placeholder="e.g. 50000" min="1" step="1" required />
           </div>
+          <p class="stat-subtext" style="margin-top: 0.25rem;">This budget limit applies to expenses in the active month view.</p>
         </div>
         <div class="modal-footer">
           <button type="button" id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
-          <button type="submit" class="btn btn-primary">Save Target</button>
+          <button type="submit" id="modal-save-btn" class="btn btn-primary">Save Budget</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Add Recurring Subscription / Bill Modal -->
+  <!-- New Subscription Modal -->
   <div id="sub-modal" class="modal-overlay hidden">
     <div class="modal-card glass-panel">
       <div class="modal-header">
-        <h3><i class="fa-solid fa-calendar-plus text-purple"></i> Add Recurring Bill</h3>
+        <h3><i class="fa-solid fa-calendar-plus"></i> Add Recurring Bill</h3>
         <button id="sub-modal-close" class="icon-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
-      <form id="sub-form">
-        <div class="form-group" style="margin-bottom: 0.85rem;">
-          <label for="sub-name">Bill / Service Name</label>
-          <input type="text" id="sub-name" placeholder="e.g. Netflix, Broadband Wifi, Rent" required />
-        </div>
-        <div class="form-row">
-          <div class="form-group flex-1">
-            <label for="sub-amount">Monthly Cost (₹)</label>
-            <div class="input-with-icon">
-              <span class="currency-symbol">₹</span>
-              <input type="number" id="sub-amount" step="0.01" min="1" placeholder="0.00" required />
+      <form id="sub-form" class="modal-form">
+        <div class="modal-body modal-form-gap">
+          <div class="form-group">
+            <label for="sub-name">Subscription / Bill Name</label>
+            <input type="text" id="sub-name" placeholder="e.g. Netflix Premium, House Rent, Wifi" required />
+          </div>
+          <div class="form-row">
+            <div class="form-group flex-1">
+              <label for="sub-amount">Monthly Amount (₹)</label>
+              <input type="number" id="sub-amount" placeholder="e.g. 649" min="1" step="1" required />
+            </div>
+            <div class="form-group flex-1">
+              <label for="sub-due-day">Due Day of Month</label>
+              <input type="number" id="sub-due-day" placeholder="1 to 31" min="1" max="31" required />
             </div>
           </div>
-          <div class="form-group flex-1">
-            <label for="sub-due-day">Due Day of Month (1-31)</label>
-            <input type="number" id="sub-due-day" min="1" max="31" placeholder="15" required />
-          </div>
-        </div>
-        <div class="form-row">
-          <div class="form-group flex-1">
+          <div class="form-group">
             <label for="sub-category">Category</label>
-            <select id="sub-category" required>
-              <option value="Services &amp; Subscriptions">📡 Services &amp; Subscriptions</option>
+            <select id="sub-category">
+              <option value="Services &amp; Subscriptions">📱 Subscriptions</option>
               <option value="Bills &amp; Utilities">⚡ Bills &amp; Utilities</option>
               <option value="Entertainment">🎬 Entertainment</option>
               <option value="Health &amp; Fitness">💊 Health &amp; Fitness</option>
