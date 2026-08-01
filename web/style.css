@@ -1533,11 +1533,22 @@ select option {
 }
 .empty-state-sub, .empty-sub {
   font-size: 0.88rem;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-mid);
   max-width: 440px;
   line-height: 1.5;
   padding: 0.5rem 0;
+  margin: 0 auto;
+  text-align: center;
+  display: block;
+  width: 100%;
+}
+.text-center {
+  text-align: center !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
+  display: block !important;
+  width: 100% !important;
 }
 .stat-subtext, .topbar-title-group p {
   color: var(--text-mid);
