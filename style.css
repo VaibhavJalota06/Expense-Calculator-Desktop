@@ -601,6 +601,35 @@ html, body {
 .panel-title i {
   color: var(--emerald);
 }
+.panel-title.justify-between {
+  justify-content: space-between;
+}
+
+/* View All Action Link */
+.view-all-link {
+  color: var(--emerald);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  transition: var(--transition);
+  opacity: 0.9;
+}
+.view-all-link i {
+  font-size: 0.76rem;
+  color: var(--emerald);
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.view-all-link:hover {
+  color: var(--emerald);
+  opacity: 1;
+  text-decoration: none;
+}
+.view-all-link:hover i {
+  transform: translateX(3px);
+}
 
 /* Radial Gauge Ring */
 .gauge-center-container {
