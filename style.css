@@ -172,6 +172,64 @@ html, body {
   box-shadow: 0 0 35px rgba(52, 211, 153, 0.25);
   object-fit: cover;
 }
+.web-redirect-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--emerald);
+  background: rgba(52, 211, 153, 0.08);
+  border: 1px solid rgba(52, 211, 153, 0.22);
+  padding: 0.35rem 0.85rem;
+  border-radius: var(--radius-pill);
+  margin-top: 0.75rem;
+  text-decoration: none;
+  transition: var(--transition);
+}
+.web-redirect-pill:hover {
+  background: rgba(52, 211, 153, 0.18);
+  border-color: var(--emerald);
+  transform: translateY(-1px);
+  color: #ffffff;
+}
+
+.web-redirect-box {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.8rem;
+  color: var(--text-mid);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed var(--glass-border);
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius-md);
+  margin-top: 1.1rem;
+  text-align: left;
+}
+.web-redirect-box i {
+  color: var(--sky);
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+.web-link-highlight {
+  color: var(--sky);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  transition: var(--transition);
+}
+.web-link-highlight:hover {
+  color: var(--emerald);
+}
+
+.btn-web-app-link {
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
 @keyframes pulse-logo {
   0%, 100% { transform: scale(1); opacity: 0.9; }
   50% { transform: scale(1.05); opacity: 1; filter: drop-shadow(0 0 12px rgba(52, 211, 153, 0.5)); }
