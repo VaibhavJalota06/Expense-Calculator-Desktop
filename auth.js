@@ -77,23 +77,28 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    async function triggerWelcomeEmail(user, name) {
+    async function triggerWelcomeEmail(user, name, force = false) {
       if (!user || !user.email) return;
       const key = 'expense_cal_welcome_email_sent_' + user.uid;
-      if (localStorage.getItem(key)) return;
+      if (!force && localStorage.getItem(key)) {
+        console.log('Welcome email already sent for UID:', user.uid);
+      }
       localStorage.setItem(key, 'true');
 
       const recipientName = name || user.displayName || user.email.split('@')[0] || 'User';
+      console.log('Sending EmailJS welcome email to:', user.email, 'service:', emailjsConfig.serviceId);
 
       // Live Delivery via EmailJS directly to Gmail
       if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
         try {
-          await emailjs.send(
+          const res = await emailjs.send(
             emailjsConfig.serviceId,
             emailjsConfig.templateId,
             {
-              to_email: user.email,
               email: user.email,
+              to_email: user.email,
+              user_email: user.email,
+              recipient_email: user.email,
               name: recipientName,
               user_name: recipientName,
               subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
@@ -101,32 +106,25 @@ if (isFirebaseConfigured && auth) {
             },
             emailjsConfig.publicKey
           );
-          console.log('Live EmailJS Welcome Email sent successfully to:', user.email);
+          console.log('EmailJS Live Dispatch Success:', res.status, res.text);
+          if (typeof showAlert === 'function') {
+            showAlert('Welcome Email Sent! 📩', `A live welcome email has been delivered to ${user.email}. Check your inbox or Spam folder!`);
+          }
         } catch (err) {
-          console.warn('EmailJS live delivery notice:', err);
+          console.error('EmailJS Live Dispatch Error:', err);
+          if (typeof showAlert === 'function') {
+            showAlert('Email Dispatch Notice', `EmailJS status: ${err.text || err.message || 'Check EmailJS Template Settings'}`);
+          }
         }
       }
-
-      // Backup Queue in Firestore
-      if (db) {
-        try {
-          await db.collection('mail').add({
-            to: [user.email],
-            message: {
-              subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
-              html: `Welcome to Expense OS, ${recipientName}!`
-            },
-            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-          });
-        } catch (err) {}
-      }
-
-      if (typeof showAlert === 'function') {
-        setTimeout(() => {
-          showAlert('Welcome Email Sent! 📩', `A confirmation welcome email has been dispatched to ${user.email}. Check your inbox!`);
-        }, 1200);
-      }
     }
+
+    window.testSendWelcomeEmail = function() {
+      const currentUser = auth ? auth.currentUser : { uid: 'test', email: 'bountyh745@gmail.com', displayName: 'Test User' };
+      if (currentUser) {
+        triggerWelcomeEmail(currentUser, currentUser.displayName || 'Test User', true);
+      }
+    };
 
     async function signUpWithEmail(name, gender, email, password) {
       try {
