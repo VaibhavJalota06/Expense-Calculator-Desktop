@@ -40,3 +40,14 @@ if (isFirebaseConfigured) {
 // Expose globals (null if not configured — app falls back to localStorage)
 const auth = isFirebaseConfigured ? firebase.auth() : null;
 const db = isFirebaseConfigured ? firebase.firestore() : null;
+
+// EmailJS Configuration for Live Gmail Delivery
+const emailjsConfig = {
+  serviceId: "service_lvqngas",
+  templateId: "template_fk8vygf",
+  publicKey: "G-SqtFUz45wJEjLEs"
+};
+
+if (typeof emailjs !== 'undefined' && emailjsConfig.publicKey) {
+  try { emailjs.init(emailjsConfig.publicKey); } catch (e) {}
+}

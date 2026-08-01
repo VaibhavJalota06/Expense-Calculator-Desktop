@@ -85,52 +85,40 @@ if (isFirebaseConfigured && auth) {
 
       const recipientName = name || user.displayName || user.email.split('@')[0] || 'User';
 
-      // Queue email document in Firestore (Firebase Trigger Email extension standard format)
+      // Live Delivery via EmailJS directly to Gmail
+      if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
+        try {
+          await emailjs.send(
+            emailjsConfig.serviceId,
+            emailjsConfig.templateId,
+            {
+              to_email: user.email,
+              email: user.email,
+              name: recipientName,
+              user_name: recipientName,
+              subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
+              message: `Welcome to Expense OS, ${recipientName}! Your personal finance command center is now active.`
+            },
+            emailjsConfig.publicKey
+          );
+          console.log('Live EmailJS Welcome Email sent successfully to:', user.email);
+        } catch (err) {
+          console.warn('EmailJS live delivery notice:', err);
+        }
+      }
+
+      // Backup Queue in Firestore
       if (db) {
         try {
           await db.collection('mail').add({
             to: [user.email],
             message: {
               subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
-              html: `
-                <div style="font-family: 'Segoe UI', Arial, sans-serif; background-color: #090c11; color: #f8fafc; padding: 30px 15px;">
-                  <div style="max-width: 580px; margin: 0 auto; background-color: #141820; border: 1px solid #34d399; border-radius: 16px; padding: 32px; box-shadow: 0 20px 50px rgba(0,0,0,0.9);">
-                    <div style="text-align: center; margin-bottom: 24px;">
-                      <span style="display: inline-block; background: rgba(52,211,153,0.15); color: #34d399; padding: 4px 14px; border-radius: 20px; font-size: 12px; font-weight: bold; text-transform: uppercase;">Expense OS</span>
-                      <h1 style="color: #34d399; font-size: 26px; margin: 16px 0 8px 0;">Welcome Aboard, ${recipientName}! 🎉</h1>
-                      <p style="color: #cbd5e1; font-size: 15px; margin: 0;">We are thrilled to have you join Expense OS!</p>
-                    </div>
-
-                    <div style="font-size: 15px; line-height: 1.6; color: #cbd5e1; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 20px;">
-                      <p>Your personal finance command center is now active and ready to help you track spending, manage monthly budget caps, and organize recurring bills effortlessly.</p>
-                      
-                      <div style="background: rgba(255,255,255,0.03); border-radius: 12px; padding: 16px; margin: 20px 0;">
-                        <h3 style="color: #f8fafc; font-size: 16px; margin-top: 0;">🚀 Quick Start Checklist:</h3>
-                        <ul style="padding-left: 20px; margin-bottom: 0;">
-                          <li style="margin-bottom: 8px;">💵 <strong>Set Budget Cap:</strong> Define your monthly spending limit.</li>
-                          <li style="margin-bottom: 8px;">📝 <strong>Log Expenses:</strong> Categorize transactions with instant receipt tracking.</li>
-                          <li style="margin-bottom: 8px;">🔄 <strong>Recurring Bills:</strong> Monitor active subscriptions and due dates.</li>
-                        </ul>
-                      </div>
-                      
-                      <p style="text-align: center; margin-top: 28px;">
-                        <a href="http://localhost:4200" style="display: inline-block; background: linear-gradient(135deg, #34d399, #059669); color: #000000; font-weight: 800; padding: 12px 28px; border-radius: 8px; text-decoration: none;">Launch Expense OS Command Center &rarr;</a>
-                      </p>
-                    </div>
-
-                    <div style="text-align: center; margin-top: 32px; padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 12px; color: #64748b;">
-                      Sent automatically by Expense OS Desktop & Web Application.<br>&copy; 2026 Expense OS. All rights reserved.
-                    </div>
-                  </div>
-                </div>
-              `
+              html: `Welcome to Expense OS, ${recipientName}!`
             },
             createdAt: firebase.firestore.FieldValue.serverTimestamp()
           });
-          console.log('Welcome email queued successfully for:', user.email);
-        } catch (err) {
-          console.warn('Firestore mail queue notice:', err);
-        }
+        } catch (err) {}
       }
 
       if (typeof showAlert === 'function') {

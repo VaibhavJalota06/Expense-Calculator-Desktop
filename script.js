@@ -592,6 +592,28 @@ function checkAndSendSubscriptionReminders() {
       if (!localStorage.getItem(reminderKey)) {
         localStorage.setItem(reminderKey, 'true');
 
+        // EmailJS Live Email Delivery to Gmail
+        if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined' && userEmail) {
+          try {
+            emailjs.send(
+              emailjsConfig.serviceId,
+              emailjsConfig.templateId,
+              {
+                to_email: userEmail,
+                email: userEmail,
+                name: sub.name,
+                user_name: sub.name,
+                subject: `⏰ Subscription Due Reminder: ${sub.name} is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}!`,
+                message: `Reminder: ${sub.name} (₹${sub.amount.toFixed(2)}) renewal payment is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}.`
+              },
+              emailjsConfig.publicKey
+            );
+            console.log('Live EmailJS Subscription Reminder sent to:', userEmail);
+          } catch (err) {
+            console.warn('EmailJS reminder notice:', err);
+          }
+        }
+
         if (typeof db !== 'undefined' && db && userEmail) {
           try {
             db.collection('mail').add({
