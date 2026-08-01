@@ -866,12 +866,12 @@ function renderTransactionsTable(monthFilteredExpenses) {
     const color = categoryColors[item.category] || '#3b82f6';
 
     tr.innerHTML = `
-      <td class="font-medium">${item.date}</td>
-      <td><span class="category-badge" style="border-left: 3px solid ${color};">${item.category}</span></td>
-      <td class="description-cell">${escapeHtml(item.description)}</td>
-      <td><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>
-      <td class="text-right font-bold text-amount">${formatCurrency(item.amount)}</td>
-      <td class="text-center">
+      <td data-label="Date" class="font-medium">${item.date}</td>
+      <td data-label="Category"><span class="category-badge" style="border-left: 3px solid ${color};">${item.category}</span></td>
+      <td data-label="Description" class="description-cell">${escapeHtml(item.description)}</td>
+      <td data-label="Payment"><span class="payment-badge"><i class="fa-solid fa-credit-card"></i> ${item.payment}</span></td>
+      <td data-label="Amount" class="text-right font-bold text-amount">${formatCurrency(item.amount)}</td>
+      <td class="text-center td-action">
         <button class="icon-btn action-btn-del" data-delete-tx="${item.id}" title="Delete Transaction">
           <i class="fa-solid fa-trash-can"></i>
         </button>
