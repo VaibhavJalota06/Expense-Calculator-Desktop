@@ -137,6 +137,78 @@ function formatMonthLabel(ymStr) {
   return `${monthNames[monthIdx] || parts[1]} ${year}`;
 }
 
+// Custom Glassmorphic Confirm & Alert Modal Helpers
+function showConfirm(title, message, isDanger = false) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('confirm-modal');
+    const titleEl = document.getElementById('confirm-modal-title');
+    const msgEl = document.getElementById('confirm-modal-msg');
+    const okBtn = document.getElementById('confirm-modal-ok');
+    const cancelBtn = document.getElementById('confirm-modal-cancel');
+    const closeBtn = document.getElementById('confirm-modal-close');
+
+    if (!modal) { resolve(confirm(message)); return; }
+
+    titleEl.innerHTML = isDanger
+      ? `<i class="fa-solid fa-triangle-exclamation text-rose"></i> ${title}`
+      : `<i class="fa-solid fa-circle-question text-sky"></i> ${title}`;
+    msgEl.textContent = message;
+
+    if (isDanger) {
+      okBtn.className = 'btn btn-danger-outline';
+      okBtn.textContent = 'Yes, Proceed';
+    } else {
+      okBtn.className = 'btn btn-primary';
+      okBtn.textContent = 'Confirm';
+    }
+
+    modal.classList.remove('hidden');
+
+    function cleanup(result) {
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      cancelBtn.removeEventListener('click', onCancel);
+      closeBtn.removeEventListener('click', onCancel);
+      resolve(result);
+    }
+
+    function onOk() { cleanup(true); }
+    function onCancel() { cleanup(false); }
+
+    okBtn.addEventListener('click', onOk);
+    cancelBtn.addEventListener('click', onCancel);
+    closeBtn.addEventListener('click', onCancel);
+  });
+}
+
+function showAlert(title, message) {
+  return new Promise((resolve) => {
+    const modal = document.getElementById('alert-modal');
+    const titleEl = document.getElementById('alert-modal-title');
+    const msgEl = document.getElementById('alert-modal-msg');
+    const okBtn = document.getElementById('alert-modal-ok');
+    const closeBtn = document.getElementById('alert-modal-close');
+
+    if (!modal) { alert(message); resolve(); return; }
+
+    titleEl.innerHTML = `<i class="fa-solid fa-circle-info text-emerald"></i> ${title}`;
+    msgEl.textContent = message;
+    modal.classList.remove('hidden');
+
+    function cleanup() {
+      modal.classList.add('hidden');
+      okBtn.removeEventListener('click', onOk);
+      closeBtn.removeEventListener('click', onOk);
+      resolve();
+    }
+
+    function onOk() { cleanup(); }
+
+    okBtn.addEventListener('click', onOk);
+    closeBtn.addEventListener('click', onOk);
+  });
+}
+
 // ---------- State Persistence (Firestore + localStorage fallback) ----------
 let currentUserId = null;
 let firestoreUnsubscribe = null;
@@ -678,8 +750,9 @@ function markSubAsPaid(subId) {
   updateUI();
 }
 
-function deleteSubscription(subId) {
-  if (confirm('Delete this recurring subscription/bill?')) {
+async function deleteSubscription(subId) {
+  const ok = await showConfirm('Delete Recurring Bill', 'Are you sure you want to delete this recurring subscription/bill?', true);
+  if (ok) {
     subscriptions = subscriptions.filter(s => s.id !== subId);
     saveState();
     updateUI();
@@ -975,7 +1048,7 @@ if (expenseForm) {
     const date = expDateInput.value;
 
     if (isNaN(amount) || amount <= 0) {
-      alert('Please enter a valid amount.');
+      showAlert('Invalid Input', 'Please enter a valid expense amount.');
       return;
     }
 
@@ -1006,8 +1079,10 @@ if (expenseForm) {
   });
 }
 
-function deleteTransaction(id) {
-  if (confirm('Are you sure you want to delete this transaction?')) {
+async function deleteTransaction(id) {
+  const ok = await showConfirm('Delete Transaction', 'Are you sure you want to delete this expense transaction record?', true);
+  if (ok) {
+    expenses = expenses.filter(item => item.id !== item.id ? item : item.id !== id);
     expenses = expenses.filter(item => item.id !== id);
     saveState();
     updateMonthPickerOptions();
@@ -1058,6 +1133,10 @@ function closeModal(targetModal) {
     // Close all modals if no specific target
     if (budgetModal) budgetModal.classList.add('hidden');
     if (subModal) subModal.classList.add('hidden');
+    const confirmModal = document.getElementById('confirm-modal');
+    const alertModal = document.getElementById('alert-modal');
+    if (confirmModal) confirmModal.classList.add('hidden');
+    if (alertModal) alertModal.classList.add('hidden');
   }
 }
 
@@ -1086,7 +1165,7 @@ function handleSaveBudget(e) {
   const newBudget = parseFloat(cleaned);
 
   if (cleaned === '' || isNaN(newBudget) || newBudget <= 0) {
-    alert('Please enter a valid budget amount.');
+    showAlert('Invalid Budget', 'Please enter a valid budget amount.');
     return;
   }
 
@@ -1136,7 +1215,7 @@ if (subForm) {
     const category = subCategorySelect.value;
 
     if (!name || isNaN(amount) || amount <= 0 || isNaN(dueDay) || dueDay < 1 || dueDay > 31) {
-      alert('Please enter valid subscription details.');
+      showAlert('Invalid Details', 'Please enter valid subscription details.');
       return;
     }
 
@@ -1161,7 +1240,7 @@ if (btnExportCsv) {
   btnExportCsv.addEventListener('click', () => {
     const exportList = expenses.filter(item => selectedMonth === 'ALL' || (item.date && item.date.startsWith(selectedMonth)));
     if (exportList.length === 0) {
-      alert('No transactions available to export for selected month.');
+      showAlert('No Data to Export', 'No transactions available to export for selected month.');
       return;
     }
 
@@ -1189,8 +1268,14 @@ if (btnExportCsv) {
 
 // Reset All Data
 if (btnResetAll) {
-  btnResetAll.addEventListener('click', () => {
-    if (confirm('⚠️ WARNING: This will permanently reset and delete ALL logged expenses, budget caps, and subscriptions! Continue?')) {
+  btnResetAll.addEventListener('click', async () => {
+    const ok = await showConfirm(
+      'Reset All Financial Data',
+      '⚠️ WARNING: This will permanently reset and delete ALL logged expenses, budget caps, and subscriptions! Continue?',
+      true
+    );
+
+    if (ok) {
       budget = 0;
       expenses = [];
       subscriptions = [];
@@ -1217,7 +1302,7 @@ if (btnResetAll) {
       isSyncingFromFirestore = false;
       updateMonthPickerOptions();
       updateUI();
-      alert('All expense records, budget limits, and cloud data have been completely reset.');
+      await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been completely reset.');
     }
   });
 }
