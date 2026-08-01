@@ -146,18 +146,6 @@
         </a>
       </nav>
 
-      <!-- Sidebar Mobile Phone Link Shortcut Card -->
-      <div class="sidebar-mobile-card">
-        <div class="sm-header">
-          <i class="fa-solid fa-mobile-screen-button text-purple"></i>
-          <span>Phone Web App</span>
-        </div>
-        <p class="sm-desc">Access expenses on your phone on the go</p>
-        <button id="btn-sidebar-mobile-modal" class="btn btn-primary btn-xs btn-block" type="button">
-          <i class="fa-solid fa-qrcode"></i> Phone Link & QR
-        </button>
-      </div>
-
       <div class="sidebar-footer">
         <!-- Sync Status Badge -->
         <div id="sync-status" class="sync-status-badge sync-synced">
@@ -200,9 +188,6 @@
             <select id="month-picker" class="month-picker-select"></select>
             <button id="btn-next-month" class="icon-btn month-nav-btn" title="Next Month"><i class="fa-solid fa-chevron-right"></i></button>
           </div>
-          <button id="btn-open-mobile-modal" class="btn btn-secondary" title="Get Phone Web Link & QR Code">
-            <i class="fa-solid fa-mobile-screen-button text-purple"></i> <span>Phone Sync</span>
-          </button>
           <button id="btn-add-sub" class="btn btn-secondary">
             <i class="fa-solid fa-calendar-plus"></i> + Add Bill
           </button>
@@ -509,37 +494,6 @@
           <button type="submit" class="btn btn-primary">Add Subscription</button>
         </div>
       </form>
-    </div>
-  </div>
-
-  <!-- Mobile Web App Link & QR Code Modal -->
-  <div id="mobile-link-modal" class="modal-overlay hidden">
-    <div class="modal-card glass-panel">
-      <div class="modal-header">
-        <h3><i class="fa-solid fa-mobile-screen-button text-purple"></i> Phone Web App Sync</h3>
-        <button id="mobile-modal-close" class="icon-btn" type="button"><i class="fa-solid fa-xmark"></i></button>
-      </div>
-      <div class="modal-body qr-modal-body">
-        <p class="auth-subtitle" style="margin-bottom: 0.5rem;">Scan this QR code with your phone camera or copy the link below to open Expense OS on your phone/tablet anytime!</p>
-
-        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/" alt="Expense OS Phone App QR Code" class="qr-code-img" />
-
-        <div class="web-link-input-group">
-          <input type="text" id="web-link-url" readonly value="https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/" />
-          <button id="btn-copy-web-link" type="button" class="btn btn-primary btn-sm" title="Copy Link">
-            <i class="fa-solid fa-copy"></i> Copy
-          </button>
-        </div>
-        <div id="copy-toast-msg" class="auth-error sync-synced hidden" style="width: 100%; text-align: center;">
-          <i class="fa-solid fa-check"></i> Link copied to clipboard!
-        </div>
-      </div>
-      <div class="modal-footer">
-        <button type="button" id="mobile-modal-cancel" class="btn btn-secondary">Close</button>
-        <a href="https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/" target="_blank" class="btn btn-primary">
-          <i class="fa-solid fa-arrow-up-right-from-square"></i> Open Web App
-        </a>
-      </div>
     </div>
   </div>
 
