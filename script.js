@@ -1689,7 +1689,7 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
     toast.style.setProperty('display', 'none', 'important');
   }
 
-  // Show toast ONLY if user manually triggered it
+  // Show "Checking for Updates..." toast ONLY if user manually triggered it
   if (manual && toast && titleEl && msgEl) {
     toast.classList.remove('hidden');
     toast.style.setProperty('display', 'block', 'important');
@@ -1700,14 +1700,28 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   }
 
   try {
-    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest');
     let latestTag = '';
+    // Request with custom User-Agent to comply with GitHub API guidelines
+    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest', {
+      headers: { 'User-Agent': 'ExpenseOS-App' }
+    });
     if (res.ok) {
       const data = await res.json();
       latestTag = (data.tag_name || '').trim();
+    } else {
+      // Fallback to tags endpoint if no official release is published yet
+      const tagsRes = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/tags', {
+        headers: { 'User-Agent': 'ExpenseOS-App' }
+      });
+      if (tagsRes.ok) {
+        const tagsData = await tagsRes.json();
+        if (Array.isArray(tagsData) && tagsData.length > 0) {
+          latestTag = (tagsData[0].name || '').trim();
+        }
+      }
     }
 
-    if (latestTag && latestTag !== CURRENT_APP_VERSION) {
+    if (latestTag && latestTag !== CURRENT_APP_VERSION && latestTag > CURRENT_APP_VERSION) {
       // New version published! Show update toast
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
