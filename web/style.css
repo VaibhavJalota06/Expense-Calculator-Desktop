@@ -2828,6 +2828,28 @@ select option {
   font-size: 0.9rem;
   color: var(--text-hi);
 }
+.update-toast-close {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-muted, #94A3B8);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  outline: none;
+  padding: 0;
+}
+.update-toast-close:hover {
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.4);
+  color: #F87171;
+  transform: scale(1.08);
+}
 .update-toast-msg {
   font-size: 0.82rem;
   color: var(--text-mid);
