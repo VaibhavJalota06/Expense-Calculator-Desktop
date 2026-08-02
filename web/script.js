@@ -1664,9 +1664,9 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.1';
+const CURRENT_APP_VERSION = 'v2.3.2';
 
-async function checkAppUpdates(manual = false) {
+window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const dropdown = document.getElementById('user-dropdown-menu');
   if (dropdown) dropdown.classList.add('hidden');
 
@@ -1675,10 +1675,15 @@ async function checkAppUpdates(manual = false) {
   const titleEl = document.getElementById('update-toast-title');
   const actionsEl = document.getElementById('update-toast-actions');
 
-  if (manual && toast && msgEl && titleEl) {
+  if (toast) {
     toast.classList.remove('hidden');
+    toast.style.display = 'block';
+    toast.style.zIndex = '9999999';
+  }
+
+  if (manual && titleEl && msgEl) {
     titleEl.textContent = 'Checking for Updates...';
-    msgEl.textContent = 'Connecting to release server to check for new updates...';
+    msgEl.textContent = 'Connecting to release server...';
     if (actionsEl) actionsEl.classList.add('hidden');
   }
 
@@ -1693,6 +1698,7 @@ async function checkAppUpdates(manual = false) {
     if (latestTag && latestTag !== CURRENT_APP_VERSION) {
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
+        toast.style.display = 'block';
         titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
         msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
         if (actionsEl) actionsEl.classList.remove('hidden');
@@ -1700,23 +1706,35 @@ async function checkAppUpdates(manual = false) {
     } else if (manual) {
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
+        toast.style.display = 'block';
         titleEl.textContent = '✓ Up to Date';
         msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
         if (actionsEl) actionsEl.classList.add('hidden');
-        setTimeout(() => { if (toast) toast.classList.add('hidden'); }, 4000);
+        setTimeout(() => {
+          if (toast) {
+            toast.classList.add('hidden');
+            toast.style.display = '';
+          }
+        }, 4500);
       }
     }
   } catch (err) {
     console.warn('Update check notice:', err);
     if (manual && toast && titleEl && msgEl) {
       toast.classList.remove('hidden');
+      toast.style.display = 'block';
       titleEl.textContent = '✓ Up to Date';
       msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
       if (actionsEl) actionsEl.classList.add('hidden');
-      setTimeout(() => { if (toast) toast.classList.add('hidden'); }, 4000);
+      setTimeout(() => {
+        if (toast) {
+          toast.classList.add('hidden');
+          toast.style.display = '';
+        }
+      }, 4500);
     }
   }
-}
+};
 
 document.addEventListener('click', (e) => {
   if (e.target.closest('#btn-dropdown-check-update')) {
