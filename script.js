@@ -1663,7 +1663,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.3';
+const CURRENT_APP_VERSION = 'v2.3.4';
 
 window.handleCheckUpdateClick = function(e) {
   if (e) {
@@ -1745,6 +1745,22 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
 };
 
 document.addEventListener('click', (e) => {
+  const toggleBtn = e.target.closest('.btn-toggle-password');
+  if (toggleBtn) {
+    e.preventDefault();
+    const targetId = toggleBtn.getAttribute('data-target');
+    const input = targetId ? document.getElementById(targetId) : null;
+    if (input) {
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      const icon = toggleBtn.querySelector('i');
+      if (icon) {
+        icon.className = isPassword ? 'fa-solid fa-eye-slash text-emerald' : 'fa-solid fa-eye';
+      }
+    }
+    return;
+  }
+
   if (e.target.closest('#btn-dropdown-check-update')) {
     checkAppUpdates(true);
     return;

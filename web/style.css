@@ -2839,6 +2839,37 @@ select option {
   align-items: center;
   gap: 0.5rem;
 }
+
+/* Password Toggle Eye Button Styling */
+.password-input-wrapper {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+}
+.password-input-wrapper input {
+  width: 100%;
+  padding-right: 2.75rem !important;
+}
+.btn-toggle-password {
+  position: absolute;
+  right: 0.75rem;
+  background: transparent;
+  border: none;
+  color: var(--text-muted, #94A3B8);
+  cursor: pointer;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.95rem;
+  transition: color 0.2s ease;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-toggle-password:hover {
+  color: var(--emerald-glow, #34D399);
+}
+
 .update-toast-actions .btn {
   flex: 1;
   text-align: center;
