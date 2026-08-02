@@ -1663,7 +1663,16 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.2';
+const CURRENT_APP_VERSION = 'v2.3.3';
+
+window.handleCheckUpdateClick = function(e) {
+  if (e) {
+    try { e.preventDefault(); e.stopPropagation(); } catch(err){}
+  }
+  if (typeof window.checkAppUpdates === 'function') {
+    window.checkAppUpdates(true);
+  }
+};
 
 window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const dropdown = document.getElementById('user-dropdown-menu');
@@ -1700,7 +1709,7 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
         toast.style.display = 'block';
         titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
         msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
-        if (actionsEl) actionsEl.classList.remove('hidden');
+        if (actionsEl) actionsEl.classList.add('hidden');
       }
     } else if (manual) {
       if (toast && titleEl && msgEl) {

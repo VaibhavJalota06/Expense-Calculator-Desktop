@@ -1664,7 +1664,16 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.2';
+const CURRENT_APP_VERSION = 'v2.3.3';
+
+window.handleCheckUpdateClick = function(e) {
+  if (e) {
+    try { e.preventDefault(); e.stopPropagation(); } catch(err){}
+  }
+  if (typeof window.checkAppUpdates === 'function') {
+    window.checkAppUpdates(true);
+  }
+};
 
 window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const dropdown = document.getElementById('user-dropdown-menu');
