@@ -107,15 +107,16 @@ const server = http.createServer((req, res) => {
   });
 });
 
-let serverPort = 4200;
+let serverPort = 58420;
 
 function startLocalServer(callback) {
-  server.listen(0, 'localhost', () => {
+  server.listen(58420, 'localhost', () => {
     serverPort = server.address().port;
     console.log(`Local Expense OS server running at http://localhost:${serverPort}`);
     callback(serverPort);
   }).on('error', () => {
-    server.listen(0, 'localhost', () => {
+    // Fallback to fixed backup port 58421 if 58420 is temporarily in use
+    server.listen(58421, 'localhost', () => {
       serverPort = server.address().port;
       callback(serverPort);
     });

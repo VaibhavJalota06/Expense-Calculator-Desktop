@@ -275,8 +275,10 @@ if (isFirebaseConfigured && auth) {
         viewSubtitle.textContent = `Welcome back, ${fullName}! Real-time financial analytics & budget control`;
       }
 
-      if (user && !localStorage.getItem('expense_cal_seen_welcome_v2_' + user.uid)) {
+      const hasSeenWelcome = (user && localStorage.getItem('expense_cal_seen_welcome_v2_' + user.uid)) || localStorage.getItem('expense_cal_seen_welcome_global');
+      if (user && !hasSeenWelcome) {
         localStorage.setItem('expense_cal_seen_welcome_v2_' + user.uid, 'true');
+        localStorage.setItem('expense_cal_seen_welcome_global', 'true');
         const modal = document.getElementById('welcome-modal');
         const titleEl = document.getElementById('welcome-modal-title');
         const msgEl = document.getElementById('welcome-modal-msg');
