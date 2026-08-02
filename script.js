@@ -1655,3 +1655,65 @@ document.addEventListener('click', (e) => {
 });
 
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
+
+// ---------- Live Update Manager & GitHub Checker ----------
+const CURRENT_APP_VERSION = 'v2.2.5';
+
+async function checkAppUpdates(manual = false) {
+  const toast = document.getElementById('update-notification');
+  const msgEl = document.getElementById('update-toast-msg');
+  const titleEl = document.getElementById('update-toast-title');
+  const actionsEl = document.getElementById('update-toast-actions');
+
+  if (!toast || !msgEl) return;
+
+  if (manual) {
+    toast.classList.remove('hidden');
+    titleEl.textContent = 'Checking for Updates';
+    msgEl.textContent = 'Checking GitHub Releases for new updates...';
+    if (actionsEl) actionsEl.classList.add('hidden');
+  }
+
+  try {
+    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest');
+    if (!res.ok) throw new Error('Release API returned ' + res.status);
+    const data = await res.json();
+    const latestTag = (data.tag_name || '').trim();
+
+    if (latestTag && latestTag !== CURRENT_APP_VERSION) {
+      toast.classList.remove('hidden');
+      titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
+      msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
+      if (actionsEl) actionsEl.classList.remove('hidden');
+    } else if (manual) {
+      toast.classList.remove('hidden');
+      titleEl.textContent = '✓ Up to Date';
+      msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is the latest version.`;
+      if (actionsEl) actionsEl.classList.add('hidden');
+      setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+    }
+  } catch (err) {
+    console.warn('Update check status:', err);
+    if (manual) {
+      toast.classList.remove('hidden');
+      titleEl.textContent = 'Update Check';
+      msgEl.textContent = `Currently running Expense OS ${CURRENT_APP_VERSION}.`;
+      if (actionsEl) actionsEl.classList.add('hidden');
+      setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+    }
+  }
+}
+
+document.addEventListener('click', (e) => {
+  if (e.target.closest('#btn-dropdown-check-update')) {
+    checkAppUpdates(true);
+    return;
+  }
+  if (e.target.closest('#btn-close-update-toast, #btn-dismiss-update')) {
+    const toast = document.getElementById('update-notification');
+    if (toast) toast.classList.add('hidden');
+    return;
+  }
+});
+
+setTimeout(() => { checkAppUpdates(false); }, 5000);

@@ -234,6 +234,12 @@
                     <span>Edit Profile</span>
                   </button>
                 </li>
+                <li>
+                  <button id="btn-dropdown-check-update" class="dropdown-item">
+                    <i class="fa-solid fa-cloud-arrow-down text-sky"></i>
+                    <span>Check for Updates</span>
+                  </button>
+                </li>
                 <li class="dropdown-divider"></li>
                 <li>
                   <button id="btn-dropdown-logout" class="dropdown-item text-danger">
@@ -654,6 +660,22 @@
           <button id="btn-tour-next" class="btn btn-primary btn-sm">Next <i class="fa-solid fa-arrow-right"></i></button>
         </div>
       </div>
+    </div>
+  <!-- App Update Toast Notification -->
+  <div id="update-notification" class="update-toast glass-panel hidden">
+    <div class="update-toast-header">
+      <div class="update-toast-title-box">
+        <i class="fa-solid fa-cloud-arrow-down text-emerald"></i>
+        <span id="update-toast-title" class="update-toast-title">Update Check</span>
+      </div>
+      <button id="btn-close-update-toast" class="icon-btn-sm" title="Dismiss">&times;</button>
+    </div>
+    <p id="update-toast-msg" class="update-toast-msg">Checking for updates...</p>
+    <div id="update-toast-actions" class="update-toast-actions hidden">
+      <a id="btn-download-update" href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest" target="_blank" class="btn btn-primary btn-sm">
+        <i class="fa-solid fa-download"></i> Get Latest Version
+      </a>
+      <button id="btn-dismiss-update" class="btn btn-secondary btn-sm">Dismiss</button>
     </div>
   </div>
 
