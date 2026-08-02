@@ -107,7 +107,7 @@ if (isFirebaseConfigured && auth) {
           if (emailjs.init && emailjsConfig.publicKey) {
             try { emailjs.init(emailjsConfig.publicKey); } catch(e){}
           }
-          const WEB_APP_URL = 'https://expense-os.web.app';
+          const WEB_APP_URL = 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/';
 
           await emailjs.send(
             emailjsConfig.serviceId,

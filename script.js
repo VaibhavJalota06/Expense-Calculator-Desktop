@@ -605,11 +605,11 @@ function checkAndSendSubscriptionReminders() {
                 user_name: sub.name,
                 subject: `⏰ Subscription Due Reminder: ${sub.name} is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}!`,
                 message: `Reminder: ${sub.name} (₹${sub.amount.toFixed(2)}) renewal payment is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}.`,
-                web_app_url: 'https://expense-os.web.app',
-                app_url: 'https://expense-os.web.app',
-                action_url: 'https://expense-os.web.app',
-                url: 'https://expense-os.web.app',
-                link: 'https://expense-os.web.app'
+                web_app_url: 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/',
+                app_url: 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/',
+                action_url: 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/',
+                url: 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/',
+                link: 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/'
               },
               emailjsConfig.publicKey
             );
@@ -1663,7 +1663,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.2.9';
+const CURRENT_APP_VERSION = 'v2.3.0';
 
 async function checkAppUpdates(manual = false) {
   const toast = document.getElementById('update-notification');
