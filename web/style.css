@@ -264,14 +264,12 @@ html, body {
   bottom: 0 !important;
   width: 100vw !important;
   height: 100vh !important;
-  background: var(--bg-base, #050811) !important;
-  display: flex !important;
-  flex-direction: column !important;
-  align-items: center !important;
-  justify-content: center !important;
+  background: var(--bg-base, #090C11) !important;
+  display: grid !important;
+  place-items: center !important;
   margin: 0 !important;
   padding: 0 !important;
-  z-index: 999999 !important;
+  z-index: 9999999 !important;
   transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 .app-loader-screen.hidden {
@@ -284,7 +282,6 @@ html, body {
   justify-content: center !important;
   text-align: center !important;
   gap: 1.25rem !important;
-  margin: auto !important;
 }
 .loader-logo {
   width: 72px;
