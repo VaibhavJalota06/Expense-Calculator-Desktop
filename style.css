@@ -257,27 +257,34 @@ html, body {
 
 /* Instant App Startup Loader Screen */
 .app-loader-screen {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: var(--bg-base);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 99999;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  background: var(--bg-base, #050811) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  z-index: 999999 !important;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
 }
 .app-loader-screen.hidden {
   display: none !important;
 }
 .loader-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  gap: 1rem;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  text-align: center !important;
+  gap: 1.25rem !important;
+  margin: auto !important;
 }
 .loader-logo {
   width: 72px;
