@@ -137,7 +137,7 @@ function formatMonthLabel(ymStr) {
   return `${monthNames[monthIdx] || parts[1]} ${year}`;
 }
 
-// Custom Glassmorphic Confirm & Alert Modal Helpers
+// // Custom Glassmorphic Confirm & Alert Modal Helpers
 function showConfirm(title, message, isDanger = false) {
   return new Promise((resolve) => {
     try {
@@ -205,7 +205,6 @@ function showAlert(title, message) {
       function done() {
         modal.classList.add('hidden');
         okBtn.onclick = null;
-        if (cancelBtn) cancelBtn.onclick = null;
         if (closeBtn) closeBtn.onclick = null;
         modal.onclick = null;
         resolve();
