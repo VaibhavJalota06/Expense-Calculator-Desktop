@@ -5,17 +5,27 @@ const fs = require('fs');
 const os = require('os');
 
 // ──────────────────────────────────────────────────────────────────
-// Fix Windows cache/quota errors caused by spaces in the app path.
-// Move all Electron user-data (cache, quota DB, IndexedDB) to
-// %APPDATA%/ExpenseOS so Windows has full write permissions.
-// This MUST be called before app.whenReady().
+// Single Instance Lock: Prevents multiple instances from running concurrently
+// and fighting over Chromium GPU & Quota database locks.
 // ──────────────────────────────────────────────────────────────────
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on('second-instance', () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
+// Move all Electron user-data (cache, quota DB, IndexedDB) to %APPDATA%/ExpenseOS
 const safeUserDataPath = path.join(os.homedir(), 'AppData', 'Roaming', 'ExpenseOS');
 app.setPath('userData', safeUserDataPath);
 app.setPath('logs', path.join(safeUserDataPath, 'logs'));
 
-// Self-healing: delete corrupted QuotaManager files so Chromium recreates them fresh
-// This stops the quota_database reset loop on Windows
+// Self-healing: clean corrupted/empty QuotaManager files on startup
 function cleanCorruptedCache() {
   const quotaFiles = [
     path.join(safeUserDataPath, 'QuotaManager'),
@@ -27,10 +37,8 @@ function cleanCorruptedCache() {
     try {
       if (fs.existsSync(f)) {
         const stat = fs.statSync(f);
-        // Remove if empty/corrupted (0 bytes)
         if (stat.size === 0) {
           fs.unlinkSync(f);
-          console.log('Removed empty/corrupted quota file:', f);
         }
       }
     } catch (e) { /* ignore locked files */ }
@@ -39,8 +47,9 @@ function cleanCorruptedCache() {
 cleanCorruptedCache();
 
 // Suppress Chromium GPU disk cache & quota database errors on Windows
-// These flags prevent the cascade of cache_util_win / gpu_disk_cache / quota_database errors
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
+app.commandLine.appendSwitch('disable-gpu-program-cache');
+app.commandLine.appendSwitch('disable-http-cache');
 app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('no-sandbox');
 
