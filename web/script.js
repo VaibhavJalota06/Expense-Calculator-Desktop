@@ -1664,7 +1664,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.4';
+const CURRENT_APP_VERSION = 'v2.3.5';
 
 window.handleCheckUpdateClick = function(e) {
   if (e) {
