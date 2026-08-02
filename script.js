@@ -1683,13 +1683,11 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const titleEl = document.getElementById('update-toast-title');
   const actionsEl = document.getElementById('update-toast-actions');
 
-  if (toast) {
+  // Show "Checking for Updates..." toast ONLY if user manually triggered it
+  if (manual && toast && titleEl && msgEl) {
     toast.classList.remove('hidden');
     toast.style.display = 'block';
     toast.style.zIndex = '9999999';
-  }
-
-  if (manual && titleEl && msgEl) {
     titleEl.textContent = 'Checking for Updates...';
     msgEl.textContent = 'Connecting to release server...';
     if (actionsEl) actionsEl.classList.add('hidden');
@@ -1704,17 +1702,21 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
     }
 
     if (latestTag && latestTag !== CURRENT_APP_VERSION) {
+      // New update available -> Show toast notification
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
         toast.style.display = 'block';
+        toast.style.zIndex = '9999999';
         titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
         msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
-        if (actionsEl) actionsEl.classList.add('hidden');
+        if (actionsEl) actionsEl.classList.remove('hidden');
       }
     } else if (manual) {
+      // Manual click & up to date -> Show "Up to Date" toast for 4.5s
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
         toast.style.display = 'block';
+        toast.style.zIndex = '9999999';
         titleEl.textContent = '✓ Up to Date';
         msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
         if (actionsEl) actionsEl.classList.add('hidden');
@@ -1725,12 +1727,19 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
           }
         }, 4500);
       }
+    } else {
+      // Automatic check & up to date -> Keep toast hidden
+      if (toast) {
+        toast.classList.add('hidden');
+        toast.style.display = '';
+      }
     }
   } catch (err) {
     console.warn('Update check notice:', err);
     if (manual && toast && titleEl && msgEl) {
       toast.classList.remove('hidden');
       toast.style.display = 'block';
+      toast.style.zIndex = '9999999';
       titleEl.textContent = '✓ Up to Date';
       msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
       if (actionsEl) actionsEl.classList.add('hidden');
