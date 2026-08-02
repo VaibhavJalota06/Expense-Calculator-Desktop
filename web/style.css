@@ -193,15 +193,15 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.85rem;
   text-align: center;
 }
 .login-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  margin-bottom: 1rem;
-  box-shadow: 0 0 35px rgba(52, 211, 153, 0.25);
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  margin-bottom: 0.4rem;
+  box-shadow: 0 0 25px rgba(52, 211, 153, 0.25);
   object-fit: cover;
 }
 .web-redirect-pill {
@@ -310,14 +310,18 @@ html, body {
 
 .login-screen {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
   background: var(--bg-base);
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
   z-index: 1000;
-  padding: 1.5rem;
+  padding: 1rem 0.5rem;
   overflow-y: auto;
+  overflow-x: hidden;
 }
 .login-screen.hidden {
   display: none !important;
@@ -331,33 +335,45 @@ html, body {
   align-items: center;
   z-index: 10;
   position: relative;
+  padding: 1rem 0;
 }
 .login-title {
-  font-size: 1.85rem;
+  font-size: 1.55rem;
   font-weight: 800;
   color: var(--text-hi);
   letter-spacing: -0.02em;
-  margin-bottom: 0.2rem;
+  margin-bottom: 0.15rem;
 }
 .login-subtitle {
-  font-size: 0.88rem;
+  font-size: 0.84rem;
   color: var(--text-low);
   font-weight: 500;
 }
 .auth-card {
   width: 100%;
-  margin-top: 1rem;
+  margin-top: 0.5rem;
+  padding: 1.25rem 1.4rem !important;
 }
 .auth-card h2 {
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 700;
   color: var(--text-hi);
-  margin-bottom: 0.25rem;
+  margin-bottom: 0.15rem;
 }
 .auth-subtitle {
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   color: var(--text-low);
-  margin-bottom: 1.35rem;
+  margin-bottom: 0.75rem;
+}
+.auth-card .form-group {
+  margin-bottom: 0.6rem;
+  gap: 0.25rem;
+}
+.auth-card .form-group input,
+.auth-card .form-group select {
+  padding: 0.5rem 0.8rem;
+  min-height: 38px;
+  font-size: 0.85rem;
 }
 .btn-google {
   background: rgba(255, 255, 255, 0.06);
@@ -407,7 +423,7 @@ html, body {
 .auth-divider {
   display: flex;
   align-items: center;
-  margin: 1.25rem 0;
+  margin: 0.75rem 0;
   text-align: center;
   color: var(--text-low);
   font-size: 0.75rem;
@@ -435,7 +451,7 @@ html, body {
   font-weight: 500;
 }
 .auth-switch {
-  margin-top: 1.1rem;
+  margin-top: 0.85rem;
   text-align: center;
   font-size: 0.84rem;
   color: var(--text-low);
