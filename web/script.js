@@ -1684,10 +1684,16 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const titleEl = document.getElementById('update-toast-title');
   const actionsEl = document.getElementById('update-toast-actions');
 
-  // Show "Checking for Updates..." toast ONLY if user manually triggered it
+  // If not manual, enforce hidden display by default
+  if (!manual && toast) {
+    toast.classList.add('hidden');
+    toast.style.setProperty('display', 'none', 'important');
+  }
+
+  // Show toast ONLY if user manually triggered it
   if (manual && toast && titleEl && msgEl) {
     toast.classList.remove('hidden');
-    toast.style.display = 'block';
+    toast.style.setProperty('display', 'block', 'important');
     toast.style.zIndex = '9999999';
     titleEl.textContent = 'Checking for Updates...';
     msgEl.textContent = 'Connecting to release server...';
@@ -1703,20 +1709,20 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
     }
 
     if (latestTag && latestTag !== CURRENT_APP_VERSION) {
-      // New update available -> Show toast notification
+      // New version published! Show update toast
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
-        toast.style.display = 'block';
+        toast.style.setProperty('display', 'block', 'important');
         toast.style.zIndex = '9999999';
         titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
         msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
         if (actionsEl) actionsEl.classList.remove('hidden');
       }
     } else if (manual) {
-      // Manual click & up to date -> Show "Up to Date" toast for 4.5s
+      // Manual check & up to date -> Show toast for 4.5s
       if (toast && titleEl && msgEl) {
         toast.classList.remove('hidden');
-        toast.style.display = 'block';
+        toast.style.setProperty('display', 'block', 'important');
         toast.style.zIndex = '9999999';
         titleEl.textContent = '✓ Up to Date';
         msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
@@ -1724,22 +1730,22 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
         setTimeout(() => {
           if (toast) {
             toast.classList.add('hidden');
-            toast.style.display = '';
+            toast.style.setProperty('display', 'none', 'important');
           }
         }, 4500);
       }
     } else {
-      // Automatic check & up to date -> Keep toast hidden
+      // Auto check & up to date -> Keep toast completely hidden
       if (toast) {
         toast.classList.add('hidden');
-        toast.style.display = '';
+        toast.style.setProperty('display', 'none', 'important');
       }
     }
   } catch (err) {
     console.warn('Update check notice:', err);
     if (manual && toast && titleEl && msgEl) {
       toast.classList.remove('hidden');
-      toast.style.display = 'block';
+      toast.style.setProperty('display', 'block', 'important');
       toast.style.zIndex = '9999999';
       titleEl.textContent = '✓ Up to Date';
       msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
@@ -1747,9 +1753,12 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
       setTimeout(() => {
         if (toast) {
           toast.classList.add('hidden');
-          toast.style.display = '';
+          toast.style.setProperty('display', 'none', 'important');
         }
       }, 4500);
+    } else if (toast) {
+      toast.classList.add('hidden');
+      toast.style.setProperty('display', 'none', 'important');
     }
   }
 };
@@ -1777,9 +1786,12 @@ document.addEventListener('click', (e) => {
   }
   if (e.target.closest('#btn-close-update-toast, #btn-dismiss-update')) {
     const toast = document.getElementById('update-notification');
-    if (toast) toast.classList.add('hidden');
+    if (toast) {
+      toast.classList.add('hidden');
+      toast.style.setProperty('display', 'none', 'important');
+    }
     return;
   }
 });
 
-setTimeout(() => { checkAppUpdates(false); }, 5000);
+
