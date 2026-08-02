@@ -1698,24 +1698,20 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   const dropdown = document.getElementById('user-dropdown-menu');
   if (dropdown) dropdown.classList.add('hidden');
 
-  if (!manual) {
-    window.hideUpdateToast();
-  } else {
+  if (manual) {
     window.showUpdateToast('Checking for Updates...', 'Connecting to release server...', false);
+  } else {
+    window.hideUpdateToast();
   }
 
   try {
     let latestTag = '';
-    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest', {
-      headers: { 'User-Agent': 'ExpenseOS-App' }
-    });
+    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest');
     if (res.ok) {
       const data = await res.json();
       latestTag = (data.tag_name || '').trim();
     } else {
-      const tagsRes = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/tags', {
-        headers: { 'User-Agent': 'ExpenseOS-App' }
-      });
+      const tagsRes = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/tags');
       if (tagsRes.ok) {
         const tagsData = await tagsRes.json();
         if (Array.isArray(tagsData) && tagsData.length > 0) {
