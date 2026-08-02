@@ -2854,6 +2854,8 @@ select option {
 .btn-toggle-password {
   position: absolute;
   right: 0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
   background: transparent;
   border: none;
   color: var(--text-muted, #94A3B8);
@@ -2868,6 +2870,13 @@ select option {
 }
 .btn-toggle-password:hover {
   color: var(--emerald-glow, #34D399);
+}
+
+.form-hint {
+  display: block;
+  font-size: 0.78rem;
+  color: var(--text-muted, #94A3B8);
+  margin-top: 0.35rem;
 }
 
 .update-toast-actions .btn {
