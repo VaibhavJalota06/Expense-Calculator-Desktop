@@ -4,3 +4,4 @@ dist-verify/
 release/
 .DS_Store
 *.log
+.env

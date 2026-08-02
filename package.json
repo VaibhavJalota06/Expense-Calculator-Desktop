@@ -6,7 +6,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder --win",
-    "publish": "electron-builder --win -p always"
+    "publish": "node scripts/publish-release.js"
   },
   "repository": {
     "type": "git",

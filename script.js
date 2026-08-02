@@ -1694,8 +1694,17 @@ window.hideUpdateToast = function() {
 };
 
 window.checkAppUpdates = async function checkAppUpdates(manual = false) {
+  window.lastManualCheck = manual;
   const dropdown = document.getElementById('user-dropdown-menu');
   if (dropdown) dropdown.classList.add('hidden');
+
+  if (window.electronAPI && typeof window.electronAPI.checkForUpdates === 'function') {
+    if (manual) {
+      window.showUpdateToast('Checking for Updates...', 'Connecting to release server...', false);
+    }
+    window.electronAPI.checkForUpdates();
+    return;
+  }
 
   if (manual) {
     window.showUpdateToast('Checking for Updates...', 'Connecting to release server...', false);
@@ -1742,6 +1751,38 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   }
 };
 
+if (window.electronAPI && typeof window.electronAPI.onUpdateStatus === 'function') {
+  window.electronAPI.onUpdateStatus((data) => {
+    const restartBtn = document.getElementById('btn-restart-update');
+    const downloadBtn = document.getElementById('btn-download-update');
+
+    if (data.status === 'checking') {
+      window.showUpdateToast('Checking for Updates...', 'Connecting to release server...', false);
+    } else if (data.status === 'available') {
+      window.showUpdateToast('🎉 Update Available', `New version (v${data.version || ''}) detected. Downloading in background...`, false);
+    } else if (data.status === 'downloading') {
+      window.showUpdateToast('⏬ Downloading Update...', `Progress: ${data.percent || 0}%`, false);
+    } else if (data.status === 'downloaded') {
+      if (restartBtn) restartBtn.classList.remove('hidden');
+      if (downloadBtn) downloadBtn.classList.add('hidden');
+      window.showUpdateToast('✅ Update Ready!', `Expense OS v${data.version || ''} downloaded. Click below to restart & update now.`, true);
+    } else if (data.status === 'not-available') {
+      if (restartBtn) restartBtn.classList.add('hidden');
+      if (downloadBtn) downloadBtn.classList.remove('hidden');
+      window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);
+      setTimeout(() => { window.hideUpdateToast(); }, 4500);
+    } else if (data.status === 'dev-mode') {
+      window.showUpdateToast('✓ Development Mode', `App is running in development mode (${CURRENT_APP_VERSION}).`, false);
+      setTimeout(() => { window.hideUpdateToast(); }, 3000);
+    } else if (data.status === 'error') {
+      if (window.lastManualCheck) {
+        window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);
+        setTimeout(() => { window.hideUpdateToast(); }, 4500);
+      }
+    }
+  });
+}
+
 window.handleCheckUpdateClick = function(e) {
   if (e) {
     try { e.preventDefault(); e.stopPropagation(); } catch(err){}
@@ -1764,6 +1805,14 @@ document.addEventListener('click', (e) => {
       if (icon) {
         icon.className = isPassword ? 'fa-solid fa-eye-slash text-emerald' : 'fa-solid fa-eye';
       }
+    }
+    return;
+  }
+
+  if (e.target.closest('#btn-restart-update')) {
+    e.preventDefault();
+    if (window.electronAPI && typeof window.electronAPI.restartAndInstall === 'function') {
+      window.electronAPI.restartAndInstall();
     }
     return;
   }

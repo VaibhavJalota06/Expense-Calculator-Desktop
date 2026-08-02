@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -61,9 +61,63 @@ try {
   autoUpdater = require('electron-updater').autoUpdater;
   autoUpdater.autoDownload = true;
   autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'checking' });
+    }
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'available', version: info.version });
+    }
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'not-available', version: info ? info.version : app.getVersion() });
+    }
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'downloading', percent: Math.round(progressObj.percent) });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'downloaded', version: info.version });
+    }
+  });
+
+  autoUpdater.on('error', (err) => {
+    if (mainWindow && mainWindow.webContents) {
+      mainWindow.webContents.send('auto-updater-status', { status: 'error', message: err ? err.message : 'Update check failed' });
+    }
+  });
 } catch (e) {
   console.log('electron-updater not loaded in dev mode:', e.message);
 }
+
+ipcMain.on('check-for-updates-now', () => {
+  if (autoUpdater && app.isPackaged) {
+    autoUpdater.checkForUpdates().catch(err => {
+      if (mainWindow && mainWindow.webContents) {
+        mainWindow.webContents.send('auto-updater-status', { status: 'error', message: err ? err.message : '' });
+      }
+    });
+  } else if (mainWindow && mainWindow.webContents) {
+    mainWindow.webContents.send('auto-updater-status', { status: 'dev-mode' });
+  }
+});
+
+ipcMain.on('restart-and-install', () => {
+  if (autoUpdater) {
+    autoUpdater.quitAndInstall(false, true);
+  }
+});
 
 // Lightweight static file server for local HTTP protocol (enables Firebase Auth in Electron)
 const mimeTypes = {
@@ -144,6 +198,7 @@ function createWindow(port) {
     backgroundColor: '#050811',
     icon: path.join(__dirname, 'icon.ico'),
     webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
     },
