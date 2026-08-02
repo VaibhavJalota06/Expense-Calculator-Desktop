@@ -108,7 +108,6 @@ if (isFirebaseConfigured && auth) {
             try { emailjs.init(emailjsConfig.publicKey); } catch(e){}
           }
           const WEB_APP_URL = 'https://expense-os.web.app';
-          const DOWNLOAD_EXE_URL = 'https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest';
 
           await emailjs.send(
             emailjsConfig.serviceId,
@@ -121,9 +120,8 @@ if (isFirebaseConfigured && auth) {
               name: recipientName,
               user_name: recipientName,
               subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
-              message: `Welcome to Expense OS, ${recipientName}! Access the Web App or download the Desktop App below.`,
+              message: `Welcome to Expense OS, ${recipientName}! Your personal finance command center is now active. Launch the web app below to track your expenses anytime.`,
               web_app_url: WEB_APP_URL,
-              download_exe_url: DOWNLOAD_EXE_URL,
               app_url: WEB_APP_URL,
               action_url: WEB_APP_URL,
               url: WEB_APP_URL,

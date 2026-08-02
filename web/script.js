@@ -607,7 +607,6 @@ function checkAndSendSubscriptionReminders() {
                 subject: `⏰ Subscription Due Reminder: ${sub.name} is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}!`,
                 message: `Reminder: ${sub.name} (₹${sub.amount.toFixed(2)}) renewal payment is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}.`,
                 web_app_url: 'https://expense-os.web.app',
-                download_exe_url: 'https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest',
                 app_url: 'https://expense-os.web.app',
                 action_url: 'https://expense-os.web.app',
                 url: 'https://expense-os.web.app',
@@ -1665,7 +1664,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.2.8';
+const CURRENT_APP_VERSION = 'v2.2.9';
 
 async function checkAppUpdates(manual = false) {
   const toast = document.getElementById('update-notification');
