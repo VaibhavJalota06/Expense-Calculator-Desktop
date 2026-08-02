@@ -26,6 +26,17 @@ if (!process.env.GH_TOKEN) {
   process.exit(1);
 }
 
+// Clean old build files in dist folder
+const distPath = path.join(__dirname, '..', 'dist');
+if (fs.existsSync(distPath)) {
+  console.log('🧹 Cleaning old build files in dist/ folder...');
+  try {
+    fs.rmSync(distPath, { recursive: true, force: true });
+  } catch (err) {
+    console.log('Notice: dist folder clean warning:', err.message);
+  }
+}
+
 console.log('🚀 Building and automatically publishing release to GitHub Releases...');
 try {
   execSync('npx electron-builder --win -p always', { stdio: 'inherit' });
