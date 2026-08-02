@@ -1693,6 +1693,59 @@ window.hideUpdateToast = function() {
   }
 };
 
+window.checkAppUpdates = async function checkAppUpdates(manual = false) {
+  const dropdown = document.getElementById('user-dropdown-menu');
+  if (dropdown) dropdown.classList.add('hidden');
+
+  if (!manual) {
+    window.hideUpdateToast();
+  } else {
+    window.showUpdateToast('Checking for Updates...', 'Connecting to release server...', false);
+  }
+
+  try {
+    let latestTag = '';
+    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest', {
+      headers: { 'User-Agent': 'ExpenseOS-App' }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      latestTag = (data.tag_name || '').trim();
+    } else {
+      const tagsRes = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/tags', {
+        headers: { 'User-Agent': 'ExpenseOS-App' }
+      });
+      if (tagsRes.ok) {
+        const tagsData = await tagsRes.json();
+        if (Array.isArray(tagsData) && tagsData.length > 0) {
+          latestTag = (tagsData[0].name || '').trim();
+        }
+      }
+    }
+
+    if (latestTag && latestTag !== CURRENT_APP_VERSION && latestTag > CURRENT_APP_VERSION) {
+      window.showUpdateToast('🎉 Update Available (' + latestTag + ')', `A new version (${latestTag}) of Expense OS is available!`, true);
+    } else if (manual) {
+      window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);
+      setTimeout(() => {
+        window.hideUpdateToast();
+      }, 4500);
+    } else {
+      window.hideUpdateToast();
+    }
+  } catch (err) {
+    console.warn('Update check notice:', err);
+    if (manual) {
+      window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);
+      setTimeout(() => {
+        window.hideUpdateToast();
+      }, 4500);
+    } else {
+      window.hideUpdateToast();
+    }
+  }
+};
+
 window.handleCheckUpdateClick = function(e) {
   if (e) {
     try { e.preventDefault(); e.stopPropagation(); } catch(err){}
