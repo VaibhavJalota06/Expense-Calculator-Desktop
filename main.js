@@ -185,8 +185,8 @@ function createWindow(port) {
     mainWindow.maximize();
     mainWindow.show();
     
-    // Check for updates on GitHub Releases automatically on desktop app launch
-    if (autoUpdater) {
+    // Check for updates on GitHub Releases automatically when app is packaged
+    if (autoUpdater && app.isPackaged) {
       autoUpdater.checkForUpdatesAndNotify().catch(err => {
         console.log('Auto update check status:', err.message);
       });

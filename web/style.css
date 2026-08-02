@@ -2908,6 +2908,24 @@ select option {
   margin-top: 0.35rem;
 }
 
+.login-version-text {
+  margin-top: 0.85rem;
+  font-size: 0.78rem;
+  color: var(--text-muted, #94A3B8);
+  text-align: center;
+}
+.login-version-text a {
+  color: var(--emerald-glow, #34D399);
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+.login-version-text a:hover {
+  color: #6EE7B7;
+  text-underline-offset: 3px;
+  text-decoration: underline;
+}
+
 .update-toast-actions .btn {
   flex: 1;
   text-align: center;

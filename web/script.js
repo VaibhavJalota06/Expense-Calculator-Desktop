@@ -1794,7 +1794,8 @@ document.addEventListener('click', (e) => {
     return;
   }
 
-  if (e.target.closest('#btn-dropdown-check-update')) {
+  if (e.target.closest('#btn-dropdown-check-update, .btn-check-update-link')) {
+    e.preventDefault();
     checkAppUpdates(true);
     return;
   }
