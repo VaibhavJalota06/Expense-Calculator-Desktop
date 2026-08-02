@@ -104,6 +104,9 @@ if (isFirebaseConfigured && auth) {
       // Automated Live Delivery via EmailJS directly to Gmail
       if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
         try {
+          if (emailjs.init && emailjsConfig.publicKey) {
+            try { emailjs.init(emailjsConfig.publicKey); } catch(e){}
+          }
           await emailjs.send(
             emailjsConfig.serviceId,
             emailjsConfig.templateId,
@@ -279,6 +282,7 @@ if (isFirebaseConfigured && auth) {
       if (user && !hasSeenWelcome) {
         localStorage.setItem('expense_cal_seen_welcome_v2_' + user.uid, 'true');
         localStorage.setItem('expense_cal_seen_welcome_global', 'true');
+        triggerWelcomeEmail(user, fullName);
         const modal = document.getElementById('welcome-modal');
         const titleEl = document.getElementById('welcome-modal-title');
         const msgEl = document.getElementById('welcome-modal-msg');
