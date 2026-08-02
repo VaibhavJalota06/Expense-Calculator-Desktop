@@ -1666,114 +1666,40 @@ document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 // ---------- Live Update Manager & GitHub Checker ----------
 const CURRENT_APP_VERSION = 'v2.3.5';
 
+window.showUpdateToast = function(title, message, showActions = false) {
+  const toast = document.getElementById('update-notification');
+  const titleEl = document.getElementById('update-toast-title');
+  const msgEl = document.getElementById('update-toast-msg');
+  const actionsEl = document.getElementById('update-toast-actions');
+
+  if (!toast) return;
+
+  if (titleEl) titleEl.textContent = title;
+  if (msgEl) msgEl.textContent = message;
+
+  if (actionsEl) {
+    if (showActions) actionsEl.classList.remove('hidden');
+    else actionsEl.classList.add('hidden');
+  }
+
+  toast.classList.remove('hidden');
+  toast.style.cssText = 'display: block !important; position: fixed !important; bottom: 24px !important; right: 24px !important; z-index: 9999999 !important; width: 340px !important; max-width: calc(100vw - 32px) !important;';
+};
+
+window.hideUpdateToast = function() {
+  const toast = document.getElementById('update-notification');
+  if (toast) {
+    toast.classList.add('hidden');
+    toast.style.cssText = 'display: none !important;';
+  }
+};
+
 window.handleCheckUpdateClick = function(e) {
   if (e) {
     try { e.preventDefault(); e.stopPropagation(); } catch(err){}
   }
   if (typeof window.checkAppUpdates === 'function') {
     window.checkAppUpdates(true);
-  }
-};
-
-window.checkAppUpdates = async function checkAppUpdates(manual = false) {
-  const dropdown = document.getElementById('user-dropdown-menu');
-  if (dropdown) dropdown.classList.add('hidden');
-
-  const toast = document.getElementById('update-notification');
-  const msgEl = document.getElementById('update-toast-msg');
-  const titleEl = document.getElementById('update-toast-title');
-  const actionsEl = document.getElementById('update-toast-actions');
-
-  // If not manual, enforce hidden display by default
-  if (!manual && toast) {
-    toast.classList.add('hidden');
-    toast.style.setProperty('display', 'none', 'important');
-  }
-
-  // Show "Checking for Updates..." toast ONLY if user manually triggered it
-  if (manual && toast && titleEl && msgEl) {
-    toast.classList.remove('hidden');
-    toast.style.setProperty('display', 'block', 'important');
-    toast.style.zIndex = '9999999';
-    titleEl.textContent = 'Checking for Updates...';
-    msgEl.textContent = 'Connecting to release server...';
-    if (actionsEl) actionsEl.classList.add('hidden');
-  }
-
-  try {
-    let latestTag = '';
-    // Request with custom User-Agent to comply with GitHub API guidelines
-    const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest', {
-      headers: { 'User-Agent': 'ExpenseOS-App' }
-    });
-    if (res.ok) {
-      const data = await res.json();
-      latestTag = (data.tag_name || '').trim();
-    } else {
-      // Fallback to tags endpoint if no official release is published yet
-      const tagsRes = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/tags', {
-        headers: { 'User-Agent': 'ExpenseOS-App' }
-      });
-      if (tagsRes.ok) {
-        const tagsData = await tagsRes.json();
-        if (Array.isArray(tagsData) && tagsData.length > 0) {
-          latestTag = (tagsData[0].name || '').trim();
-        }
-      }
-    }
-
-    if (latestTag && latestTag !== CURRENT_APP_VERSION && latestTag > CURRENT_APP_VERSION) {
-      // New version published! Show update toast
-      if (toast && titleEl && msgEl) {
-        toast.classList.remove('hidden');
-        toast.style.setProperty('display', 'block', 'important');
-        toast.style.zIndex = '9999999';
-        titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
-        msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
-        if (actionsEl) actionsEl.classList.remove('hidden');
-      }
-    } else if (manual) {
-      // Manual check & up to date -> Show toast for 4.5s
-      if (toast && titleEl && msgEl) {
-        toast.classList.remove('hidden');
-        toast.style.setProperty('display', 'block', 'important');
-        toast.style.zIndex = '9999999';
-        titleEl.textContent = '✓ Up to Date';
-        msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
-        if (actionsEl) actionsEl.classList.add('hidden');
-        setTimeout(() => {
-          if (toast) {
-            toast.classList.add('hidden');
-            toast.style.setProperty('display', 'none', 'important');
-          }
-        }, 4500);
-      }
-    } else {
-      // Auto check & up to date -> Keep toast completely hidden
-      if (toast) {
-        toast.classList.add('hidden');
-        toast.style.setProperty('display', 'none', 'important');
-      }
-    }
-  } catch (err) {
-    console.warn('Update check notice:', err);
-    if (manual && toast && titleEl && msgEl) {
-      toast.classList.remove('hidden');
-      toast.style.setProperty('display', 'block', 'important');
-      toast.style.zIndex = '9999999';
-      titleEl.textContent = '✓ Up to Date';
-      msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
-      if (actionsEl) actionsEl.classList.add('hidden');
-      setTimeout(() => {
-        if (toast) {
-          toast.classList.add('hidden');
-          toast.style.setProperty('display', 'none', 'important');
-        }
-      }, 4500);
-    } else if (toast) {
-      toast.classList.add('hidden');
-      toast.style.setProperty('display', 'none', 'important');
-    }
   }
 };
 
