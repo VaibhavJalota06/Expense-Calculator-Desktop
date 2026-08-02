@@ -396,22 +396,7 @@ html, body {
   text-decoration: underline;
 }
 
-.btn-guest-login {
-  background: rgba(52, 211, 153, 0.12) !important;
-  border: 1px solid rgba(52, 211, 153, 0.35) !important;
-  color: var(--emerald) !important;
-  font-weight: 700 !important;
-  margin-top: 0.85rem !important;
-  transition: var(--transition);
-}
-.btn-guest-login:hover {
-  background: rgba(52, 211, 153, 0.22) !important;
-  border-color: var(--emerald) !important;
-  transform: translateY(-1px);
-}
-.btn-guest-login:active {
-  transform: scale(0.97) translateY(1px);
-}
+
 .auth-switch a:hover {
   text-decoration: underline;
 }

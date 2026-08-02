@@ -74,7 +74,7 @@ if (isFirebaseConfigured && auth) {
         if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
           showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
-          showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email or tap "Continue as Guest".');
+          showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
@@ -460,16 +460,6 @@ if (isFirebaseConfigured && auth) {
       syncStatusEl.innerHTML = `<i class="fa-solid ${s.icon}"></i> ${s.text}`;
     };
 
-    // Guest Mode Handler
-    function continueAsGuest() {
-      hideLoader();
-      showApp({ displayName: 'Guest User', email: 'Local Mode', photoURL: '' });
-      if (typeof loadStateFromLocal === 'function') loadStateFromLocal();
-    }
-
-    document.querySelectorAll('.btn-guest-login').forEach(btn => {
-      btn.addEventListener('click', continueAsGuest);
-    });
 
     // Quick Master Admin Demo Login Handler
     async function handleAdminLogin() {
@@ -521,13 +511,6 @@ if (isFirebaseConfigured && auth) {
       btnAdminLogin.addEventListener('click', handleAdminLogin);
     }
 
-    document.addEventListener('click', (e) => {
-      const gBtn = e.target.closest('.btn-guest-login');
-      if (gBtn) {
-        e.preventDefault();
-        continueAsGuest();
-      }
-    });
 
     // Event Listeners
     document.querySelectorAll('.btn-google-login').forEach(btn => {
