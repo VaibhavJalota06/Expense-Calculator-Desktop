@@ -1664,49 +1664,56 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.0';
+const CURRENT_APP_VERSION = 'v2.3.1';
 
 async function checkAppUpdates(manual = false) {
+  const dropdown = document.getElementById('user-dropdown-menu');
+  if (dropdown) dropdown.classList.add('hidden');
+
   const toast = document.getElementById('update-notification');
   const msgEl = document.getElementById('update-toast-msg');
   const titleEl = document.getElementById('update-toast-title');
   const actionsEl = document.getElementById('update-toast-actions');
 
-  if (!toast || !msgEl) return;
-
-  if (manual) {
+  if (manual && toast && msgEl && titleEl) {
     toast.classList.remove('hidden');
-    titleEl.textContent = 'Checking for Updates';
-    msgEl.textContent = 'Checking GitHub Releases for new updates...';
+    titleEl.textContent = 'Checking for Updates...';
+    msgEl.textContent = 'Connecting to release server to check for new updates...';
     if (actionsEl) actionsEl.classList.add('hidden');
   }
 
   try {
     const res = await fetch('https://api.github.com/repos/VaibhavJalota06/Expense-Calculator-Desktop/releases/latest');
-    if (!res.ok) throw new Error('Release API returned ' + res.status);
-    const data = await res.json();
-    const latestTag = (data.tag_name || '').trim();
+    let latestTag = '';
+    if (res.ok) {
+      const data = await res.json();
+      latestTag = (data.tag_name || '').trim();
+    }
 
     if (latestTag && latestTag !== CURRENT_APP_VERSION) {
-      toast.classList.remove('hidden');
-      titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
-      msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
-      if (actionsEl) actionsEl.classList.remove('hidden');
+      if (toast && titleEl && msgEl) {
+        toast.classList.remove('hidden');
+        titleEl.textContent = '🎉 Update Available (' + latestTag + ')';
+        msgEl.textContent = `A new version (${latestTag}) of Expense OS is available!`;
+        if (actionsEl) actionsEl.classList.remove('hidden');
+      }
     } else if (manual) {
-      toast.classList.remove('hidden');
-      titleEl.textContent = '✓ Up to Date';
-      msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is the latest version.`;
-      if (actionsEl) actionsEl.classList.add('hidden');
-      setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+      if (toast && titleEl && msgEl) {
+        toast.classList.remove('hidden');
+        titleEl.textContent = '✓ Up to Date';
+        msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
+        if (actionsEl) actionsEl.classList.add('hidden');
+        setTimeout(() => { if (toast) toast.classList.add('hidden'); }, 4000);
+      }
     }
   } catch (err) {
-    console.warn('Update check status:', err);
-    if (manual) {
+    console.warn('Update check notice:', err);
+    if (manual && toast && titleEl && msgEl) {
       toast.classList.remove('hidden');
-      titleEl.textContent = 'Update Check';
-      msgEl.textContent = `Currently running Expense OS ${CURRENT_APP_VERSION}.`;
+      titleEl.textContent = '✓ Up to Date';
+      msgEl.textContent = `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`;
       if (actionsEl) actionsEl.classList.add('hidden');
-      setTimeout(() => { toast.classList.add('hidden'); }, 3500);
+      setTimeout(() => { if (toast) toast.classList.add('hidden'); }, 4000);
     }
   }
 }

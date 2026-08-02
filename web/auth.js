@@ -365,6 +365,16 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
+    const btnCheckUpdate = document.getElementById('btn-dropdown-check-update');
+    if (btnCheckUpdate) {
+      btnCheckUpdate.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dropdown = document.getElementById('user-dropdown-menu');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (typeof checkAppUpdates === 'function') checkAppUpdates(true);
+      });
+    }
+
     ['edit-profile-close', 'edit-profile-cancel'].forEach(id => {
       const btn = document.getElementById(id);
       if (btn) {

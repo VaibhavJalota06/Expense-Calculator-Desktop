@@ -342,7 +342,7 @@ if (isFirebaseConfigured && auth) {
         e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) dropdown.classList.add('hidden');
-        
+
         const modal = document.getElementById('edit-profile-modal');
         const nameInput = document.getElementById('edit-profile-name');
         const genderSelect = document.getElementById('edit-profile-gender');
@@ -362,6 +362,16 @@ if (isFirebaseConfigured && auth) {
         if (emailInput) emailInput.value = (currentUser && currentUser.email) || 'Local Mode';
 
         if (modal) modal.classList.remove('hidden');
+      });
+    }
+
+    const btnCheckUpdate = document.getElementById('btn-dropdown-check-update');
+    if (btnCheckUpdate) {
+      btnCheckUpdate.addEventListener('click', (e) => {
+        e.preventDefault();
+        const dropdown = document.getElementById('user-dropdown-menu');
+        if (dropdown) dropdown.classList.add('hidden');
+        if (typeof checkAppUpdates === 'function') checkAppUpdates(true);
       });
     }
 
