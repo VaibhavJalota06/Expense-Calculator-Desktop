@@ -52,6 +52,12 @@ if (isFirebaseConfigured && auth) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
         
+        const isDesktopApp = typeof window !== 'undefined' && window.electronAPI && window.electronAPI.isElectron;
+        if (isDesktopApp) {
+          showError(loginError, 'Google Sign-In is disabled by Google inside Desktop apps. Please sign in or create an account with Email & Password below.');
+          return;
+        }
+
         await auth.signInWithPopup(googleProvider);
       } catch (error) {
         console.error('Google Sign-In error:', error);
@@ -63,7 +69,7 @@ if (isFirebaseConfigured && auth) {
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
         } else if (code === 'auth/internal-error') {
-          showError(loginError, 'Google popup authentication error. Please ensure popups are allowed or sign in with Email/Password.');
+          showError(loginError, 'Google popup authentication error. Please sign in with Email & Password.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
