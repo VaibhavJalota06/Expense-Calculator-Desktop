@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "923139726274",
+    "project_id": "expense-os",
+    "storage_bucket": "expense-os.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:923139726274:android:77476c885fc64f246e945b",
+        "android_client_info": {
+          "package_name": "com.expenseos.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "923139726274-0fik9fmb32pbmu8g3meh3oci4pvtjvra.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.expenseos.app",
+            "certificate_hash": "b8bddfa3a3b5e8d784cc28e0aa91cec20eb3b2d7"
+          }
+        },
+        {
+          "client_id": "923139726274-t982mcq1nqhrr4h8216kovf2fto4mfk0.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.expenseos.app",
+            "certificate_hash": "d59606c6f2bdc794c6eb556b8bce63afe169d1a8"
+          }
+        },
+        {
+          "client_id": "923139726274-33t8og8rjfb9dv5muh0k8o288dausoht.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCG72nOw2syzRmju0cpSME_VXST2Qv5m7I"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "923139726274-33t8og8rjfb9dv5muh0k8o288dausoht.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

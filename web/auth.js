@@ -58,6 +58,7 @@ if (isFirebaseConfigured && auth) {
           const code = popupErr ? popupErr.code : '';
           if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request' || code === 'auth/internal-error') {
             isRedirectPending = true;
+            localStorage.setItem('expense_cal_redirect_pending', 'true');
             await auth.signInWithRedirect(googleProvider);
           } else {
             throw popupErr;
@@ -179,11 +180,12 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    let isRedirectPending = false;
+    let isRedirectPending = localStorage.getItem('expense_cal_redirect_pending') === 'true';
 
-    // Handle Mobile OAuth Redirect Result
+    // Handle Mobile/Web OAuth Redirect Result
     if (auth && auth.getRedirectResult) {
       auth.getRedirectResult().then((result) => {
+        localStorage.removeItem('expense_cal_redirect_pending');
         isRedirectPending = false;
         if (result && result.user) {
           hideLoader();
@@ -191,8 +193,12 @@ if (isFirebaseConfigured && auth) {
           startFirestoreSync(result.user.uid);
         }
       }).catch((error) => {
+        localStorage.removeItem('expense_cal_redirect_pending');
         isRedirectPending = false;
-        console.warn('Redirect result handled cleanly:', error);
+        console.warn('Redirect result handled:', error);
+        if (error && error.code && error.code !== 'auth/popup-closed-by-user') {
+          showError(loginError, getAuthErrorMessage(error));
+        }
       });
     }
 
@@ -212,19 +218,29 @@ if (isFirebaseConfigured && auth) {
     // Auth State Observer
     auth.onAuthStateChanged((user) => {
       if (user) {
+        localStorage.removeItem('expense_cal_redirect_pending');
         isRedirectPending = false;
         hideLoader();
         showApp(user);
         startFirestoreSync(user.uid);
       } else {
-        // Wait briefly for redirect result on mobile before dropping back to login screen
-        setTimeout(() => {
-          if (!auth.currentUser && !isRedirectPending) {
-            hideLoader();
-            showLoginScreen();
-            stopFirestoreSync();
-          }
-        }, 800);
+        const pending = isRedirectPending || localStorage.getItem('expense_cal_redirect_pending') === 'true';
+        if (!pending) {
+          hideLoader();
+          showLoginScreen();
+          stopFirestoreSync();
+        } else {
+          // Wait briefly for getRedirectResult to parse user before dropping back to login screen
+          setTimeout(() => {
+            if (!auth.currentUser && localStorage.getItem('expense_cal_redirect_pending') === 'true') {
+              localStorage.removeItem('expense_cal_redirect_pending');
+              isRedirectPending = false;
+              hideLoader();
+              showLoginScreen();
+              stopFirestoreSync();
+            }
+          }, 4000);
+        }
       }
     });
 
