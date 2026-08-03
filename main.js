@@ -115,7 +115,19 @@ ipcMain.on('check-for-updates-now', () => {
 
 ipcMain.on('restart-and-install', () => {
   if (autoUpdater) {
-    autoUpdater.quitAndInstall(false, true);
+    if (server) {
+      try { server.close(); } catch (e) {}
+    }
+    // Destroy windows to release file and GPU DB locks before launching installer
+    try {
+      BrowserWindow.getAllWindows().forEach(w => {
+        if (!w.isDestroyed()) w.destroy();
+      });
+    } catch (e) {}
+    
+    setTimeout(() => {
+      autoUpdater.quitAndInstall(true, true);
+    }, 100);
   }
 });
 
@@ -238,7 +250,7 @@ function createWindow(port) {
           webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            webSecurity: true,
+            webSecurity: false, // Required for Google Auth postMessage token handshake
           }
         }
       };
@@ -283,9 +295,17 @@ app.whenReady().then(() => {
   });
 });
 
+app.on('before-quit', () => {
+  if (server) {
+    try { server.close(); } catch (e) {}
+  }
+});
+
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    server.close();
+    if (server) {
+      try { server.close(); } catch (e) {}
+    }
     app.quit();
   }
 });

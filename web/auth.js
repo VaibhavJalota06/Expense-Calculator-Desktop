@@ -73,6 +73,8 @@ if (isFirebaseConfigured && auth) {
           showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
+        } else if (code === 'auth/internal-error') {
+          showError(loginError, 'Authentication error: Please try signing in with Email/Password or check your network connection.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
