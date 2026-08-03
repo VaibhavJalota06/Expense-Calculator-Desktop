@@ -99,6 +99,10 @@ try {
   console.log('electron-updater not loaded in dev mode:', e.message);
 }
 
+ipcMain.on('open-external-url', (_e, url) => {
+  if (url) shell.openExternal(url);
+});
+
 ipcMain.on('check-for-updates-now', () => {
   if (autoUpdater && app.isPackaged) {
     autoUpdater.checkForUpdates().catch(err => {
@@ -225,7 +229,12 @@ function createWindow(port) {
   // Security: Intercept top-level navigation attempts to external URLs
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     try {
-      const isAuthUrl = navigationUrl.includes('accounts.google.com') || navigationUrl.includes('firebaseapp.com');
+      const isAuthUrl =
+        navigationUrl.includes('accounts.google.com') ||
+        navigationUrl.includes('firebaseapp.com') ||
+        navigationUrl.includes('supabase.co') ||
+        navigationUrl.includes('googleapis.com') ||
+        navigationUrl.includes('google.com/o/oauth');
       const parsedUrl = new URL(navigationUrl);
       if (!isAuthUrl && parsedUrl.origin !== `http://localhost:${port}`) {
         event.preventDefault();
@@ -238,18 +247,24 @@ function createWindow(port) {
 
   // Handle external link navigation vs Google Auth popups
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Allow Google Auth popups inside Electron
-    if (url.includes('accounts.google.com') || url.includes('firebaseapp.com')) {
+    // Allow Google Auth popups inside Electron with Chrome userAgent
+    if (
+      url.includes('accounts.google.com') ||
+      url.includes('google.com') ||
+      url.includes('firebaseapp.com') ||
+      url.includes('googleapis.com') ||
+      url.includes('supabase.co')
+    ) {
       return {
         action: 'allow',
         overrideBrowserWindowOptions: {
-          width: 550,
-          height: 650,
+          width: 600,
+          height: 720,
           autoHideMenuBar: true,
           webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            webSecurity: false, // Required for Google Auth postMessage token handshake
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
           }
         }
       };

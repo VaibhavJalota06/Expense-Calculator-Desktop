@@ -223,31 +223,60 @@ function showAlert(title, message) {
   });
 }
 
-// ---------- State Persistence (Firestore + localStorage fallback) ----------
+// ---------- State Persistence (Supabase + Firestore + localStorage fallback) ----------
 let currentUserId = null;
 let firestoreUnsubscribe = null;
+let supabaseChannel = null;
 let isSyncingFromFirestore = false;
 
 function saveState() {
   // Always save to localStorage as backup
-  localStorage.setItem('expense_cal_web_budget', budget.toString());
-  localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
-  localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+  try {
+    localStorage.setItem('expense_cal_web_budget', budget.toString());
+    localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
+    localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+  } catch (err) {
+    console.warn('localStorage save error:', err);
+  }
 
-  // Save to Firestore if logged in
-  if (currentUserId && db && !isSyncingFromFirestore) {
-    if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-    db.collection('users').doc(currentUserId).set({
-      budget,
-      expenses,
-      subscriptions,
-      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-    }).then(() => {
-      if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-    }).catch((error) => {
-      console.error('Firestore save error:', error);
-      if (typeof setSyncStatus === 'function') setSyncStatus('error');
-    });
+  // Save to Supabase if logged in & Supabase available
+  if (currentUserId && typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+    try {
+      if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+      supabase.from('user_data').upsert({
+        user_id: currentUserId,
+        budget: budget,
+        expenses: expenses,
+        subscriptions: subscriptions,
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' }).then(({ error }) => {
+        if (!error && typeof setSyncStatus === 'function') setSyncStatus('synced');
+      }).catch(e => console.warn('Supabase save notice:', e));
+    } catch (e) {}
+  }
+
+  // Save to Firestore if logged in & DB available
+  if (currentUserId && typeof db !== 'undefined' && db && !isSyncingFromFirestore) {
+    try {
+      if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+      const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+        ? firebase.firestore.FieldValue.serverTimestamp()
+        : new Date();
+
+      db.collection('users').doc(currentUserId).set({
+        budget,
+        expenses,
+        subscriptions,
+        lastUpdated: timestamp
+      }).then(() => {
+        if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+      }).catch((error) => {
+        console.error('Firestore save error:', error);
+        if (typeof setSyncStatus === 'function') setSyncStatus('error');
+      });
+    } catch (err) {
+      console.warn('Firestore save block error:', err);
+    }
   }
 }
 
@@ -289,6 +318,58 @@ function loadStateFromLocal() {
 // Kept for offline / non-Firebase mode
 function loadState() {
   loadStateFromLocal();
+}
+
+function startSupabaseSync(userId) {
+  currentUserId = userId;
+  if (!supabase) { loadStateFromLocal(); return; }
+  if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
+
+  supabase.from('user_data').select('*').eq('user_id', userId).single()
+    .then(({ data, error }) => {
+      if (data) {
+        budget = typeof data.budget === 'number' ? data.budget : 0;
+        expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
+        subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
+      } else {
+        supabase.from('user_data').insert({
+          user_id: userId,
+          budget: 0,
+          expenses: [],
+          subscriptions: []
+        }).catch(e => {});
+      }
+      localStorage.setItem('expense_cal_web_budget', budget.toString());
+      localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
+      localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+      updateMonthPickerOptions();
+      updateUI();
+      if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+    }).catch(err => {
+      console.warn('Supabase load notice:', err);
+      loadStateFromLocal();
+    });
+
+  try {
+    supabaseChannel = supabase.channel('user_data_changes_' + userId)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_data', filter: `user_id=eq.${userId}` }, payload => {
+        if (payload.new) {
+          const data = payload.new;
+          budget = typeof data.budget === 'number' ? data.budget : 0;
+          expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
+          subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
+          updateMonthPickerOptions();
+          updateUI();
+        }
+      }).subscribe();
+  } catch (e) {}
+}
+
+function stopSupabaseSync() {
+  if (supabaseChannel && supabase) {
+    try { supabase.removeChannel(supabaseChannel); } catch(e) {}
+    supabaseChannel = null;
+  }
 }
 
 function startFirestoreSync(userId) {
@@ -334,6 +415,7 @@ function stopFirestoreSync() {
     firestoreUnsubscribe();
     firestoreUnsubscribe = null;
   }
+  stopSupabaseSync();
   currentUserId = null;
 }
 
@@ -444,7 +526,7 @@ if (btnPrevMonth && btnNextMonth) {
 }
 
 // ---------- Tab / View Switching ----------
-function switchView(viewName) {
+window.switchView = function switchView(viewName) {
   if (!viewName) return;
   currentView = viewName;
 
@@ -463,21 +545,25 @@ function switchView(viewName) {
 
   document.querySelectorAll('.view-panel').forEach(panel => {
     panel.classList.remove('active', 'view-exit');
+    panel.style.display = 'none';
   });
 
   const targetPanel = document.getElementById(`view-${viewName}`);
   if (targetPanel) {
     targetPanel.classList.add('active');
+    targetPanel.style.display = 'flex';
+    targetPanel.style.opacity = '1';
+    targetPanel.style.visibility = 'visible';
   }
 
   updateUI();
-}
+};
 
 document.querySelectorAll('.nav-item').forEach(nav => {
   nav.addEventListener('click', (e) => {
     e.preventDefault();
     const view = nav.dataset.view;
-    if (view) switchView(view);
+    if (view) window.switchView(view);
   });
 });
 
@@ -1385,11 +1471,14 @@ async function resetAllData(e) {
 
   if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
   try {
+    const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+      ? firebase.firestore.FieldValue.serverTimestamp()
+      : new Date();
     await db.collection('users').doc(currentUserId).set({
       budget: 0,
       expenses: [],
       subscriptions: [],
-      lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+      lastUpdated: timestamp
     });
     if (typeof setSyncStatus === 'function') setSyncStatus('synced');
     await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been reset.');
@@ -1492,11 +1581,18 @@ document.addEventListener('click', (e) => {
 // Initialization
 document.addEventListener('DOMContentLoaded', () => {
   setTodayDateDefault();
-  // If Firebase is not configured, load from localStorage directly
-  if (!isFirebaseConfigured) {
-    loadStateFromLocal();
-  }
-  // If Firebase IS configured, auth.js onAuthStateChanged will trigger data loading
+  // Load state from localStorage immediately on startup so expenses render without waiting
+  loadStateFromLocal();
+
+  // Guarantee loader removal on DOMContentLoaded
+  setTimeout(() => {
+    const loader = document.getElementById('app-loader');
+    if (loader) {
+      loader.classList.add('hidden');
+      loader.style.cssText = 'display: none !important; pointer-events: none !important; z-index: -99999 !important; opacity: 0 !important; visibility: hidden !important;';
+      if (loader.parentNode) loader.parentNode.removeChild(loader);
+    }
+  }, 200);
 });
 
 // ---------- Interactive Onboarding & Feature Tour ----------

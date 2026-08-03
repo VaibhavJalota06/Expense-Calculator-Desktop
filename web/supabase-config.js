@@ -13,7 +13,39 @@ const isSupabaseConfigured = Boolean(
   !SUPABASE_ANON_KEY.includes("YOUR_")
 );
 
-// Initialize Supabase Client
-const supabase = (isSupabaseConfigured && typeof window.supabase !== 'undefined')
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
-  : null;
+function getSupabaseClient() {
+  if (!isSupabaseConfigured) return null;
+  if (window._supabaseInstance) return window._supabaseInstance;
+  
+  const creator = (window.supabaseJS && typeof window.supabaseJS.createClient === 'function')
+    ? window.supabaseJS.createClient
+    : (window.supabase && typeof window.supabase.createClient === 'function')
+      ? window.supabase.createClient
+      : (typeof createClient === 'function' ? createClient : null);
+
+  if (creator) {
+    try {
+      window._supabaseInstance = creator(SUPABASE_URL, SUPABASE_ANON_KEY);
+      return window._supabaseInstance;
+    } catch(e) {
+      console.warn('Supabase client creation error:', e);
+    }
+  }
+  return null;
+}
+
+// Expose getSupabaseClient globally
+window.getSupabaseClient = getSupabaseClient;
+
+// Global getter property for supabase
+try {
+  let _cachedClient = null;
+  Object.defineProperty(window, 'supabase', {
+    get: function() {
+      if (_cachedClient) return _cachedClient;
+      _cachedClient = getSupabaseClient();
+      return _cachedClient;
+    },
+    configurable: true
+  });
+} catch(e) {}

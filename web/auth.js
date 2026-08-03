@@ -1,8 +1,7 @@
 // Authentication Module - Expense OS Web
 // Handles Google Sign-In, Email/Password Auth, and Auth State Management
 
-if (isFirebaseConfigured && auth) {
-  (function initAuth() {
+(function initAuth() {
     const loginScreen = document.getElementById('login-screen');
     const appLayout = document.querySelector('.app-layout');
     const loginCard = document.getElementById('login-card');
@@ -20,7 +19,7 @@ if (isFirebaseConfigured && auth) {
     const btnShowLogin = document.getElementById('btn-show-login');
     // Topbar profile elements (sidebar profile was removed)
     const syncStatusEl = document.getElementById('sync-status');
-    const googleProvider = new firebase.auth.GoogleAuthProvider();
+    let googleProvider = null;
 
     // Toggle Login / Signup
     if (btnShowSignup) {
@@ -40,47 +39,97 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
+    const btnContinueGuest = document.getElementById('btn-continue-guest');
+    if (btnContinueGuest) {
+      btnContinueGuest.addEventListener('click', (e) => {
+        e.preventDefault();
+        sessionStorage.setItem('expense_cal_guest_mode', 'true');
+        showApp(null);
+      });
+    }
+
     let isAuthInProgress = false;
 
-    // Auth Actions
+    // Expose auth functions to global scope immediately (function declarations are hoisted)
+    window.signInWithGoogle = signInWithGoogle;
+    window.signInWithEmail = signInWithEmail;
+    window.signUpWithEmail = signUpWithEmail;
+    window.showApp = showApp;
+    window.showLoginScreen = showLoginScreen;
+
+
     async function signInWithGoogle() {
       if (isAuthInProgress) return;
       isAuthInProgress = true;
+      let supaErrorMessage = '';
       try {
         clearErrors();
+        sessionStorage.removeItem('expense_cal_guest_mode');
+        localStorage.removeItem('expense_cal_guest_mode');
 
         // 1. Prefer Supabase if configured
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-          const { data, error } = await supabase.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: window.location.origin + window.location.pathname
+        const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+          try {
+            const redirectUrl = window.location.origin + window.location.pathname;
+            const { data, error } = await supaClient.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: redirectUrl,
+                skipBrowserRedirect: true,
+                queryParams: {
+                  prompt: 'select_account'
+                }
+              }
+            });
+            if (error) throw error;
+            if (data && data.url) {
+              window.location.href = data.url;
+              return;
             }
-          });
-          if (error) throw error;
-          return;
+          } catch (supaErr) {
+            console.warn('Supabase Google OAuth notice:', supaErr);
+            const msg = supaErr ? (supaErr.message || String(supaErr)) : '';
+            showError(loginError, `Supabase Google Auth Notice: ${msg || 'Google Provider is not enabled in Supabase Dashboard.'} Please use Email & Password or click Continue Offline (Guest Mode).`);
+            return;
+          }
         }
 
         // 2. Fallback to Firebase Auth
-        if (auth && auth.setPersistence) {
-          try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
+        if (typeof firebase !== 'undefined' && firebase.auth && auth) {
+          if (auth.setPersistence) {
+            try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
+          }
+          if (!googleProvider) {
+            googleProvider = new firebase.auth.GoogleAuthProvider();
+          }
+          if (googleProvider) {
+            googleProvider.setCustomParameters({ prompt: 'select_account' });
+            await auth.signInWithPopup(googleProvider);
+            return;
+          }
         }
 
-        googleProvider.setCustomParameters({ prompt: 'select_account' });
-        await auth.signInWithPopup(googleProvider);
+        // If both failed or unavailable, show detailed error message
+        const finalMsg = supaErrorMessage 
+          ? `Supabase Auth Error: ${supaErrorMessage}. (You can also continue in Guest Mode or Email Sign-In).`
+          : 'Google Sign-In is unavailable. Please check your internet connection, sign in with Email & Password, or continue in Guest Mode.';
+        showError(loginError, finalMsg);
       } catch (error) {
         console.error('Google Sign-In error:', error);
         const code = error ? (error.code || '') : '';
         const msg = error ? (error.message || '') : '';
 
         if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
-          showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase / Supabase Settings > Authorized Domains.');
+          showError(loginError, 'Domain Unauthorized: Please add http://localhost:58420 to Firebase Console -> Authentication -> Settings -> Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
-          showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
+          showError(loginError, 'Cookie Blocked: Third-party auth cookie was restricted. Please use Email Sign-In or Guest Mode.');
         } else if (code === 'auth/internal-error') {
-          showError(loginError, 'Google Authentication Error: Third-party login cookies are restricted by your browser. Please sign in with Email & Password.');
+          showError(loginError, 'Google Login Notice: Third-party auth cookies are restricted in desktop app mode. Please sign in with Email & Password or click Continue Offline (Guest Mode).');
+        } else if (code === 'auth/network-request-failed') {
+          showError(loginError, 'Network Error: Please check your internet connection or use Guest Mode.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-          showError(loginError, getAuthErrorMessage(error));
+          showError(loginError, getAuthErrorMessage(error) || msg);
         }
       } finally {
         isAuthInProgress = false;
@@ -172,8 +221,12 @@ if (isFirebaseConfigured && auth) {
             localStorage.setItem('expense_cal_user_gender_' + uid, gender);
             localStorage.setItem('expense_cal_show_welcome_' + uid, 'true');
             triggerWelcomeEmail(data.user, name);
-            hideLoader();
-            showApp(data.user);
+            if (data.session) {
+              hideLoader();
+              showApp(data.user);
+            } else {
+              showError(signupError, '🎉 Account created successfully! If email confirmation is enabled in your Supabase project, please confirm your email to sign in, or click Continue Offline (Guest Mode).');
+            }
           }
           return;
         }
@@ -188,14 +241,15 @@ if (isFirebaseConfigured && auth) {
               localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
             }
             localStorage.setItem('expense_cal_show_welcome_' + cred.user.uid, 'true');
-          triggerWelcomeEmail(cred.user, name);
-          if (db) {
-            try {
-              await db.collection('users').doc(cred.user.uid).set({
-                profile: { name, gender },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-              }, { merge: true });
-            } catch (e) {}
+            triggerWelcomeEmail(cred.user, name);
+            if (db) {
+              try {
+                await db.collection('users').doc(cred.user.uid).set({
+                  profile: { name, gender },
+                  lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
+                }, { merge: true });
+              } catch (e) {}
+            }
           }
         }
       } catch (error) {
@@ -206,103 +260,219 @@ if (isFirebaseConfigured && auth) {
 
     async function handleSignOut(e) {
       if (e) { e.preventDefault(); e.stopPropagation(); }
-      const ok = typeof showConfirm === 'function'
-        ? await showConfirm('Sign Out Confirmation', 'Are you sure you want to sign out of your Expense OS account?', false)
-        : window.confirm('Are you sure you want to sign out of your Expense OS account?');
-      if (!ok) return;
 
       try {
-        stopFirestoreSync();
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-          await supabase.auth.signOut();
+        sessionStorage.removeItem('expense_cal_guest_mode');
+        sessionStorage.clear();
+        localStorage.removeItem('expense_cal_redirect_pending');
+
+        if (typeof stopFirestoreSync === 'function') stopFirestoreSync();
+        if (typeof stopSupabaseSync === 'function') stopSupabaseSync();
+
+        const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+          try { await supaClient.auth.signOut(); } catch(err) {}
         }
         if (auth) {
-          await auth.signOut();
+          try { await auth.signOut(); } catch(err) {}
         }
-        showLoginScreen();
       } catch (error) {
         console.error('Sign out error:', error);
+      } finally {
+        showLoginScreen();
+        window.location.href = window.location.origin + window.location.pathname;
       }
     }
 
     function hideLoader() {
       const loader = document.getElementById('app-loader');
       if (loader) {
+        loader.classList.add('hidden');
         loader.style.opacity = '0';
         loader.style.visibility = 'hidden';
         loader.style.pointerEvents = 'none';
-        setTimeout(() => { loader.style.display = 'none'; }, 300);
+        loader.style.setProperty('display', 'none', 'important');
+        setTimeout(() => { 
+          if (loader && loader.parentNode) {
+            loader.parentNode.removeChild(loader);
+          }
+        }, 300);
       }
     }
 
-    // Safety timeout to prevent infinite loader hanging
-    setTimeout(hideLoader, 1500);
+    function getLoginScreen() {
+      return document.getElementById('login-screen');
+    }
+    function getAppLayout() {
+      return document.querySelector('.app-layout');
+    }
 
-    // Supabase Auth Session Observer
-    if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-      supabase.auth.getSession().then(({ data }) => {
+    function showLoginScreen() {
+      const ls = getLoginScreen();
+      const al = getAppLayout();
+      const loginCard = document.getElementById('login-card');
+      const signupCard = document.getElementById('signup-card');
+      if (ls) {
+        ls.classList.remove('hidden');
+        ls.style.setProperty('display', 'flex', 'important');
+        ls.style.setProperty('flex-direction', 'column', 'important');
+        ls.style.setProperty('justify-content', 'center', 'important');
+        ls.style.setProperty('align-items', 'center', 'important');
+        ls.style.setProperty('position', 'fixed', 'important');
+        ls.style.setProperty('top', '0', 'important');
+        ls.style.setProperty('left', '0', 'important');
+        ls.style.setProperty('width', '100vw', 'important');
+        ls.style.setProperty('height', '100vh', 'important');
+        ls.style.setProperty('background', '#050811', 'important');
+        ls.style.setProperty('z-index', '99999', 'important');
+        ls.style.opacity = '1';
+        ls.style.visibility = 'visible';
+      }
+      if (loginCard) {
+        loginCard.classList.remove('hidden');
+        loginCard.style.setProperty('display', 'block', 'important');
+        loginCard.style.opacity = '1';
+        loginCard.style.visibility = 'visible';
+      }
+      if (signupCard) {
+        signupCard.classList.add('hidden');
+        signupCard.style.setProperty('display', 'none', 'important');
+      }
+      if (al) {
+        al.classList.add('hidden');
+        al.style.setProperty('display', 'none', 'important');
+      }
+    }
+
+    // Safety timeouts and load listener to prevent infinite loader hanging
+    setTimeout(hideLoader, 300);
+    window.addEventListener('load', hideLoader);
+
+    // 1. OAuth Popup Callback Auto-Closer
+    if (window.opener && (window.location.hash.includes('access_token') || window.location.search.includes('code'))) {
+      try {
+        if (window.opener.location) {
+          window.opener.location.reload();
+        }
+      } catch(e) {}
+      window.close();
+    }
+
+    // 2. Unified Auth Observer Handler
+    async function evaluateAuthState() {
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token')) {
+        sessionStorage.removeItem('expense_cal_guest_mode');
+        localStorage.removeItem('expense_cal_guest_mode');
+      }
+
+      // Check Supabase Session
+      const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+      if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+        try {
+          const { data: { session } } = await supaClient.auth.getSession();
+          if (session && session.user) {
+            sessionStorage.removeItem('expense_cal_guest_mode');
+            hideLoader();
+            showApp(session.user);
+            return true;
+          }
+        } catch(e) {}
+      }
+
+      // Check Firebase Session
+      if (auth && auth.currentUser) {
+        sessionStorage.removeItem('expense_cal_guest_mode');
         hideLoader();
-        const session = data ? data.session : null;
+        showApp(auth.currentUser);
+        return true;
+      }
+
+      // If URL has OAuth tokens, wait for Supabase onAuthStateChange to finish parsing
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token')) {
+        return false;
+      }
+
+      // Check Guest Mode
+      const guestMode = sessionStorage.getItem('expense_cal_guest_mode');
+      if (guestMode === 'true') {
+        hideLoader();
+        showApp(null);
+        return true;
+      }
+
+      // Default to Login Screen if no active session
+      hideLoader();
+      showLoginScreen();
+      return false;
+    }
+
+    // Run Auth Evaluation on Startup
+    evaluateAuthState();
+
+    // Supabase Auth Listener
+    const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+    if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+      supaClient.auth.onAuthStateChange((event, session) => {
+        hideLoader();
         if (session && session.user) {
           showApp(session.user);
-        } else {
+        } else if (event === 'SIGNED_OUT') {
           showLoginScreen();
-        }
-      }).catch(() => {
-        hideLoader();
-        showLoginScreen();
-      });
-
-      supabase.auth.onAuthStateChange((event, session) => {
-        hideLoader();
-        if (session && session.user) {
-          showApp(session.user);
-        } else {
-          showLoginScreen();
-        }
-      });
-    } else if (auth) {
-      // Firebase Auth Observer (Fallback Mode)
-      auth.onAuthStateChanged((user) => {
-        hideLoader();
-        if (user) {
-          localStorage.removeItem('expense_cal_redirect_pending');
-          showApp(user);
-          startFirestoreSync(user.uid);
-        } else {
-          localStorage.removeItem('expense_cal_redirect_pending');
-          showLoginScreen();
-          stopFirestoreSync();
         }
       });
     }
+
+    // Firebase Auth Listener
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        if (user) {
+          hideLoader();
+          showApp(user);
+        } else {
+          // Only show login screen if Supabase is also not logged in
+          evaluateAuthState();
+        }
+      });
+    }
+
+    // Ultimate Safety Fallback: guarantee screen is NEVER blank
+    setTimeout(() => {
+      hideLoader();
+      const ls = getLoginScreen();
+      const al = getAppLayout();
+      if (al && al.classList.contains('hidden') && (!ls || ls.classList.contains('hidden'))) {
+        showLoginScreen();
+      }
+    }, 500);
+
 
     async function showApp(user) {
-      if (loginScreen) loginScreen.classList.add('hidden');
-      if (appLayout) appLayout.classList.remove('hidden');
-
-      const rawName = (user && (user.displayName || user.email)) ? (user.displayName || user.email.split('@')[0]) : 'User';
-      let gender = user ? localStorage.getItem('expense_cal_user_gender_' + user.uid) : null;
-
-      if (!gender && user && db) {
-        try {
-          const doc = await db.collection('users').doc(user.uid).get();
-          if (doc.exists && doc.data() && doc.data().profile) {
-            gender = doc.data().profile.gender;
-            if (gender) localStorage.setItem('expense_cal_user_gender_' + user.uid, gender);
-          }
-        } catch (e) {}
+      const ls = getLoginScreen();
+      const al = getAppLayout();
+      if (ls) {
+        ls.classList.add('hidden');
+        ls.style.display = 'none';
+      }
+      if (al) {
+        al.classList.remove('hidden');
+        al.style.display = 'flex';
       }
 
+      // 1. Synchronously render user details in Profile UI
+      const userId = user ? (user.id || user.uid) : null;
+      const userEmail = user ? (user.email || (user.user_metadata && user.user_metadata.email) || '') : '';
+      const userMeta = user ? (user.user_metadata || {}) : {};
+      const rawName = user ? (user.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : 'User')) : 'Guest User';
+      const userAvatar = user ? (user.photoURL || userMeta.avatar_url || userMeta.picture || null) : null;
+
+      let gender = userId ? localStorage.getItem('expense_cal_user_gender_' + userId) : null;
       let prefix = '';
-      let genderText = 'User Profile';
-      if (gender === 'male') { prefix = 'Mr. '; genderText = 'Male (Mr.)'; }
-      else if (gender === 'female') { prefix = 'Ms. '; genderText = 'Female (Ms.)'; }
+      let genderText = user ? 'Cloud Account' : 'Guest Mode';
+      if (gender === 'male') { prefix = 'Mr. '; }
+      else if (gender === 'female') { prefix = 'Ms. '; }
 
-      const fullName = `${prefix}${rawName}`;
-      const initial = rawName.charAt(0).toUpperCase() || 'U';
-
-
+      const fullName = user ? `${prefix}${rawName}` : 'Guest User';
+      const initial = user ? (rawName.charAt(0).toUpperCase() || 'U') : 'G';
 
       // Update Topbar Profile Avatar & Dropdown
       const topbarImg = document.getElementById('topbar-user-img');
@@ -312,8 +482,8 @@ if (isFirebaseConfigured && auth) {
       const dropEmail = document.getElementById('dropdown-user-email');
       const dropBadge = document.getElementById('dropdown-user-badge');
 
-      if (user && user.photoURL && topbarImg) {
-        topbarImg.src = user.photoURL;
+      if (userAvatar && topbarImg) {
+        topbarImg.src = userAvatar;
         topbarImg.classList.remove('hidden');
         if (topbarInitial) topbarInitial.classList.add('hidden');
       } else {
@@ -326,12 +496,54 @@ if (isFirebaseConfigured && auth) {
 
       if (dropInitial) dropInitial.textContent = initial;
       if (dropName) dropName.textContent = fullName;
-      if (dropEmail) dropEmail.textContent = (user && user.email) || 'Local Account';
+      if (dropEmail) dropEmail.textContent = userEmail || 'Offline / Local Mode';
       if (dropBadge) dropBadge.textContent = genderText;
+
+      // Update Auth Button in Dropdown (Sign Out vs Sign In / Sync)
+      const authIcon = document.getElementById('dropdown-auth-icon');
+      const authText = document.getElementById('dropdown-auth-text');
+      if (authIcon && authText) {
+        if (user) {
+          authIcon.className = 'fa-solid fa-right-from-bracket text-danger';
+          authText.textContent = 'Sign Out';
+        } else {
+          authIcon.className = 'fa-solid fa-right-to-bracket text-emerald';
+          authText.textContent = 'Sign In / Sync Account';
+        }
+      }
+
+      // 2. Trigger data loading & real-time sync for the logged-in user
+      if (userId) {
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase && typeof startSupabaseSync === 'function') {
+          startSupabaseSync(userId);
+        } else if (typeof startFirestoreSync === 'function') {
+          startFirestoreSync(userId);
+        } else if (typeof loadStateFromLocal === 'function') {
+          loadStateFromLocal();
+        }
+      } else if (typeof loadStateFromLocal === 'function') {
+        loadStateFromLocal();
+      }
+
+      // 3. Non-blocking optional gender fetch for Firebase accounts
+      if (!gender && user && typeof db !== 'undefined' && db && auth && auth.currentUser && userId) {
+        try {
+          const doc = await db.collection('users').doc(userId).get();
+          if (doc.exists && doc.data() && doc.data().profile) {
+            gender = doc.data().profile.gender;
+            if (gender) {
+              localStorage.setItem('expense_cal_user_gender_' + userId, gender);
+              if (dropName) dropName.textContent = `${gender === 'male' ? 'Mr. ' : (gender === 'female' ? 'Ms. ' : '')}${rawName}`;
+            }
+          }
+        } catch (e) {}
+      }
 
       const viewSubtitle = document.getElementById('view-subtitle');
       if (viewSubtitle) {
-        viewSubtitle.textContent = `Welcome back, ${fullName}! Real-time financial analytics & budget control`;
+        viewSubtitle.textContent = user
+          ? `Welcome back, ${fullName}! Real-time financial analytics & budget control`
+          : `Real-time financial analytics & budget control (Local Mode)`;
       }
 
       const hasSeenWelcome = (user && localStorage.getItem('expense_cal_seen_welcome_v2_' + user.uid)) || localStorage.getItem('expense_cal_seen_welcome_global');
@@ -350,37 +562,31 @@ if (isFirebaseConfigured && auth) {
       }
     }
 
-    // Topbar Profile Avatar Dropdown Toggle
-    const topbarProfileBtn = document.getElementById('btn-topbar-profile');
-    const userDropdownMenu = document.getElementById('user-dropdown-menu');
-
-    if (topbarProfileBtn && userDropdownMenu) {
-      topbarProfileBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        userDropdownMenu.classList.toggle('hidden');
-      });
-    }
-
     // Close dropdown on click outside
     document.addEventListener('click', (e) => {
       const dropdown = document.getElementById('user-dropdown-menu');
       const profileBtn = document.getElementById('btn-topbar-profile');
-      if (dropdown && !dropdown.classList.contains('hidden')) {
+      if (dropdown && !dropdown.classList.contains('hidden') && dropdown.style.display !== 'none') {
         if (profileBtn && profileBtn.contains(e.target)) return;
         if (!dropdown.contains(e.target)) {
           dropdown.classList.add('hidden');
+          dropdown.style.setProperty('display', 'none', 'important');
         }
       }
     });
 
-    // Dropdown Item Event Listeners
-    const btnDropdownLogout = document.getElementById('btn-dropdown-logout');
-    if (btnDropdownLogout) {
-      btnDropdownLogout.addEventListener('click', (e) => {
+    // Dropdown Item Event Listeners (Sign Out or Sign In)
+    const btnDropdownAuth = document.getElementById('btn-dropdown-auth') || document.getElementById('btn-dropdown-logout');
+    if (btnDropdownAuth) {
+      btnDropdownAuth.addEventListener('click', (e) => {
         e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
-        if (dropdown) dropdown.classList.add('hidden');
+        if (dropdown) {
+          dropdown.classList.add('hidden');
+          dropdown.style.setProperty('display', 'none', 'important');
+        }
+        
+        sessionStorage.removeItem('expense_cal_guest_mode');
         handleSignOut(e);
       });
     }
@@ -567,25 +773,4 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
-
   })();
-} else {
-  // Firebase not configured — run in offline/localStorage mode
-  (function offlineMode() {
-    const loader = document.getElementById('app-loader');
-    if (loader) {
-      loader.style.opacity = '0';
-      loader.style.visibility = 'hidden';
-      loader.style.pointerEvents = 'none';
-      loader.style.display = 'none';
-    }
-    const loginScreen = document.getElementById('login-screen');
-    const appLayout = document.querySelector('.app-layout');
-    if (loginScreen) loginScreen.classList.add('hidden');
-    if (appLayout) appLayout.classList.remove('hidden');
-
-    const syncStatus = document.getElementById('sync-status');
-    if (syncStatus) syncStatus.style.display = 'none';
-    window.setSyncStatus = function() {};
-  })();
-}

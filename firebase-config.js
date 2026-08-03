@@ -17,29 +17,37 @@ const firebaseConfig = {
 
 
 // Check if Firebase is properly configured
-const isFirebaseConfigured = firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_');
+const isFirebaseConfigured = typeof firebase !== 'undefined' && Boolean(firebaseConfig.apiKey && !firebaseConfig.apiKey.includes('YOUR_'));
+
+let auth = null;
+let db = null;
 
 if (isFirebaseConfigured) {
-  firebase.initializeApp(firebaseConfig);
   try {
-    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-  } catch (e) {
-    console.warn('Auth persistence set error:', e);
-  }
-
-  // Enable Firestore offline persistence
-  firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch((err) => {
-    if (err.code === 'failed-precondition') {
-      console.log('Firestore persistence: multiple tabs open.');
-    } else if (err.code === 'unimplemented') {
-      console.log('Firestore persistence: not supported.');
+    if (!firebase.apps || !firebase.apps.length) {
+      firebase.initializeApp(firebaseConfig);
     }
-  });
-}
+    try {
+      firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL);
+    } catch (e) {
+      console.warn('Auth persistence set error:', e);
+    }
 
-// Expose globals (null if not configured — app falls back to localStorage)
-const auth = isFirebaseConfigured ? firebase.auth() : null;
-const db = isFirebaseConfigured ? firebase.firestore() : null;
+    // Enable Firestore offline persistence
+    firebase.firestore().enablePersistence({ synchronizeTabs: true }).catch((err) => {
+      if (err.code === 'failed-precondition') {
+        console.log('Firestore persistence: multiple tabs open.');
+      } else if (err.code === 'unimplemented') {
+        console.log('Firestore persistence: not supported.');
+      }
+    });
+
+    auth = firebase.auth();
+    db = firebase.firestore();
+  } catch (err) {
+    console.warn('Firebase initialization warning:', err);
+  }
+}
 
 // EmailJS Configuration for Live Gmail Delivery
 const emailjsConfig = {

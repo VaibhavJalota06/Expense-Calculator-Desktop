@@ -2,6 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   isElectron: true,
+  openExternal: (url) => ipcRenderer.send('open-external-url', url),
   checkForUpdates: () => ipcRenderer.send('check-for-updates-now'),
   restartAndInstall: () => ipcRenderer.send('restart-and-install'),
   onUpdateStatus: (callback) => {
