@@ -1,0 +1,26 @@
+{
+  "name": "expense-os-mobile",
+  "version": "1.0.0",
+  "description": "Expense OS Mobile — Android & iOS Native / PWA Build",
+  "main": "index.html",
+  "scripts": {
+    "cap:init": "npx cap init ExpenseOS com.expenseos.app --web-dir=.",
+    "cap:add:android": "npx cap add android",
+    "cap:sync": "npx cap sync",
+    "cap:open:android": "npx cap open android"
+  },
+  "keywords": [
+    "expense",
+    "mobile",
+    "pwa",
+    "android",
+    "ios"
+  ],
+  "author": "Expense Cal",
+  "license": "ISC",
+  "dependencies": {
+    "@capacitor/android": "^8.5.0",
+    "@capacitor/cli": "^8.5.0",
+    "@capacitor/core": "^8.5.0"
+  }
+}

@@ -196,14 +196,6 @@ html, body {
   margin-bottom: 0.85rem;
   text-align: center;
 }
-.login-logo {
-  width: 52px;
-  height: 52px;
-  border-radius: 14px;
-  margin-bottom: 0.4rem;
-  box-shadow: 0 0 25px rgba(52, 211, 153, 0.25);
-  object-fit: cover;
-}
 .web-redirect-pill {
   display: inline-flex;
   align-items: center;
@@ -283,12 +275,34 @@ html, body {
   text-align: center !important;
   gap: 1.25rem !important;
 }
+/* Official High-Res Brand Logo Image Styling */
 .loader-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  box-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
-  animation: loader-pulse 2s ease-in-out infinite;
+  width: 84px !important;
+  height: 84px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 1.25rem auto !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  filter: drop-shadow(0 8px 25px rgba(52, 211, 153, 0.45)) !important;
+}
+
+.login-logo {
+  width: 76px !important;
+  height: 76px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 0.75rem auto !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  filter: drop-shadow(0 6px 22px rgba(52, 211, 153, 0.4)) !important;
+}
+
+.brand-logo-img {
+  width: 36px !important;
+  height: 36px !important;
+  object-fit: contain !important;
+  border-radius: 8px !important;
 }
 .loader-spinner {
   width: 32px;
@@ -1778,11 +1792,6 @@ select option {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-}
-.login-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 18px;
 }
 .login-title {
   font-size: 1.9rem;
