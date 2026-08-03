@@ -71,7 +71,10 @@
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
           try {
-            const redirectUrl = window.location.origin + window.location.pathname;
+            let redirectUrl = window.location.origin + window.location.pathname;
+            if (redirectUrl.includes(':3000')) {
+              redirectUrl = redirectUrl.replace(':3000', ':58420');
+            }
             const { data, error } = await supaClient.auth.signInWithOAuth({
               provider: 'google',
               options: {
