@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, shell, ipcMain } = require('electron');
+const { app, BrowserWindow, Menu, shell, ipcMain, session } = require('electron');
 const path = require('path');
 const http = require('http');
 const fs = require('fs');
@@ -49,8 +49,6 @@ cleanCorruptedCache();
 // Suppress Chromium GPU disk cache & quota database errors on Windows
 app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-gpu-program-cache');
-app.commandLine.appendSwitch('disable-http-cache');
-app.commandLine.appendSwitch('disable-background-networking');
 app.commandLine.appendSwitch('no-sandbox');
 
 
@@ -284,6 +282,12 @@ function createWindow(port) {
 }
 
 app.whenReady().then(() => {
+  if (session && session.defaultSession) {
+    session.defaultSession.setUserAgent(
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
+    );
+  }
+
   startLocalServer((port) => {
     createWindow(port);
   });

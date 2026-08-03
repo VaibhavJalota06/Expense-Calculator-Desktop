@@ -56,7 +56,7 @@ if (isFirebaseConfigured && auth) {
           await auth.signInWithPopup(googleProvider);
         } catch (popupErr) {
           const code = popupErr ? popupErr.code : '';
-          if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request') {
+          if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request' || code === 'auth/internal-error') {
             isRedirectPending = true;
             await auth.signInWithRedirect(googleProvider);
           } else {
