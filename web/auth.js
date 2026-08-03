@@ -52,12 +52,6 @@ if (isFirebaseConfigured && auth) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
         
-        const isDesktopApp = typeof window !== 'undefined' && window.electronAPI && window.electronAPI.isElectron;
-        if (isDesktopApp) {
-          showError(loginError, 'Google Sign-In is disabled by Google inside Desktop apps. Please sign in or create an account with Email & Password below.');
-          return;
-        }
-
         googleProvider.setCustomParameters({ prompt: 'select_account' });
         await auth.signInWithPopup(googleProvider);
       } catch (error) {

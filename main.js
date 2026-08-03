@@ -225,8 +225,9 @@ function createWindow(port) {
   // Security: Intercept top-level navigation attempts to external URLs
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     try {
+      const isAuthUrl = navigationUrl.includes('accounts.google.com') || navigationUrl.includes('firebaseapp.com');
       const parsedUrl = new URL(navigationUrl);
-      if (parsedUrl.origin !== `http://localhost:${port}`) {
+      if (!isAuthUrl && parsedUrl.origin !== `http://localhost:${port}`) {
         event.preventDefault();
         shell.openExternal(navigationUrl);
       }
