@@ -15,6 +15,10 @@
   <!-- Favicon and Icons -->
   <link rel="icon" type="image/png" href="icon.png?v=3.0.1" />
   <link rel="shortcut icon" href="icon.ico?v=3.0.1" />
+  <meta name="theme-color" content="#050811" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="manifest.json" />
   <!-- Custom Stylesheet (Cache Busted v3.1.3) -->
   <link rel="stylesheet" href="style.css?v=3.1.3" />
 </head>
@@ -718,5 +722,16 @@
   <script src="firebase-config.js?v=3.0.2"></script>
   <script src="script.js?v=3.0.2"></script>
   <script src="auth.js?v=3.0.2"></script>
+
+  <!-- Service Worker Registration for PWA / PWABuilder -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+          .then(reg => console.log('PWA Service Worker Registered:', reg.scope))
+          .catch(err => console.warn('Service Worker Notice:', err));
+      });
+    }
+  </script>
 </body>
 </html>
