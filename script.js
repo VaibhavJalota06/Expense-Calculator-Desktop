@@ -322,26 +322,32 @@ function loadState() {
 
 function startSupabaseSync(userId) {
   currentUserId = userId;
-  if (!supabase) { loadStateFromLocal(); return; }
+  const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+  if (!supaClient) { loadStateFromLocal(); return; }
   if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
 
-  supabase.from('user_data').select('*').eq('user_id', userId).single()
+  supaClient.from('user_data').select('*').eq('user_id', userId).single()
     .then(({ data, error }) => {
       if (data) {
         budget = typeof data.budget === 'number' ? data.budget : 0;
         expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
         subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
       } else {
-        supabase.from('user_data').insert({
+        // If first cloud sync, preserve existing local state
+        loadStateFromLocal();
+        supaClient.from('user_data').upsert({
           user_id: userId,
-          budget: 0,
-          expenses: [],
-          subscriptions: []
-        }).catch(e => {});
+          budget: budget,
+          expenses: expenses,
+          subscriptions: subscriptions,
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'user_id' }).catch(e => {});
       }
-      localStorage.setItem('expense_cal_web_budget', budget.toString());
-      localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
-      localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+      try {
+        localStorage.setItem('expense_cal_web_budget', budget.toString());
+        localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
+        localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+      } catch(e) {}
       updateMonthPickerOptions();
       updateUI();
       if (typeof setSyncStatus === 'function') setSyncStatus('synced');
@@ -351,7 +357,8 @@ function startSupabaseSync(userId) {
     });
 
   try {
-    supabaseChannel = supabase.channel('user_data_changes_' + userId)
+    if (supabaseChannel) supaClient.removeChannel(supabaseChannel);
+    supabaseChannel = supaClient.channel('user_data_changes_' + userId)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'user_data', filter: `user_id=eq.${userId}` }, payload => {
         if (payload.new) {
           const data = payload.new;
@@ -360,17 +367,22 @@ function startSupabaseSync(userId) {
           subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
           updateMonthPickerOptions();
           updateUI();
+          if (typeof setSyncStatus === 'function') setSyncStatus('synced');
         }
       }).subscribe();
   } catch (e) {}
 }
 
 function stopSupabaseSync() {
-  if (supabaseChannel && supabase) {
-    try { supabase.removeChannel(supabaseChannel); } catch(e) {}
+  const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+  if (supabaseChannel && supaClient) {
+    try { supaClient.removeChannel(supabaseChannel); } catch(e) {}
     supabaseChannel = null;
   }
 }
+
+window.startSupabaseSync = startSupabaseSync;
+window.stopSupabaseSync = stopSupabaseSync;
 
 function startFirestoreSync(userId) {
   currentUserId = userId;
