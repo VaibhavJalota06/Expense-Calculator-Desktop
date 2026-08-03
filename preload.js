@@ -5,6 +5,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   checkForUpdates: () => ipcRenderer.send('check-for-updates-now'),
   restartAndInstall: () => ipcRenderer.send('restart-and-install'),
   onUpdateStatus: (callback) => {
+    ipcRenderer.removeAllListeners('auto-updater-status');
     ipcRenderer.on('auto-updater-status', (_event, data) => callback(data));
   }
 });

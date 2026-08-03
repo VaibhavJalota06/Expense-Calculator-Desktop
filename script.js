@@ -1029,7 +1029,7 @@ function renderMonthlyTrendChart() {
         scales: {
           x: {
             grid: { display: false },
-            ticks: { color: '#A6B0C3', font: { family: 'Plus Jakarta Sans', size: 11, weight: '600' } }
+            ticks: { color: '#A6B0C3', font: { family: 'Poppins', size: 11, weight: '600' } }
           },
           y: {
             grid: { color: 'rgba(255, 255, 255, 0.05)' },
@@ -1255,7 +1255,7 @@ function handleSaveBudget(e) {
   budget = newBudget;
   saveState();
   updateUI();
-  closeModal();
+  closeModal(budgetModal);
 }
 
 if (modalBudgetInput) {
@@ -1314,7 +1314,7 @@ if (subForm) {
     subscriptions.push(newSub);
     saveState();
     updateUI();
-    closeModal();
+    closeModal(subModal);
   });
 }
 
@@ -1509,7 +1509,7 @@ const tourSteps = [
   },
   {
     view: 'dashboard',
-    target: '#exp-form',
+    target: '#expense-form',
     title: '💸 Step 2: Log Daily Expenses',
     msg: 'Quickly log daily purchases, groceries, and shopping items here with instant categorization and automatic calculations.'
   },
@@ -1663,7 +1663,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.7';
+const CURRENT_APP_VERSION = 'v2.3.8';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');
@@ -1728,7 +1728,21 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
       }
     }
 
-    if (latestTag && latestTag !== CURRENT_APP_VERSION && latestTag > CURRENT_APP_VERSION) {
+    function isNewerVersion(latest, current) {
+      if (!latest || !current) return false;
+      const clean = v => v.replace(/^v/i, '').split('.').map(n => parseInt(n, 10) || 0);
+      const l = clean(latest);
+      const c = clean(current);
+      for (let i = 0; i < Math.max(l.length, c.length); i++) {
+        const numL = l[i] || 0;
+        const numC = c[i] || 0;
+        if (numL > numC) return true;
+        if (numL < numC) return false;
+      }
+      return false;
+    }
+
+    if (latestTag && isNewerVersion(latestTag, CURRENT_APP_VERSION)) {
       window.showUpdateToast('🎉 Update Available (' + latestTag + ')', `A new version (${latestTag}) of Expense OS is available!`, true);
     } else if (manual) {
       window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);

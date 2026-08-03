@@ -40,8 +40,6 @@ if (isFirebaseConfigured && auth) {
       });
     }
 
-    const isMobileBrowser = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-
     let isAuthInProgress = false;
 
     // Auth Actions
@@ -342,7 +340,7 @@ if (isFirebaseConfigured && auth) {
         e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) dropdown.classList.add('hidden');
-        
+
         const modal = document.getElementById('edit-profile-modal');
         const nameInput = document.getElementById('edit-profile-name');
         const genderSelect = document.getElementById('edit-profile-gender');
@@ -483,56 +481,6 @@ if (isFirebaseConfigured && auth) {
       syncStatusEl.innerHTML = `<i class="fa-solid ${s.icon}"></i> ${s.text}`;
     };
 
-
-    // Quick Master Admin Demo Login Handler
-    async function handleAdminLogin() {
-      // Credentials obfuscated to prevent plain-text source code exposure
-      const _d = atob;
-      const adminEmail = _d('YWRtaW5AZXhwZW5zZW9zLmNvbQ==');
-      const adminPass = _d('QWRtaW5AMjAyNg==');
-      const adminName = 'Master Admin';
-
-      if (!isFirebaseConfigured || !auth) {
-        hideLoader();
-        localStorage.setItem('expense_cal_user_gender_admin', 'male');
-        showApp({ uid: 'admin_master', displayName: adminName, email: adminEmail, photoURL: '' });
-        if (typeof loadStateFromLocal === 'function') loadStateFromLocal();
-        return;
-      }
-
-      try {
-        clearErrors();
-        if (loginEmailInput) loginEmailInput.value = adminEmail;
-        if (loginPasswordInput) loginPasswordInput.value = '••••••••';
-
-        try {
-          await auth.signInWithEmailAndPassword(adminEmail, adminPass);
-        } catch (signInErr) {
-          if (signInErr.code === 'auth/user-not-found' || signInErr.code === 'auth/invalid-credential') {
-            const cred = await auth.createUserWithEmailAndPassword(adminEmail, adminPass);
-            if (cred && cred.user) {
-              await cred.user.updateProfile({ displayName: adminName });
-              if (db) {
-                await db.collection('users').doc(cred.user.uid).set({
-                  profile: { name: adminName, gender: 'male', role: 'admin' },
-                  lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-              }
-            }
-          } else {
-            throw signInErr;
-          }
-        }
-      } catch (err) {
-        console.error('Admin Login error:', err);
-        showError(loginError, getAuthErrorMessage(err));
-      }
-    }
-
-    const btnAdminLogin = document.getElementById('btn-admin-login');
-    if (btnAdminLogin) {
-      btnAdminLogin.addEventListener('click', handleAdminLogin);
-    }
 
 
     // Event Listeners

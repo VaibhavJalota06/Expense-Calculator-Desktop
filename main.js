@@ -162,6 +162,9 @@ const server = http.createServer((req, res) => {
     } else {
       res.writeHead(200, {
         'Content-Type': contentType,
+        'X-Content-Type-Options': 'nosniff',
+        'X-Frame-Options': 'DENY',
+        'Referrer-Policy': 'strict-origin-when-cross-origin',
         'Cross-Origin-Opener-Policy': 'same-origin-allow-popups',
         'Cross-Origin-Embedder-Policy': 'unsafe-none'
       });
@@ -201,12 +204,26 @@ function createWindow(port) {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webSecurity: true,
     },
     show: false,
   });
 
   // Set Chrome User-Agent so Google Auth popups inside Electron operate smoothly
   mainWindow.webContents.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+
+  // Security: Intercept top-level navigation attempts to external URLs
+  mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
+    try {
+      const parsedUrl = new URL(navigationUrl);
+      if (parsedUrl.origin !== `http://localhost:${port}`) {
+        event.preventDefault();
+        shell.openExternal(navigationUrl);
+      }
+    } catch (e) {
+      event.preventDefault();
+    }
+  });
 
   // Handle external link navigation vs Google Auth popups
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -221,6 +238,7 @@ function createWindow(port) {
           webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
+            webSecurity: true,
           }
         }
       };
