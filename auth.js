@@ -58,6 +58,7 @@ if (isFirebaseConfigured && auth) {
           return;
         }
 
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
         await auth.signInWithPopup(googleProvider);
       } catch (error) {
         console.error('Google Sign-In error:', error);
@@ -69,7 +70,7 @@ if (isFirebaseConfigured && auth) {
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
         } else if (code === 'auth/internal-error') {
-          showError(loginError, 'Google popup authentication error. Please sign in with Email & Password.');
+          showError(loginError, 'Google Authentication Error: Third-party login cookies are restricted by your browser. Please sign in with Email & Password.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
