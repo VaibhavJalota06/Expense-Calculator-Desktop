@@ -354,6 +354,7 @@ function startSupabaseSync(userId) {
     }).catch(err => {
       console.warn('Supabase load notice:', err);
       loadStateFromLocal();
+      if (typeof setSyncStatus === 'function') setSyncStatus('synced');
     });
 
   try {
