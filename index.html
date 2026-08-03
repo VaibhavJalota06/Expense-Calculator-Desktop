@@ -713,15 +713,19 @@
   <!-- Chart.js CDN -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Firebase SDK (compat for vanilla JS) -->
+  <!-- Supabase JS Client CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- Firebase SDK (compat for fallback mode) -->
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
 
   <!-- App Scripts (order matters) -->
+  <script src="supabase-config.js?v=4.0.0"></script>
   <script src="firebase-config.js?v=3.0.2"></script>
-  <script src="script.js?v=3.0.2"></script>
-  <script src="auth.js?v=3.0.2"></script>
+  <script src="script.js?v=4.0.0"></script>
+  <script src="auth.js?v=4.0.0"></script>
 
   <!-- Service Worker Registration for PWA / PWABuilder -->
   <script>

@@ -48,10 +48,24 @@ if (isFirebaseConfigured && auth) {
       isAuthInProgress = true;
       try {
         clearErrors();
+
+        // 1. Prefer Supabase if configured
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+          const { data, error } = await supabase.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin + window.location.pathname
+            }
+          });
+          if (error) throw error;
+          return;
+        }
+
+        // 2. Fallback to Firebase Auth
         if (auth && auth.setPersistence) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
-        
+
         googleProvider.setCustomParameters({ prompt: 'select_account' });
         await auth.signInWithPopup(googleProvider);
       } catch (error) {
@@ -60,7 +74,7 @@ if (isFirebaseConfigured && auth) {
         const msg = error ? (error.message || '') : '';
 
         if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
-          showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase Console > Authentication > Settings > Authorized Domains.');
+          showError(loginError, 'Domain Unauthorized: Please add this domain to Firebase / Supabase Settings > Authorized Domains.');
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
         } else if (code === 'auth/internal-error') {
@@ -76,7 +90,20 @@ if (isFirebaseConfigured && auth) {
     async function signInWithEmail(email, password) {
       try {
         clearErrors();
-        await auth.signInWithEmailAndPassword(email, password);
+
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          if (data && data.user) {
+            hideLoader();
+            showApp(data.user);
+          }
+          return;
+        }
+
+        if (auth) {
+          await auth.signInWithEmailAndPassword(email, password);
+        }
       } catch (error) {
         console.error('Email Sign-In error:', error);
         showError(loginError, getAuthErrorMessage(error));
@@ -85,11 +112,12 @@ if (isFirebaseConfigured && auth) {
 
     async function triggerWelcomeEmail(user, name) {
       if (!user || !user.email) return;
-      const key = 'expense_cal_welcome_email_sent_' + user.uid;
+      const uid = user.uid || user.id || 'user';
+      const key = 'expense_cal_welcome_email_sent_' + uid;
       if (localStorage.getItem(key)) return;
       localStorage.setItem(key, 'true');
 
-      const recipientName = name || user.displayName || user.email.split('@')[0] || 'User';
+      const recipientName = name || user.displayName || (user.user_metadata && user.user_metadata.display_name) || user.email.split('@')[0] || 'User';
 
       // Automated Live Delivery via EmailJS directly to Gmail
       if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
@@ -129,15 +157,37 @@ if (isFirebaseConfigured && auth) {
     async function signUpWithEmail(name, gender, email, password) {
       try {
         clearErrors();
-        const cred = await auth.createUserWithEmailAndPassword(email, password);
-        if (cred && cred.user) {
-          if (name) {
-            try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
+
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+          const { data, error } = await supabase.auth.signUp({
+            email,
+            password,
+            options: {
+              data: { display_name: name, gender: gender }
+            }
+          });
+          if (error) throw error;
+          if (data && data.user) {
+            const uid = data.user.id;
+            localStorage.setItem('expense_cal_user_gender_' + uid, gender);
+            localStorage.setItem('expense_cal_show_welcome_' + uid, 'true');
+            triggerWelcomeEmail(data.user, name);
+            hideLoader();
+            showApp(data.user);
           }
-          if (gender) {
-            localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
-          }
-          localStorage.setItem('expense_cal_show_welcome_' + cred.user.uid, 'true');
+          return;
+        }
+
+        if (auth) {
+          const cred = await auth.createUserWithEmailAndPassword(email, password);
+          if (cred && cred.user) {
+            if (name) {
+              try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
+            }
+            if (gender) {
+              localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
+            }
+            localStorage.setItem('expense_cal_show_welcome_' + cred.user.uid, 'true');
           triggerWelcomeEmail(cred.user, name);
           if (db) {
             try {
@@ -163,28 +213,16 @@ if (isFirebaseConfigured && auth) {
 
       try {
         stopFirestoreSync();
-        await auth.signOut();
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+          await supabase.auth.signOut();
+        }
+        if (auth) {
+          await auth.signOut();
+        }
+        showLoginScreen();
       } catch (error) {
         console.error('Sign out error:', error);
       }
-    }
-
-    // Handle Mobile/Web OAuth Redirect Result
-    if (auth && auth.getRedirectResult) {
-      auth.getRedirectResult().then((result) => {
-        localStorage.removeItem('expense_cal_redirect_pending');
-        if (result && result.user) {
-          hideLoader();
-          showApp(result.user);
-          startFirestoreSync(result.user.uid);
-        }
-      }).catch((error) => {
-        localStorage.removeItem('expense_cal_redirect_pending');
-        console.warn('Redirect result handled:', error);
-        if (error && error.code && error.code !== 'auth/popup-closed-by-user') {
-          showError(loginError, getAuthErrorMessage(error));
-        }
-      });
     }
 
     function hideLoader() {
@@ -200,19 +238,42 @@ if (isFirebaseConfigured && auth) {
     // Safety timeout to prevent infinite loader hanging
     setTimeout(hideLoader, 1500);
 
-    // Auth State Observer
-    auth.onAuthStateChanged((user) => {
-      hideLoader();
-      if (user) {
-        localStorage.removeItem('expense_cal_redirect_pending');
-        showApp(user);
-        startFirestoreSync(user.uid);
-      } else {
-        localStorage.removeItem('expense_cal_redirect_pending');
-        showLoginScreen();
-        stopFirestoreSync();
-      }
-    });
+    // Supabase Auth Session Observer
+    if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        hideLoader();
+        if (session && session.user) {
+          showApp(session.user);
+        } else if (!auth) {
+          showLoginScreen();
+        }
+      });
+
+      supabase.auth.onAuthStateChange((event, session) => {
+        hideLoader();
+        if (session && session.user) {
+          showApp(session.user);
+        } else if (!auth || !auth.currentUser) {
+          showLoginScreen();
+        }
+      });
+    }
+
+    // Firebase Auth Observer (Fallback Mode)
+    if (auth) {
+      auth.onAuthStateChanged((user) => {
+        hideLoader();
+        if (user) {
+          localStorage.removeItem('expense_cal_redirect_pending');
+          showApp(user);
+          startFirestoreSync(user.uid);
+        } else if (typeof isSupabaseConfigured === 'undefined' || !isSupabaseConfigured || !supabase) {
+          localStorage.removeItem('expense_cal_redirect_pending');
+          showLoginScreen();
+          stopFirestoreSync();
+        }
+      });
+    }
 
     async function showApp(user) {
       if (loginScreen) loginScreen.classList.add('hidden');
