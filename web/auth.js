@@ -240,34 +240,36 @@ if (isFirebaseConfigured && auth) {
 
     // Supabase Auth Session Observer
     if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-      supabase.auth.getSession().then(({ data: { session } }) => {
+      supabase.auth.getSession().then(({ data }) => {
         hideLoader();
+        const session = data ? data.session : null;
         if (session && session.user) {
           showApp(session.user);
-        } else if (!auth) {
+        } else {
           showLoginScreen();
         }
+      }).catch(() => {
+        hideLoader();
+        showLoginScreen();
       });
 
       supabase.auth.onAuthStateChange((event, session) => {
         hideLoader();
         if (session && session.user) {
           showApp(session.user);
-        } else if (!auth || !auth.currentUser) {
+        } else {
           showLoginScreen();
         }
       });
-    }
-
-    // Firebase Auth Observer (Fallback Mode)
-    if (auth) {
+    } else if (auth) {
+      // Firebase Auth Observer (Fallback Mode)
       auth.onAuthStateChanged((user) => {
         hideLoader();
         if (user) {
           localStorage.removeItem('expense_cal_redirect_pending');
           showApp(user);
           startFirestoreSync(user.uid);
-        } else if (typeof isSupabaseConfigured === 'undefined' || !isSupabaseConfigured || !supabase) {
+        } else {
           localStorage.removeItem('expense_cal_redirect_pending');
           showLoginScreen();
           stopFirestoreSync();
