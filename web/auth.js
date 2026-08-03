@@ -52,21 +52,9 @@ if (isFirebaseConfigured && auth) {
           try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
         }
         
-        try {
-          await auth.signInWithPopup(googleProvider);
-        } catch (popupErr) {
-          const code = popupErr ? popupErr.code : '';
-          if (code === 'auth/popup-blocked' || code === 'auth/cancelled-popup-request' || code === 'auth/internal-error') {
-            isRedirectPending = true;
-            localStorage.setItem('expense_cal_redirect_pending', 'true');
-            await auth.signInWithRedirect(googleProvider);
-          } else {
-            throw popupErr;
-          }
-        }
+        await auth.signInWithPopup(googleProvider);
       } catch (error) {
         console.error('Google Sign-In error:', error);
-        isRedirectPending = false;
         const code = error ? (error.code || '') : '';
         const msg = error ? (error.message || '') : '';
 
@@ -75,7 +63,7 @@ if (isFirebaseConfigured && auth) {
         } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
           showError(loginError, 'Safari Privacy Restriction: Apple Safari blocked Google cross-site login cookies. Please sign in with Email.');
         } else if (code === 'auth/internal-error') {
-          showError(loginError, 'Authentication error: Please try signing in with Email/Password or check your network connection.');
+          showError(loginError, 'Google popup authentication error. Please ensure popups are allowed or sign in with Email/Password.');
         } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
           showError(loginError, getAuthErrorMessage(error));
         }
