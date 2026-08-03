@@ -182,12 +182,18 @@ html, body {
   gap: 1.2rem;
 }
 .loader-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(52, 211, 153, 0.25);
-  animation: pulse-logo 2s infinite ease-in-out;
-  object-fit: cover;
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 1.25rem auto !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+  filter: drop-shadow(0 8px 25px rgba(52, 211, 153, 0.45)) !important;
+  animation: pulse-logo 2s infinite ease-in-out !important;
 }
 .login-brand {
   display: flex;
@@ -282,13 +288,6 @@ html, body {
   justify-content: center !important;
   text-align: center !important;
   gap: 1.25rem !important;
-}
-.loader-logo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  box-shadow: 0 0 30px rgba(52, 211, 153, 0.3);
-  animation: loader-pulse 2s ease-in-out infinite;
 }
 .loader-spinner {
   width: 32px;
@@ -2961,18 +2960,6 @@ input, textarea, select, .tx-table, .tx-card, .tx-details, .modal-card {
 * {
   scrollbar-width: none !important;
   -ms-overflow-style: none !important;
-}
-
-/* Official High-Res Brand Logo Image Styling */
-.loader-logo {
-  width: 90px !important;
-  height: 90px !important;
-  object-fit: contain !important;
-  display: block !important;
-  margin: 0 auto 1.25rem auto !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  filter: drop-shadow(0 8px 25px rgba(52, 211, 153, 0.45)) !important;
 }
 
 .login-logo {

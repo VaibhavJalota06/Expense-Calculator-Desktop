@@ -182,12 +182,18 @@ html, body {
   gap: 1.2rem;
 }
 .loader-logo {
-  width: 64px;
-  height: 64px;
-  border-radius: 16px;
-  box-shadow: 0 0 30px rgba(52, 211, 153, 0.25);
-  animation: pulse-logo 2s infinite ease-in-out;
-  object-fit: cover;
+  width: 80px !important;
+  height: 80px !important;
+  object-fit: contain !important;
+  display: block !important;
+  margin: 0 auto 1.25rem auto !important;
+  background: transparent !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+  filter: drop-shadow(0 8px 25px rgba(52, 211, 153, 0.45)) !important;
+  animation: pulse-logo 2s infinite ease-in-out !important;
 }
 .login-brand {
   display: flex;
@@ -274,17 +280,6 @@ html, body {
   justify-content: center !important;
   text-align: center !important;
   gap: 1.25rem !important;
-}
-/* Official High-Res Brand Logo Image Styling */
-.loader-logo {
-  width: 84px !important;
-  height: 84px !important;
-  object-fit: contain !important;
-  display: block !important;
-  margin: 0 auto 1.25rem auto !important;
-  background: transparent !important;
-  border-radius: 0 !important;
-  filter: drop-shadow(0 8px 25px rgba(52, 211, 153, 0.45)) !important;
 }
 
 .login-logo {
