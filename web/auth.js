@@ -60,6 +60,8 @@
     window.closeSignOutModal = closeSignOutModal;
     window.confirmSignOut = confirmSignOut;
     window.handleAdminLoginClick = handleAdminLoginClick;
+    window.handleSignInSubmit = handleSignInSubmit;
+    window.handleSignUpSubmit = handleSignUpSubmit;
     window.showWelcomeModal = function() {
       const modal = document.getElementById('welcome-modal');
       if (modal) modal.classList.remove('hidden');
@@ -110,6 +112,59 @@
       } finally {
         isAuthInProgress = false;
       }
+    }
+
+    function handleSignInSubmit(e) {
+      if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+      const errEl = document.getElementById('login-error');
+
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passInput ? passInput.value : '';
+
+      if (!email || !password) {
+        if (errEl) {
+          errEl.textContent = 'Please fill in all fields (Email and Password).';
+          errEl.classList.remove('hidden');
+        }
+        return false;
+      }
+
+      signInWithEmail(email, password);
+      return false;
+    }
+
+    function handleSignUpSubmit(e) {
+      if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+      const nameInput = document.getElementById('signup-name');
+      const genderSelect = document.getElementById('signup-gender');
+      const emailInput = document.getElementById('signup-email');
+      const passInput = document.getElementById('signup-password');
+      const confirmInput = document.getElementById('signup-confirm-password');
+      const errEl = document.getElementById('signup-error');
+
+      const name = nameInput ? nameInput.value.trim() : '';
+      const gender = genderSelect ? genderSelect.value : 'male';
+      const email = emailInput ? emailInput.value.trim() : '';
+      const password = passInput ? passInput.value : '';
+      const confirm = confirmInput ? confirmInput.value : '';
+
+      if (!name || !email || !password || !confirm) {
+        if (errEl) { errEl.textContent = 'Please fill in all fields.'; errEl.classList.remove('hidden'); }
+        return false;
+      }
+      if (password !== confirm) {
+        if (errEl) { errEl.textContent = 'Passwords do not match.'; errEl.classList.remove('hidden'); }
+        return false;
+      }
+      if (password.length < 6) {
+        if (errEl) { errEl.textContent = 'Password must be at least 6 characters.'; errEl.classList.remove('hidden'); }
+        return false;
+      }
+
+      signUpWithEmail(name, gender, email, password);
+      return false;
     }
 
     function handleAdminLoginClick(e) {

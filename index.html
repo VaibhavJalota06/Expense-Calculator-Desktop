@@ -137,7 +137,7 @@
 
         <div class="auth-divider"><span>or sign in with email</span></div>
 
-        <form id="login-form">
+        <form id="login-form" onsubmit="if(window.handleSignInSubmit){window.handleSignInSubmit(event);}return false;">
           <div class="form-group">
             <label for="login-email">Email</label>
             <input type="email" id="login-email" placeholder="you@example.com" required />
@@ -152,7 +152,7 @@
             </div>
           </div>
           <div id="login-error" class="auth-error hidden"></div>
-          <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+          <button type="submit" class="btn btn-primary btn-block" onclick="if(window.handleSignInSubmit){window.handleSignInSubmit(event);}">Sign In</button>
         </form>
 
         <p class="auth-switch">Don't have an account? <a href="#" id="btn-show-signup" onclick="if(window.handleShowSignupClick)window.handleShowSignupClick(event);">Create one</a></p>
@@ -174,7 +174,7 @@
 
         <div class="auth-divider"><span>or sign up with email</span></div>
 
-        <form id="signup-form">
+        <form id="signup-form" onsubmit="if(window.handleSignUpSubmit){window.handleSignUpSubmit(event);}return false;">
           <div class="form-group">
             <label for="signup-name">Full Name</label>
             <input type="text" id="signup-name" placeholder="Alex Smith" required />
@@ -211,7 +211,7 @@
             <small class="form-hint">Min. 6 characters</small>
           </div>
           <div id="signup-error" class="auth-error hidden"></div>
-          <button type="submit" class="btn btn-primary btn-block">Create Account</button>
+          <button type="submit" class="btn btn-primary btn-block" onclick="if(window.handleSignUpSubmit){window.handleSignUpSubmit(event);}">Create Account</button>
         </form>
 
         <p class="auth-switch">Already have an account? <a href="#" id="btn-show-login" onclick="if(window.handleShowLoginClick)window.handleShowLoginClick(event);">Sign in</a></p>
