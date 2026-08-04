@@ -1687,23 +1687,54 @@ function renderTourStep(stepIdx) {
     const targetEl = document.querySelector(step.target);
     if (targetEl) {
       targetEl.classList.add('tour-highlight');
-      try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' }); } catch(e) {}
+      try { targetEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' }); } catch(e) {}
 
       const rect = targetEl.getBoundingClientRect();
-      const cardWidth = 340;
-      let top = rect.bottom + 12;
-      let left = Math.max(16, rect.left + (rect.width / 2) - (cardWidth / 2));
+      const cardWidth = Math.min(340, window.innerWidth - 32);
+      const cardHeight = tourCard.offsetHeight || 220;
+      const vpWidth = window.innerWidth;
+      const vpHeight = window.innerHeight;
 
-      if (left + cardWidth > window.innerWidth) left = window.innerWidth - cardWidth - 20;
-      if (top + 200 > window.innerHeight) top = Math.max(20, rect.top - 180);
+      let top = 0;
+      let left = 0;
 
-      tourCard.style.top = `${Math.max(20, top)}px`;
-      tourCard.style.left = `${Math.max(16, left)}px`;
+      // 1. Prefer placing card below target
+      if (rect.bottom + cardHeight + 16 <= vpHeight) {
+        top = rect.bottom + 12;
+        left = rect.left + (rect.width / 2) - (cardWidth / 2);
+      }
+      // 2. Otherwise place card above target
+      else if (rect.top - cardHeight - 16 >= 0) {
+        top = rect.top - cardHeight - 12;
+        left = rect.left + (rect.width / 2) - (cardWidth / 2);
+      }
+      // 3. Otherwise place card to the right of target
+      else if (rect.right + cardWidth + 16 <= vpWidth) {
+        top = rect.top + (rect.height / 2) - (cardHeight / 2);
+        left = rect.right + 12;
+      }
+      // 4. Otherwise place card to the left of target
+      else if (rect.left - cardWidth - 16 >= 0) {
+        top = rect.top + (rect.height / 2) - (cardHeight / 2);
+        left = rect.left - cardWidth - 12;
+      }
+      // 5. Fallback: Position with safe margin
+      else {
+        top = rect.top > vpHeight / 2 ? Math.max(16, rect.top - cardHeight - 12) : rect.bottom + 12;
+        left = rect.left + (rect.width / 2) - (cardWidth / 2);
+      }
+
+      // Clamp within viewport boundaries
+      left = Math.max(16, Math.min(vpWidth - cardWidth - 16, left));
+      top = Math.max(16, Math.min(vpHeight - cardHeight - 16, top));
+
+      tourCard.style.top = `${top}px`;
+      tourCard.style.left = `${left}px`;
     } else {
       tourCard.style.top = '30%';
       tourCard.style.left = '50%';
     }
-  }, 50);
+  }, 60);
 }
 
 function startGuidedTour() {
@@ -1765,7 +1796,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.5.1';
+const CURRENT_APP_VERSION = 'v2.5.2';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');
