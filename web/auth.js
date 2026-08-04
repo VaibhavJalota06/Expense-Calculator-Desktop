@@ -769,55 +769,74 @@
       const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
       if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
         try {
-          const { data: { session } } = await supaClient.auth.getSession();
-          if (session && session.user) return session.user;
+          const sessionPromise = supaClient.auth.getSession();
+          const timeoutPromise = new Promise(resolve => setTimeout(() => resolve({ data: {} }), 500));
+          const res = await Promise.race([sessionPromise, timeoutPromise]);
+          if (res && res.data && res.data.session && res.data.session.user) return res.data.session.user;
         } catch(e) {}
       }
+      try {
+        const adminSession = localStorage.getItem('expense_cal_admin_session');
+        if (adminSession) { const u = JSON.parse(adminSession); if (u) return u; }
+      } catch(e) {}
+      try {
+        const userSession = localStorage.getItem('expense_cal_user_session');
+        if (userSession) { const u = JSON.parse(userSession); if (u) return u; }
+      } catch(e) {}
       return null;
     }
 
+    async function openEditProfileModal(e) {
+      if (e) { e.preventDefault(); e.stopPropagation(); }
+      const dropdown = document.getElementById('user-dropdown-menu');
+      if (dropdown) dropdown.classList.add('hidden');
+
+      const modal = document.getElementById('edit-profile-modal');
+      const nameInput = document.getElementById('edit-profile-name');
+      const genderSelect = document.getElementById('edit-profile-gender');
+      const emailInput = document.getElementById('edit-profile-email');
+
+      const currentUser = await getAppUser();
+      const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
+      const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
+      const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
+      let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
+
+      if (!currentName) {
+        const dropName = document.getElementById('dropdown-user-name');
+        if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
+      }
+      const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
+
+      if (nameInput) nameInput.value = currentName;
+      if (genderSelect) genderSelect.value = currentGender;
+      if (emailInput) emailInput.value = userEmail || 'Local Mode';
+
+      // Populate EmailJS fields if saved
+      const serviceInput = document.getElementById('edit-emailjs-service');
+      const templateInput = document.getElementById('edit-emailjs-template');
+      const keyInput = document.getElementById('edit-emailjs-key');
+      try {
+        const savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
+        const activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
+        if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
+        if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
+        if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
+      } catch(err) {}
+
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+      }
+    }
+
+    window.handleEditProfileClick = openEditProfileModal;
+
     const btnEditProfile = document.getElementById('btn-dropdown-edit-profile');
     if (btnEditProfile) {
-      btnEditProfile.addEventListener('click', async (e) => {
-        e.preventDefault();
-        const dropdown = document.getElementById('user-dropdown-menu');
-        if (dropdown) dropdown.classList.add('hidden');
-
-        const modal = document.getElementById('edit-profile-modal');
-        const nameInput = document.getElementById('edit-profile-name');
-        const genderSelect = document.getElementById('edit-profile-gender');
-        const emailInput = document.getElementById('edit-profile-email');
-
-        const currentUser = await getAppUser();
-        const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
-        const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
-        const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
-        let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
-
-        if (!currentName) {
-          const dropName = document.getElementById('dropdown-user-name');
-          if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
-        }
-        const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
-
-        if (nameInput) nameInput.value = currentName;
-        if (genderSelect) genderSelect.value = currentGender;
-        if (emailInput) emailInput.value = userEmail || 'Local Mode';
-
-        // Populate EmailJS fields if saved
-        const serviceInput = document.getElementById('edit-emailjs-service');
-        const templateInput = document.getElementById('edit-emailjs-template');
-        const keyInput = document.getElementById('edit-emailjs-key');
-        try {
-          const savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
-          const activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
-          if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
-          if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
-          if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
-        } catch(e) {}
-
-        if (modal) modal.classList.remove('hidden');
-      });
+      btnEditProfile.addEventListener('click', openEditProfileModal);
     }
 
     const btnCheckUpdate = document.getElementById('btn-dropdown-check-update');
