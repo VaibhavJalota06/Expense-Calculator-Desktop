@@ -208,10 +208,6 @@
       if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
 
       try {
-        sessionStorage.removeItem('expense_cal_guest_mode');
-        sessionStorage.clear();
-        localStorage.removeItem('expense_cal_redirect_pending');
-
         if (typeof stopSupabaseSync === 'function') stopSupabaseSync();
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
@@ -224,21 +220,12 @@
         console.error('Sign out error:', error);
       } finally {
         try {
-          const keysToRemove = [];
-          for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase') || key.includes('expense_cal_guest_mode'))) {
-              keysToRemove.push(key);
-            }
-          }
-          keysToRemove.forEach(k => {
-            try { localStorage.removeItem(k); } catch(err) {}
-          });
           sessionStorage.clear();
+          localStorage.clear();
         } catch(e) {}
 
         showLoginScreen();
-        window.location.reload();
+        window.location.href = window.location.href.split('#')[0].split('?')[0];
       }
     }
 
