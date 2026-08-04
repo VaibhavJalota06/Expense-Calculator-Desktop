@@ -183,7 +183,15 @@
     <div class="glass-panel tab-preview-card">
       <div style="margin-bottom:20px; text-align:center;">
         <h3 id="gallery-preview-title" style="font-size:1.5rem; margin-bottom:8px;">Real-Time Financial Dashboard & Analytics</h3>
-        <p id="gallery-preview-desc" style="color:var(--text-med); font-size:0.95rem; max-width:750px; margin:0 auto;">Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.</p>
+        <p id="gallery-preview-desc" style="color:var(--text-med); font-size:0.95rem; max-width:750px; margin:0 auto; margin-bottom:14px;">Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.</p>
+        
+        <!-- Feature Highlights Pills -->
+        <div class="preview-pills-container" id="preview-pills">
+          <span class="preview-pill"><i class="fa-solid fa-chart-simple"></i> Income vs Expense Split</span>
+          <span class="preview-pill"><i class="fa-solid fa-wallet"></i> Net Balance Metric</span>
+          <span class="preview-pill"><i class="fa-solid fa-arrows-rotate"></i> Subscription Tracker</span>
+          <span class="preview-pill"><i class="fa-solid fa-bolt"></i> Quick Entry Bar</span>
+        </div>
       </div>
 
       <div class="mockup-header" style="border-radius:10px 10px 0 0;">
@@ -193,11 +201,67 @@
           <span class="dot dot-green"></span>
         </div>
         <div class="mockup-title" id="gallery-url-title"><i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> https://expenseos.app/dashboard</div>
-        <div style="width: 50px;"></div>
+        <div class="preview-header-actions">
+          <a href="../web/index.html" target="_blank" class="btn btn-outline" style="padding:4px 12px; font-size:0.75rem;"><i class="fa-solid fa-up-right-from-square"></i> Open Fullscreen</a>
+        </div>
       </div>
-      <div class="mockup-screen" style="height: 520px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
+      <div class="mockup-screen" style="height: 540px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
         <iframe id="gallery-iframe" src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
       </div>
+    </div>
+
+    <!-- Additional App Interface Highlights Grid -->
+    <div style="margin-top:50px; text-align:center;">
+      <h3 style="font-size:1.6rem; margin-bottom:12px;">Core App View Highlights</h3>
+      <p style="color:var(--text-med); font-size:0.95rem; margin-bottom:30px;">Deep dive into the specialized tools inside Expense OS</p>
+    </div>
+
+    <div class="app-highlights-grid">
+      
+      <div class="glass-panel highlight-card">
+        <div class="highlight-badge"><i class="fa-solid fa-desktop"></i> Command Center</div>
+        <h4>Main Dashboard View</h4>
+        <p>Comprehensive financial overview displaying total balance, monthly budget progress, and quick expense entry shortcuts.</p>
+        <div class="highlight-tags">
+          <span>Income / Expense</span>
+          <span>Category Donut</span>
+          <span>Recent Activity</span>
+        </div>
+      </div>
+
+      <div class="glass-panel highlight-card">
+        <div class="highlight-badge"><i class="fa-solid fa-list-check"></i> Transactions Hub</div>
+        <h4>Full Transaction Manager</h4>
+        <p>Search, filter by category or date range, edit transactions inline, and export data in formatted CSV or JSON.</p>
+        <div class="highlight-tags">
+          <span>Multi-Filter</span>
+          <span>Instant Search</span>
+          <span>CSV / JSON Export</span>
+        </div>
+      </div>
+
+      <div class="glass-panel highlight-card">
+        <div class="highlight-badge"><i class="fa-solid fa-sliders"></i> Smart Rules</div>
+        <h4>AI Category & Budget Limits</h4>
+        <p>Configure custom keyword rules for auto-categorization and set target monthly budget limits with threshold alerts.</p>
+        <div class="highlight-tags">
+          <span>Auto Rules</span>
+          <span>Budget Limits</span>
+          <span>Warning Alerts</span>
+        </div>
+      </div>
+
+      <div class="glass-panel highlight-card">
+        <div class="highlight-badge"><i class="fa-solid fa-globe"></i> Global FX</div>
+        <h4>Multi-Currency Engine</h4>
+        <p>Track expenses in USD, EUR, INR, GBP, JPY, and CAD with automated exchange rate conversion and live currency selector.</p>
+        <div class="highlight-tags">
+          <span>6 Currencies</span>
+          <span>Live FX Rates</span>
+          <span>Auto Conversion</span>
+        </div>
+      </div>
+
     </div>
   </section>
 

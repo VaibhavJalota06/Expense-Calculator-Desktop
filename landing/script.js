@@ -78,17 +78,17 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // ---------- 3. 3D Tilt for Feature Cards ----------
-  const cards = document.querySelectorAll('.feature-card');
+  const cards = document.querySelectorAll('.feature-card, .highlight-card');
   cards.forEach(card => {
     card.addEventListener('mousemove', (e) => {
       const rect = card.getBoundingClientRect();
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
 
-      const rotateX = (y / (rect.height / 2)) * -8;
-      const rotateY = (x / (rect.width / 2)) * 8;
+      const rotateX = (y / (rect.height / 2)) * -6;
+      const rotateY = (x / (rect.width / 2)) * 6;
 
-      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-6px)`;
+      card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-4px)`;
     });
 
     card.addEventListener('mouseleave', () => {
@@ -102,37 +102,71 @@ document.addEventListener('DOMContentLoaded', () => {
   const galleryDesc = document.getElementById('gallery-preview-desc');
   const galleryUrlTitle = document.getElementById('gallery-url-title');
   const galleryIframe = document.getElementById('gallery-iframe');
+  const previewPillsEl = document.getElementById('preview-pills');
 
   const galleryData = {
     dashboard: {
       title: "Real-Time Financial Dashboard & Analytics",
       desc: "Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.",
-      url: "https://expenseos.app/dashboard"
+      url: "https://expenseos.app/dashboard",
+      pills: [
+        '<i class="fa-solid fa-chart-simple"></i> Income vs Expense Split',
+        '<i class="fa-solid fa-wallet"></i> Net Balance Metric',
+        '<i class="fa-solid fa-arrows-rotate"></i> Subscription Tracker',
+        '<i class="fa-solid fa-bolt"></i> Quick Entry Bar'
+      ]
     },
     transactions: {
       title: "Full Transaction Manager & History",
       desc: "View, search, filter, and edit all transactions with date range selectors, category badges, and instant CSV/JSON exports.",
-      url: "https://expenseos.app/transactions"
+      url: "https://expenseos.app/transactions",
+      pills: [
+        '<i class="fa-solid fa-magnifying-glass"></i> Multi-Field Search',
+        '<i class="fa-solid fa-filter"></i> Category & Date Filters',
+        '<i class="fa-solid fa-pen-to-square"></i> Inline Transaction Editing',
+        '<i class="fa-solid fa-file-csv"></i> CSV & JSON Export'
+      ]
     },
     budgeting: {
       title: "AI Category Rules & Smart Budget Limits",
       desc: "Set monthly target budgets per category with real-time color warnings and automatic transaction classification.",
-      url: "https://expenseos.app/budgeting"
+      url: "https://expenseos.app/budgeting",
+      pills: [
+        '<i class="fa-solid fa-sliders"></i> Target Category Limits',
+        '<i class="fa-solid fa-triangle-exclamation"></i> Over-Budget Warning Alerts',
+        '<i class="fa-solid fa-robot"></i> Custom Keyword Auto-Rules',
+        '<i class="fa-solid fa-circle-notch"></i> Progress Bars'
+      ]
     },
     currency: {
       title: "Multi-Currency & Real-Time FX Exchange Rates",
       desc: "Track expenses in USD, EUR, INR, GBP, JPY, CAD and instantly convert balances using live API exchange rates.",
-      url: "https://expenseos.app/fx-exchange"
+      url: "https://expenseos.app/fx-exchange",
+      pills: [
+        '<i class="fa-solid fa-coins"></i> 6 Currencies (USD, EUR, INR, GBP, CAD, JPY)',
+        '<i class="fa-solid fa-chart-line"></i> Live FX API Rates',
+        '<i class="fa-solid fa-calculator"></i> Auto Rate Converter'
+      ]
     },
     sync: {
       title: "Supabase Cloud Sync & Zero-Lockout Local DB",
       desc: "Seamlessly synchronizes your data across devices using Supabase cloud PostgreSQL, with 100% offline local fallback.",
-      url: "https://expenseos.app/cloud-sync"
+      url: "https://expenseos.app/cloud-sync",
+      pills: [
+        '<i class="fa-solid fa-database"></i> 100% Offline Local DB Fallback',
+        '<i class="fa-solid fa-cloud"></i> Supabase PostgreSQL Cloud Sync',
+        '<i class="fa-solid fa-shield-halved"></i> AES-256 Data Encryption'
+      ]
     },
     export: {
       title: "Comprehensive Financial Reports & Exports",
       desc: "Export your complete expense data in formatted CSV or JSON at any time for accounting, taxes, or personal archives.",
-      url: "https://expenseos.app/reports"
+      url: "https://expenseos.app/reports",
+      pills: [
+        '<i class="fa-solid fa-file-csv"></i> One-Click CSV Export',
+        '<i class="fa-solid fa-file-code"></i> JSON Data Backup',
+        '<i class="fa-solid fa-clock-rotate-left"></i> Historic Ledger Archives'
+      ]
     }
   };
 
@@ -146,6 +180,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (galleryTitle) galleryTitle.textContent = galleryData[target].title;
         if (galleryDesc) galleryDesc.textContent = galleryData[target].desc;
         if (galleryUrlTitle) galleryUrlTitle.innerHTML = `<i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> ${galleryData[target].url}`;
+        if (previewPillsEl && galleryData[target].pills) {
+          previewPillsEl.innerHTML = galleryData[target].pills.map(p => `<span class="preview-pill">${p}</span>`).join('');
+        }
         if (galleryIframe) {
           galleryIframe.style.opacity = '0.5';
           setTimeout(() => {
