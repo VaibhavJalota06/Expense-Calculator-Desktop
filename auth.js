@@ -634,9 +634,21 @@
       });
     }
 
+    async function getAppUser() {
+      if (auth && auth.currentUser) return auth.currentUser;
+      const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+      if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+        try {
+          const { data: { session } } = await supaClient.auth.getSession();
+          if (session && session.user) return session.user;
+        } catch(e) {}
+      }
+      return null;
+    }
+
     const btnEditProfile = document.getElementById('btn-dropdown-edit-profile');
     if (btnEditProfile) {
-      btnEditProfile.addEventListener('click', (e) => {
+      btnEditProfile.addEventListener('click', async (e) => {
         e.preventDefault();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) dropdown.classList.add('hidden');
@@ -646,18 +658,21 @@
         const genderSelect = document.getElementById('edit-profile-gender');
         const emailInput = document.getElementById('edit-profile-email');
 
-        const currentUser = auth ? auth.currentUser : null;
-        let currentName = currentUser ? (currentUser.displayName || '') : '';
+        const currentUser = await getAppUser();
+        const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
+        const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
+        const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
+        let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
+
         if (!currentName) {
           const dropName = document.getElementById('dropdown-user-name');
           if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
         }
-        const currentUid = currentUser ? currentUser.uid : 'local';
         const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
 
         if (nameInput) nameInput.value = currentName;
         if (genderSelect) genderSelect.value = currentGender;
-        if (emailInput) emailInput.value = (currentUser && currentUser.email) || 'Local Mode';
+        if (emailInput) emailInput.value = userEmail || 'Local Mode';
 
         if (modal) modal.classList.remove('hidden');
       });
@@ -695,24 +710,40 @@
 
         const newName = nameInput ? nameInput.value.trim() : '';
         const newGender = genderSelect ? genderSelect.value : 'male';
-        const currentUser = auth ? auth.currentUser : null;
+        const currentUser = await getAppUser();
+        const uid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
 
         if (!newName) return;
 
         if (currentUser) {
-          try {
-            await currentUser.updateProfile({ displayName: newName });
-          } catch(err) { console.error('Error updating auth profile:', err); }
+          if (typeof currentUser.updateProfile === 'function') {
+            try {
+              await currentUser.updateProfile({ displayName: newName });
+            } catch(err) { console.error('Error updating auth profile:', err); }
+          }
 
-          localStorage.setItem('expense_cal_user_gender_' + currentUser.uid, newGender);
+          const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+          if (supaClient && currentUser.id) {
+            try {
+              await supaClient.auth.updateUser({ data: { full_name: newName } });
+            } catch(err) { console.error('Error updating Supabase profile:', err); }
+          }
 
-          if (db) {
+          if (uid) localStorage.setItem('expense_cal_user_gender_' + uid, newGender);
+
+          if (db && currentUser.uid) {
             try {
               await db.collection('users').doc(currentUser.uid).set({
                 profile: { name: newName, gender: newGender },
                 lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
               }, { merge: true });
             } catch(err) { console.error('Error updating firestore profile:', err); }
+          }
+
+          if (currentUser.user_metadata) {
+            currentUser.user_metadata.full_name = newName;
+          } else {
+            currentUser.displayName = newName;
           }
 
           showApp(currentUser);
