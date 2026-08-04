@@ -55,6 +55,7 @@
     window.signUpWithEmail = signUpWithEmail;
     window.showApp = showApp;
     window.showLoginScreen = showLoginScreen;
+    window.handleSignOut = handleSignOut;
 
 
     async function signInWithGoogle() {
@@ -204,7 +205,7 @@
     }
 
     async function handleSignOut(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
 
       try {
         sessionStorage.removeItem('expense_cal_guest_mode');
@@ -215,11 +216,21 @@
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+          try { await supaClient.auth.signOut({ scope: 'global' }); } catch(err) {}
           try { await supaClient.auth.signOut({ scope: 'local' }); } catch(err) {}
+          try { await supaClient.auth.signOut(); } catch(err) {}
         }
       } catch (error) {
         console.error('Sign out error:', error);
       } finally {
+        try {
+          for (let i = localStorage.length - 1; i >= 0; i--) {
+            const key = localStorage.key(i);
+            if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase.auth'))) {
+              localStorage.removeItem(key);
+            }
+          }
+        } catch(e) {}
         showLoginScreen();
         window.location.reload();
       }
@@ -546,6 +557,7 @@
     if (btnDropdownAuth) {
       btnDropdownAuth.addEventListener('click', (e) => {
         e.preventDefault();
+        e.stopPropagation();
         const dropdown = document.getElementById('user-dropdown-menu');
         if (dropdown) {
           dropdown.classList.add('hidden');
