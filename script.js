@@ -240,10 +240,11 @@ function saveState() {
   }
 
   // Save to Supabase if logged in & Supabase available
-  if (currentUserId && typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
+  const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+  if (currentUserId && typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
     try {
       if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-      supabase.from('user_data').upsert({
+      supaClient.from('user_data').upsert({
         user_id: currentUserId,
         budget: budget,
         expenses: expenses,
@@ -251,7 +252,7 @@ function saveState() {
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' }).then(({ error }) => {
         if (error) {
-          console.warn('Supabase save error (check RLS policies):', error);
+          console.warn('Supabase save notice (check RLS policies):', error);
           if (typeof setSyncStatus === 'function') setSyncStatus('error');
         } else if (typeof setSyncStatus === 'function') {
           setSyncStatus('synced');
@@ -390,6 +391,11 @@ function startSupabaseSync(userId) {
           budget = typeof data.budget === 'number' ? data.budget : 0;
           expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
           subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
+          try {
+            localStorage.setItem('expense_cal_web_budget', budget.toString());
+            localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
+            localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
+          } catch(e) {}
           updateMonthPickerOptions();
           updateUI();
           if (typeof setSyncStatus === 'function') setSyncStatus('synced');
@@ -1757,7 +1763,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.4.0';
+const CURRENT_APP_VERSION = 'v2.4.1';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');

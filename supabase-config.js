@@ -25,9 +25,14 @@ function getSupabaseClient() {
   if (!isSupabaseConfigured) return null;
   if (window._supabaseInstance) return window._supabaseInstance;
 
-  const creator = (_supabaseCdnLib && typeof _supabaseCdnLib.createClient === 'function')
-    ? _supabaseCdnLib.createClient
-    : (typeof createClient === 'function' ? createClient : null);
+  let creator = null;
+  if (_supabaseCdnLib && typeof _supabaseCdnLib.createClient === 'function') {
+    creator = _supabaseCdnLib.createClient;
+  } else if (window.supabaseJS && typeof window.supabaseJS.createClient === 'function') {
+    creator = window.supabaseJS.createClient;
+  } else if (typeof createClient === 'function') {
+    creator = createClient;
+  }
 
   if (creator) {
     try {
