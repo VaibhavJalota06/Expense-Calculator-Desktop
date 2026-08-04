@@ -823,13 +823,13 @@
   <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-  <!-- EmailJS Configuration (active live credentials) -->
+  <!-- EmailJS Configuration (Dynamic per-user config) -->
   <script>
-    window.emailjsConfig = {
-      serviceId:  'service_lvqngas',
-      templateId: 'template_fk8vygf',
-      publicKey:  'G-SqtFUz45wJEjLEs'
-    };
+    try {
+      window.emailjsConfig = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{"serviceId":"","templateId":"","publicKey":""}');
+    } catch(e) {
+      window.emailjsConfig = { serviceId: '', templateId: '', publicKey: '' };
+    }
   </script>
 
   <!-- App Scripts (order matters) -->
