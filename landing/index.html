@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Expense OS — Futuristic 3D Expense Tracker & Financial Operating System</title>
+  <meta name="description" content="Expense OS is a futuristic glassmorphic desktop and web app for effortless expense tracking, AI auto-categorization, multi-currency conversion, and cloud DB sync.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="../icon.png">
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Background Particle Canvas -->
+  <canvas id="bg-canvas"></canvas>
+
+  <!-- Glassmorphic Navbar -->
+  <nav class="navbar">
+    <a href="#" class="nav-brand">
+      <div class="brand-icon"><i class="fa-solid fa-wallet"></i></div>
+      <span>Expense <span class="gradient-text">OS</span></span>
+    </a>
+
+    <ul class="nav-links">
+      <li><a href="#features" class="nav-link">Features</a></li>
+      <li><a href="#gallery" class="nav-link">App Preview</a></li>
+      <li><a href="#comparison" class="nav-link">Compare</a></li>
+      <li><a href="#download" class="nav-link">Downloads</a></li>
+    </ul>
+
+    <div class="nav-actions">
+      <a href="../web/index.html" class="btn btn-secondary" target="_blank">
+        <i class="fa-solid fa-globe"></i> Web App
+      </a>
+      <a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/download/v2.5.7/Expense-OS-Setup-2.5.7.exe" class="btn btn-primary">
+        <i class="fa-solid fa-download"></i> Download Desktop
+      </a>
+    </div>
+  </nav>
+
+  <!-- Hero Section -->
+  <header class="hero">
+    <div class="hero-badge">
+      <i class="fa-solid fa-sparkles"></i> Expense OS v2.5.7 Released • Super Admin & Cloud Sync Active
+    </div>
+
+    <h1 class="hero-title">The Next-Gen <span class="gradient-text">3D Financial Operating System</span></h1>
+    <p class="hero-subtitle">Experience effortless budget management, multi-currency conversion, AI auto-categorization, and zero-lockout cloud & local database sync in a sleek dark glassmorphism UI.</p>
+
+    <div class="hero-ctas">
+      <a href="../web/index.html" class="btn btn-primary btn-lg" target="_blank">
+        <i class="fa-solid fa-rocket"></i> Launch Web App
+      </a>
+      <a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/download/v2.5.7/Expense-OS-Setup-2.5.7.exe" class="btn btn-secondary btn-lg">
+        <i class="fa-brands fa-windows"></i> Download Desktop App (.exe)
+      </a>
+      <a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/download/v2.5.7/Expense-OS-2.5.7.exe" class="btn btn-outline btn-lg">
+        <i class="fa-solid fa-box-archive"></i> Portable (.exe)
+      </a>
+    </div>
+
+    <!-- 3D Interactive App Mockup Frame -->
+    <div class="hero-mockup-wrapper">
+      <div class="hero-mockup">
+
+        <!-- Floating 3D Badges -->
+        <div class="floating-3d-badge badge-top-right">
+          <div class="brand-icon" style="width:32px; height:32px; font-size:0.9rem;"><i class="fa-solid fa-shield-halved"></i></div>
+          <div>
+            <div style="font-size:0.85rem; font-weight:700; color:var(--primary-bright);">Supabase Cloud Sync</div>
+            <div style="font-size:0.75rem; color:var(--text-dim);">AES-256 Encrypted</div>
+          </div>
+        </div>
+
+        <div class="floating-3d-badge badge-bottom-left">
+          <div class="brand-icon" style="width:32px; height:32px; font-size:0.9rem; background:linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));"><i class="fa-solid fa-bolt"></i></div>
+          <div>
+            <div style="font-size:0.85rem; font-weight:700; color:var(--accent-cyan);">Zero-Lockout Fallback</div>
+            <div style="font-size:0.75rem; color:var(--text-dim);">100% Offline Functional</div>
+          </div>
+        </div>
+
+        <!-- Window Title Bar -->
+        <div class="mockup-header">
+          <div class="mockup-dots">
+            <span class="dot dot-red"></span>
+            <span class="dot dot-yellow"></span>
+            <span class="dot dot-green"></span>
+          </div>
+          <div class="mockup-title"><i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> https://expenseos.app/workspace</div>
+          <div style="width: 50px;"></div>
+        </div>
+
+        <!-- Live Interactive App Iframe -->
+        <div class="mockup-screen">
+          <iframe src="../web/index.html" title="Expense OS Live Interactive Application Preview"></iframe>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Features Grid Section -->
+  <section id="features" class="section">
+    <div class="section-header">
+      <div class="section-tag">Engineered for Excellence</div>
+      <h2 class="section-title">Built for Modern <span class="gradient-text">Financial Freedom</span></h2>
+      <p class="section-desc">Packed with powerful tools designed to simplify money management, whether you are offline or syncing across all your devices.</p>
+    </div>
+
+    <div class="features-grid">
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <h3>Supabase Cloud DB</h3>
+        <p>Real-time PostgreSQL cloud synchronization. Changes on your desktop app automatically update on your web app instantantly.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-wifi-slash"></i></div>
+        <h3>Zero-Lockout Local Storage</h3>
+        <p>Never worry about internet outages. Expense OS works 100% offline with local session persistence and auto-reconnect sync.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-coins"></i></div>
+        <h3>Multi-Currency Support</h3>
+        <p>Seamlessly track expenses in USD, EUR, INR, GBP, JPY, CAD and automatically calculate conversions with live FX rates.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-brain"></i></div>
+        <h3>AI Auto-Categorization</h3>
+        <p>Smart category rules auto-classify recurring transactions so you spend zero time organizing your receipts.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-user-shield"></i></div>
+        <h3>Super Admin Suite</h3>
+        <p>Administrative account mode (`admin@expenseos.com`) with elevated privileges, system stats, and role management.</p>
+      </div>
+
+      <div class="glass-panel feature-card">
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <h3>Dark Glassmorphism UI</h3>
+        <p>A stunning, futuristic interface featuring ambient glow effects, micro-animations, and 3D visual responsiveness.</p>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- Interactive Gallery Section -->
+  <section id="gallery" class="gallery-section">
+    <div class="section-header">
+      <div class="section-tag">Interactive Preview</div>
+      <h2 class="section-title">Explore the <span class="gradient-text">User Experience</span></h2>
+      <p class="section-desc">Click through the feature tabs to preview how Expense OS manages your daily financial workflow.</p>
+    </div>
+
+    <div class="tabs-container">
+      <button class="tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard & Analytics</button>
+      <button class="tab-btn" data-tab="budgeting"><i class="fa-solid fa-calculator"></i> AI Budget Rules</button>
+      <button class="tab-btn" data-tab="currency"><i class="fa-solid fa-globe"></i> FX Rates & Currency</button>
+      <button class="tab-btn" data-tab="sync"><i class="fa-solid fa-shield-halved"></i> Cloud & Offline Sync</button>
+    </div>
+
+    <div class="glass-panel tab-preview-card">
+      <div style="margin-bottom:20px; text-align:center;">
+        <h3 id="gallery-preview-title" style="font-size:1.5rem; margin-bottom:8px;">Real-Time Financial Dashboard & Analytics</h3>
+        <p id="gallery-preview-desc" style="color:var(--text-med); font-size:0.95rem; max-width:700px; margin:0 auto;">Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.</p>
+      </div>
+
+      <div class="mockup-header" style="border-radius:10px 10px 0 0;">
+        <div class="mockup-dots">
+          <span class="dot dot-red"></span>
+          <span class="dot dot-yellow"></span>
+          <span class="dot dot-green"></span>
+        </div>
+        <div class="mockup-title">Expense OS Interactive Preview Window</div>
+        <div style="width: 50px;"></div>
+      </div>
+      <div class="mockup-screen" style="height: 480px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
+        <iframe src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Matrix Section -->
+  <section id="comparison" class="section">
+    <div class="section-header">
+      <div class="section-tag">Side-by-Side Comparison</div>
+      <h2 class="section-title">Why Choose <span class="gradient-text">Expense OS</span>?</h2>
+      <p class="section-desc">See how Expense OS compares against traditional spreadsheets and web trackers.</p>
+    </div>
+
+    <div class="glass-panel" style="overflow-x: auto;">
+      <table class="matrix-table">
+        <thead>
+          <tr>
+            <th>Feature / Capability</th>
+            <th><i class="fa-solid fa-wallet" style="color:var(--primary-bright);"></i> Expense OS</th>
+            <th>Traditional Spreadsheets</th>
+            <th>Basic Web Trackers</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>100% Offline Capability</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Local DB Fallback</td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Yes</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Requires Internet</td>
+          </tr>
+          <tr>
+            <td><strong>Real-Time Cloud DB Sync</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Supabase PostgreSQL</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Manual File Upload</td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Limited Sync</td>
+          </tr>
+          <tr>
+            <td><strong>Multi-Currency Conversion</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Live FX API Rates</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Manual Formulas</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Single Currency Only</td>
+          </tr>
+          <tr>
+            <td><strong>Super Admin Role Mode</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Built-In System Admin</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> No</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Paid Add-On</td>
+          </tr>
+          <tr>
+            <td><strong>Futuristic Glassmorphic UI</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> 3D Dark Mode</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Plain Grids</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Basic Templates</td>
+          </tr>
+          <tr>
+            <td><strong>Privacy & Security</strong></td>
+            <td><i class="fa-solid fa-circle-check check-icon"></i> Local Storage & AES-256</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Unencrypted Files</td>
+            <td><i class="fa-solid fa-circle-xmark cross-icon"></i> Data Monetization</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Download CTA Banner -->
+  <section id="download" class="section">
+    <div class="glass-panel download-banner">
+      <h2>Ready to Master Your <span class="gradient-text">Financial Future</span>?</h2>
+      <p>Download Expense OS Desktop for Windows or launch the Web App directly in your browser. Free, secure, and ready in seconds.</p>
+
+      <div class="hero-ctas" style="margin-bottom:0;">
+        <a href="../web/index.html" class="btn btn-primary btn-lg" target="_blank">
+          <i class="fa-solid fa-globe"></i> Launch Web App
+        </a>
+        <a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/download/v2.5.7/Expense-OS-Setup-2.5.7.exe" class="btn btn-secondary btn-lg">
+          <i class="fa-brands fa-windows"></i> Download Windows Installer (.exe)
+        </a>
+        <a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases/download/v2.5.7/Expense-OS-2.5.7.exe" class="btn btn-outline btn-lg">
+          <i class="fa-solid fa-box-archive"></i> Download Portable (.exe)
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <ul class="footer-links">
+      <li><a href="../web/index.html" target="_blank">Web App</a></li>
+      <li><a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop" target="_blank">GitHub Repository</a></li>
+      <li><a href="https://github.com/VaibhavJalota06/Expense-Calculator-Desktop/releases" target="_blank">Releases</a></li>
+      <li><a href="#features">Features</a></li>
+    </ul>
+    <p>© 2026 Expense OS. Engineered with passion by Vaibhav Jalota. All rights reserved.</p>
+  </footer>
+
+  <!-- Custom Script -->
+  <script src="script.js"></script>
+</body>
+</html>
