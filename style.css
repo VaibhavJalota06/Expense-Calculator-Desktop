@@ -2397,8 +2397,9 @@ select option {
 
 /* Topbar Circular User Avatar Button & Dropdown Menu */
 .topbar-user-menu-wrapper {
-  position: relative;
-  margin-left: 0.5rem;
+  position: relative !important;
+  margin-left: 0.5rem !important;
+  flex-shrink: 0 !important;
 }
 .topbar-avatar-btn {
   width: 42px;
@@ -2434,17 +2435,21 @@ select option {
 
 /* User Dropdown Menu */
 .user-dropdown-menu {
-  position: absolute;
-  top: calc(100% + 12px);
-  right: 0;
-  width: 280px;
-  padding: 1.1rem;
-  z-index: 10050;
+  position: absolute !important;
+  top: calc(100% + 10px) !important;
+  right: 0 !important;
+  width: 280px !important;
+  min-width: 280px !important;
+  max-width: 90vw !important;
+  box-sizing: border-box !important;
+  padding: 1.1rem !important;
+  z-index: 10050 !important;
   background: #141820 !important;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(52, 211, 153, 0.25);
-  border: 1px solid rgba(52, 211, 153, 0.5);
-  border-radius: var(--radius-lg);
-  animation: dropdownFade 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.95), 0 0 25px rgba(52, 211, 153, 0.3) !important;
+  border: 1px solid rgba(52, 211, 153, 0.5) !important;
+  border-radius: var(--radius-lg) !important;
+  animation: dropdownFade 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  overflow: visible !important;
 }
 @keyframes dropdownFade {
   from { opacity: 0; transform: translateY(-8px); }
@@ -2452,10 +2457,12 @@ select option {
 }
 
 .dropdown-user-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding-bottom: 0.75rem;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding-bottom: 0.75rem !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
 }
 .dropdown-avatar-circle {
   width: 44px;
@@ -2472,23 +2479,25 @@ select option {
   flex-shrink: 0;
 }
 .dropdown-user-details {
-  min-width: 0;
-  flex: 1;
+  min-width: 160px !important;
+  flex: 1 !important;
 }
 .dropdown-name {
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text-high);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.95rem !important;
+  font-weight: 700 !important;
+  color: var(--text-high) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
 }
 .dropdown-email {
-  font-size: 0.75rem;
-  color: var(--text-medium);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 0.75rem !important;
+  color: var(--text-medium) !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  display: block !important;
 }
 .dropdown-badge {
   display: inline-block;
@@ -2510,22 +2519,30 @@ select option {
   list-style: none;
   padding: 0;
   margin: 0;
+  width: 100% !important;
 }
 .dropdown-item {
-  width: 100%;
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 0.65rem 0.75rem;
-  background: transparent;
-  border: none;
-  border-radius: var(--radius-sm);
-  color: var(--text-high);
-  font-size: 0.88rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  text-align: left;
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.65rem 0.75rem !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: var(--radius-sm) !important;
+  color: var(--text-high) !important;
+  font-size: 0.88rem !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  text-align: left !important;
+  box-sizing: border-box !important;
+  white-space: nowrap !important;
+}
+.dropdown-item span {
+  display: inline-block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
 }
 .dropdown-item:hover {
   background: rgba(255, 255, 255, 0.08);
