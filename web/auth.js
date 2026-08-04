@@ -804,6 +804,18 @@
         if (genderSelect) genderSelect.value = currentGender;
         if (emailInput) emailInput.value = userEmail || 'Local Mode';
 
+        // Populate EmailJS fields if saved
+        const serviceInput = document.getElementById('edit-emailjs-service');
+        const templateInput = document.getElementById('edit-emailjs-template');
+        const keyInput = document.getElementById('edit-emailjs-key');
+        try {
+          const savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
+          const activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
+          if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
+          if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
+          if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
+        } catch(e) {}
+
         if (modal) modal.classList.remove('hidden');
       });
     }
@@ -836,12 +848,25 @@
         e.preventDefault();
         const nameInput = document.getElementById('edit-profile-name');
         const genderSelect = document.getElementById('edit-profile-gender');
+        const serviceInput = document.getElementById('edit-emailjs-service');
+        const templateInput = document.getElementById('edit-emailjs-template');
+        const keyInput = document.getElementById('edit-emailjs-key');
         const modal = document.getElementById('edit-profile-modal');
 
         const newName = nameInput ? nameInput.value.trim() : '';
         const newGender = genderSelect ? genderSelect.value : 'male';
         const currentUser = await getAppUser();
         const uid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
+
+        // Save EmailJS config if provided
+        const serviceId = serviceInput ? serviceInput.value.trim() : '';
+        const templateId = templateInput ? templateInput.value.trim() : '';
+        const publicKey = keyInput ? keyInput.value.trim() : '';
+        if (serviceId && templateId && publicKey) {
+          const cfg = { serviceId, templateId, publicKey };
+          localStorage.setItem('expense_cal_emailjs_config', JSON.stringify(cfg));
+          window.emailjsConfig = cfg;
+        }
 
         if (!newName) return;
 
@@ -874,7 +899,7 @@
 
         if (modal) modal.classList.add('hidden');
         if (typeof showAlert === 'function') {
-          showAlert('Profile Updated!', 'Your profile information has been saved successfully.');
+          showAlert('Profile Updated!', 'Your profile information and EmailJS settings have been saved successfully.');
         }
       });
     }
