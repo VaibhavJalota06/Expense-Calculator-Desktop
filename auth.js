@@ -374,15 +374,23 @@ window.closeEditProfileModal = function(e) {
 
     async function triggerWelcomeEmail(user, name) {
       if (!user || !user.email) return;
-      const uid = user.uid || user.id || 'user';
+      const userEmail = (user.email || '').trim().toLowerCase();
+      if (!userEmail || userEmail === 'admin@expenseos.com') return;
+
+      const uid = user.id || user.uid || userEmail;
       const key = 'expense_cal_welcome_email_sent_' + uid;
-      if (localStorage.getItem(key)) return;
+
+      // In-memory + LocalStorage deduplication lock to guarantee exactly 1 email delivery
+      window._welcomeEmailSentMap = window._welcomeEmailSentMap || {};
+      if (window._welcomeEmailSentMap[uid] || localStorage.getItem(key)) return;
+
+      window._welcomeEmailSentMap[uid] = true;
       localStorage.setItem(key, 'true');
 
-      const recipientName = name || user.displayName || (user.user_metadata && user.user_metadata.display_name) || user.email.split('@')[0] || 'User';
+      const recipientName = name || user.displayName || (user.user_metadata && user.user_metadata.display_name) || userEmail.split('@')[0] || 'User';
 
       // Automated Live Delivery via EmailJS directly to Gmail
-      if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined') {
+      if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined' && emailjsConfig.serviceId && emailjsConfig.publicKey) {
         try {
           if (emailjs.init && emailjsConfig.publicKey) {
             try { emailjs.init(emailjsConfig.publicKey); } catch(e){}
@@ -393,10 +401,10 @@ window.closeEditProfileModal = function(e) {
             emailjsConfig.serviceId,
             emailjsConfig.templateId,
             {
-              email: user.email,
-              to_email: user.email,
-              user_email: user.email,
-              recipient_email: user.email,
+              email: userEmail,
+              to_email: userEmail,
+              user_email: userEmail,
+              recipient_email: userEmail,
               name: recipientName,
               user_name: recipientName,
               subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
@@ -409,7 +417,7 @@ window.closeEditProfileModal = function(e) {
             },
             emailjsConfig.publicKey
           );
-          console.log('Automated Welcome Email sent successfully to:', user.email);
+          console.log('Automated Welcome Email sent successfully to:', userEmail);
         } catch (err) {
           console.warn('Welcome Email delivery notice:', err);
         }
@@ -813,7 +821,6 @@ window.closeEditProfileModal = function(e) {
       if (user && !hasSeenWelcome) {
         if (userId) localStorage.setItem('expense_cal_seen_welcome_v2_' + userId, 'true');
         localStorage.setItem('expense_cal_seen_welcome_global', 'true');
-        triggerWelcomeEmail(user, fullName);
         const modal = document.getElementById('welcome-modal');
         const titleEl = document.getElementById('welcome-modal-title');
         const msgEl = document.getElementById('welcome-modal-msg');
