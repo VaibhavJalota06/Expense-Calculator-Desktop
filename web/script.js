@@ -671,8 +671,31 @@ function checkAndSendSubscriptionReminders() {
   const currentYM = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
   const currentDay = now.getDate();
 
-  const currentUser = typeof auth !== 'undefined' && auth ? auth.currentUser : null;
-  const userEmail = currentUser ? currentUser.email : null;
+  // Get current user email from Supabase session (Firebase auth was removed in v2.4.0)
+  let userEmail = null;
+  try {
+    const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : null);
+    if (supaClient && supaClient.auth) {
+      supaClient.auth.getSession().then(({ data }) => {
+        if (data && data.session && data.session.user) {
+          userEmail = data.session.user.email;
+        }
+      }).catch(() => {});
+    }
+  } catch(e) {}
+  // Also check local admin/user session as fallback
+  if (!userEmail) {
+    try {
+      const adminSession = localStorage.getItem('expense_cal_admin_session');
+      if (adminSession) { const u = JSON.parse(adminSession); if (u && u.email) userEmail = u.email; }
+    } catch(e) {}
+  }
+  if (!userEmail) {
+    try {
+      const userSession = localStorage.getItem('expense_cal_user_session');
+      if (userSession) { const u = JSON.parse(userSession); if (u && u.email) userEmail = u.email; }
+    } catch(e) {}
+  }
 
   subscriptions.forEach(sub => {
     const isPaidThisMonth = sub.lastPaidMonth === currentYM;
