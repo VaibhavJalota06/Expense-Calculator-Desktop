@@ -156,7 +156,8 @@ const server = http.createServer((req, res) => {
   let filePath = path.resolve(webRoot, requestedPath === '/' ? 'index.html' : '.' + requestedPath);
 
   // SECURITY: Block path traversal — ensure resolved path stays inside web/
-  if (!filePath.startsWith(webRoot)) {
+  const relativePath = path.relative(webRoot, filePath);
+  if (relativePath.startsWith('..') || path.isAbsolute(relativePath)) {
     res.writeHead(403);
     res.end('Forbidden');
     return;
@@ -176,6 +177,9 @@ const server = http.createServer((req, res) => {
     } else {
       res.writeHead(200, {
         'Content-Type': contentType,
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0',
         'X-Content-Type-Options': 'nosniff',
         'X-Frame-Options': 'DENY',
         'Referrer-Policy': 'strict-origin-when-cross-origin',
@@ -190,15 +194,21 @@ const server = http.createServer((req, res) => {
 let serverPort = 58420;
 
 function startLocalServer(callback) {
-  server.listen(58420, 'localhost', () => {
+  server.listen(58420, '127.0.0.1', () => {
     serverPort = server.address().port;
     console.log(`Local Expense OS server running at http://localhost:${serverPort}`);
     callback(serverPort);
   }).on('error', () => {
     // Fallback to fixed backup port 58421 if 58420 is temporarily in use
-    server.listen(58421, 'localhost', () => {
+    server.listen(58421, '127.0.0.1', () => {
       serverPort = server.address().port;
       callback(serverPort);
+    }).on('error', () => {
+      // Dynamic fallback port if both 58420 & 58421 are locked
+      server.listen(0, '127.0.0.1', () => {
+        serverPort = server.address().port;
+        callback(serverPort);
+      });
     });
   });
 }
@@ -226,20 +236,33 @@ function createWindow(port) {
   // Set Chrome User-Agent so Google Auth popups inside Electron operate smoothly
   mainWindow.webContents.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
 
-  // Security: Intercept top-level navigation attempts to external URLs
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     try {
+      const parsedUrl = new URL(navigationUrl);
+      if (parsedUrl.origin === `http://localhost:${port}`) {
+        return;
+      }
+
       const isAuthUrl =
         navigationUrl.includes('accounts.google.com') ||
         navigationUrl.includes('firebaseapp.com') ||
         navigationUrl.includes('supabase.co') ||
         navigationUrl.includes('googleapis.com') ||
         navigationUrl.includes('google.com/o/oauth');
-      const parsedUrl = new URL(navigationUrl);
-      if (!isAuthUrl && parsedUrl.origin !== `http://localhost:${port}`) {
-        event.preventDefault();
-        shell.openExternal(navigationUrl);
+
+      if (isAuthUrl) {
+        return;
       }
+
+      event.preventDefault();
+
+      // If navigation target is the GitHub Pages web app (e.g. from Supabase logout redirect), redirect back to local app
+      if (navigationUrl.includes('github.io') || navigationUrl.includes('Expense-Calculator-Desktop')) {
+        mainWindow.loadURL(`http://localhost:${port}`);
+        return;
+      }
+
+      shell.openExternal(navigationUrl);
     } catch (e) {
       event.preventDefault();
     }

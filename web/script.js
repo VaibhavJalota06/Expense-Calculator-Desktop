@@ -116,11 +116,13 @@ const subModalCancelBtn = document.getElementById('sub-modal-cancel');
 
 // ---------- Helper Functions ----------
 function formatCurrency(val) {
+  const num = Number(val);
+  const safeVal = (typeof num === 'number' && !isNaN(num) && Number.isFinite(num)) ? num : 0;
   return new Intl.NumberFormat('en-IN', {
     style: 'currency',
     currency: 'INR',
     maximumFractionDigits: 2
-  }).format(val || 0);
+  }).format(safeVal);
 }
 
 function getCurrentYearMonth() {
@@ -250,8 +252,16 @@ function saveState() {
         subscriptions: subscriptions,
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' }).then(({ error }) => {
-        if (!error && typeof setSyncStatus === 'function') setSyncStatus('synced');
-      }).catch(e => console.warn('Supabase save notice:', e));
+        if (error) {
+          console.warn('Supabase save error (check RLS policies):', error);
+          if (typeof setSyncStatus === 'function') setSyncStatus('error');
+        } else if (typeof setSyncStatus === 'function') {
+          setSyncStatus('synced');
+        }
+      }).catch(e => {
+        console.warn('Supabase save notice:', e);
+        if (typeof setSyncStatus === 'function') setSyncStatus('error');
+      });
     } catch (e) {}
   }
 
@@ -326,12 +336,50 @@ function startSupabaseSync(userId) {
   if (!supaClient) { loadStateFromLocal(); return; }
   if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
 
-  supaClient.from('user_data').select('*').eq('user_id', userId).single()
+  let localExpenses = [];
+  let localSubs = [];
+  let localBudget = budget;
+  try {
+    const savedBudget = localStorage.getItem('expense_cal_web_budget');
+    const savedExpenses = localStorage.getItem('expense_cal_web_expenses');
+    const savedSubs = localStorage.getItem('expense_cal_web_subscriptions');
+    if (savedBudget !== null && !isNaN(parseFloat(savedBudget))) localBudget = parseFloat(savedBudget);
+    if (savedExpenses) {
+      const parsed = JSON.parse(savedExpenses);
+      if (Array.isArray(parsed)) localExpenses = parsed.filter(isValidExpense);
+    }
+    if (savedSubs) {
+      const parsedS = JSON.parse(savedSubs);
+      if (Array.isArray(parsedS)) localSubs = parsedS.filter(isValidSubscription);
+    }
+  } catch (e) {}
+
+  supaClient.from('user_data').select('*').eq('user_id', userId).maybeSingle()
     .then(({ data, error }) => {
       if (data) {
-        budget = typeof data.budget === 'number' ? data.budget : 0;
-        expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
-        subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
+        const cloudExpenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
+        const cloudSubs = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
+
+        const cloudExpIds = new Set(cloudExpenses.map(e => e.id));
+        const newLocalExps = localExpenses.filter(e => e.id && !cloudExpIds.has(e.id));
+
+        const cloudSubIds = new Set(cloudSubs.map(s => s.id));
+        const newLocalSubs = localSubs.filter(s => s.id && !cloudSubIds.has(s.id));
+
+        const cloudBudget = (typeof data.budget === 'number' && Number.isFinite(data.budget)) ? data.budget : 0;
+        budget = cloudBudget > 0 ? cloudBudget : localBudget;
+        expenses = [...cloudExpenses, ...newLocalExps];
+        subscriptions = [...cloudSubs, ...newLocalSubs];
+
+        if (newLocalExps.length > 0 || newLocalSubs.length > 0 || (localBudget > 0 && cloudBudget === 0)) {
+          supaClient.from('user_data').upsert({
+            user_id: userId,
+            budget: budget,
+            expenses: expenses,
+            subscriptions: subscriptions,
+            updated_at: new Date().toISOString()
+          }, { onConflict: 'user_id' }).catch(e => {});
+        }
       } else {
         // If first cloud sync, preserve existing local state
         loadStateFromLocal();
@@ -360,8 +408,8 @@ function startSupabaseSync(userId) {
   try {
     if (supabaseChannel) supaClient.removeChannel(supabaseChannel);
     supabaseChannel = supaClient.channel('user_data_changes_' + userId)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_data', filter: `user_id=eq.${userId}` }, payload => {
-        if (payload.new) {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_data' }, payload => {
+        if (payload.new && String(payload.new.user_id) === String(userId)) {
           const data = payload.new;
           budget = typeof data.budget === 'number' ? data.budget : 0;
           expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
@@ -373,6 +421,12 @@ function startSupabaseSync(userId) {
       }).subscribe();
   } catch (e) {}
 }
+
+window.addEventListener('focus', () => {
+  if (currentUserId && typeof startSupabaseSync === 'function') {
+    startSupabaseSync(currentUserId);
+  }
+});
 
 function stopSupabaseSync() {
   const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
@@ -1470,35 +1524,62 @@ async function resetAllData(e) {
   subscriptions = [];
   selectedMonth = getCurrentYearMonth();
 
-  // Do not clear all localStorage: Firebase stores the signed-in session here.
+  // Do not clear all localStorage: auth session tokens are stored here
   localStorage.setItem('expense_cal_web_budget', '0');
   localStorage.setItem('expense_cal_web_expenses', '[]');
   localStorage.setItem('expense_cal_web_subscriptions', '[]');
   updateMonthPickerOptions();
   updateUI();
 
-  if (!currentUserId || !db) {
+  if (!currentUserId) {
     await showAlert('Data Reset Complete', 'Your expense records, budget limit, and subscriptions have been reset on this device.');
     return;
   }
 
   if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-  try {
-    const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
-      ? firebase.firestore.FieldValue.serverTimestamp()
-      : new Date();
-    await db.collection('users').doc(currentUserId).set({
-      budget: 0,
-      expenses: [],
-      subscriptions: [],
-      lastUpdated: timestamp
-    });
-    if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-    await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been reset.');
-  } catch (err) {
-    console.error('Reset Firestore error:', err);
-    if (typeof setSyncStatus === 'function') setSyncStatus('error');
-    await showAlert('Reset Saved Locally', 'Your data was reset on this device, but cloud sync failed. Check your internet connection or Firestore permissions before using another device.');
+
+  let cloudSuccess = false;
+
+  // 1. Reset Supabase data if configured & active
+  const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+  if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+    try {
+      const { error } = await supaClient.from('user_data').upsert({
+        user_id: currentUserId,
+        budget: 0,
+        expenses: [],
+        subscriptions: [],
+        updated_at: new Date().toISOString()
+      }, { onConflict: 'user_id' });
+      if (!error) cloudSuccess = true;
+    } catch(err) {
+      console.warn('Supabase reset notice:', err);
+    }
+  }
+
+  // 2. Reset Firestore data if configured & active
+  if (typeof db !== 'undefined' && db && !cloudSuccess) {
+    try {
+      const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
+        ? firebase.firestore.FieldValue.serverTimestamp()
+        : new Date();
+      await db.collection('users').doc(currentUserId).set({
+        budget: 0,
+        expenses: [],
+        subscriptions: [],
+        lastUpdated: timestamp
+      });
+      cloudSuccess = true;
+    } catch(err) {
+      console.warn('Firestore reset notice:', err);
+    }
+  }
+
+  if (typeof setSyncStatus === 'function') setSyncStatus('synced');
+  if (cloudSuccess) {
+    await showAlert('Data Reset Complete', 'All expense records, budget limits, and cloud data have been reset across all devices.');
+  } else {
+    await showAlert('Data Reset Complete', 'Your expense records, budget limit, and local data have been reset.');
   }
 }
 
@@ -1727,7 +1808,7 @@ function endGuidedTour() {
   if (typeof switchView === 'function') switchView('dashboard');
 }
 
-const isElectronApp = /Electron/i.test(navigator.userAgent) || Boolean(window.process && window.process.type);
+const isElectronApp = /Electron/i.test(navigator.userAgent) || Boolean(window.process && window.process.type) || Boolean(window.electronAPI && window.electronAPI.isElectron);
 
 function applyEnvironmentAdjustments() {
   const skipTourBtn = document.getElementById('btn-skip-tour');
@@ -1772,7 +1853,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.10';
+const CURRENT_APP_VERSION = 'v2.3.11';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');

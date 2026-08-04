@@ -1,10 +1,11 @@
-const CACHE_NAME = 'expense-os-mobile-v1';
+const CACHE_NAME = 'expense-os-mobile-v2';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './style.css',
   './script.js',
   './auth.js',
+  './supabase-config.js',
   './firebase-config.js',
   './icon.png',
   './manifest.json'

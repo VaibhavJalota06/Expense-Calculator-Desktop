@@ -59,8 +59,6 @@
 
 
     async function signInWithGoogle() {
-      if (isAuthInProgress) return;
-      isAuthInProgress = true;
       let supaErrorMessage = '';
       try {
         clearErrors();
@@ -71,15 +69,16 @@
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
           try {
-            let redirectUrl = window.location.origin + window.location.pathname;
-            if (redirectUrl.includes(':3000')) {
-              redirectUrl = redirectUrl.replace(':3000', ':58420');
-            }
+            const isElectronApp = Boolean(window.electronAPI && window.electronAPI.isElectron);
+            const isLocalhost = window.location.origin.includes('localhost');
+            const shouldSkipRedirect = isElectronApp || isLocalhost;
+            const redirectUrl = window.location.origin;
+
             const { data, error } = await supaClient.auth.signInWithOAuth({
               provider: 'google',
               options: {
                 redirectTo: redirectUrl,
-                skipBrowserRedirect: true,
+                skipBrowserRedirect: shouldSkipRedirect,
                 queryParams: {
                   prompt: 'select_account'
                 }
@@ -87,7 +86,11 @@
             });
             if (error) throw error;
             if (data && data.url) {
-              window.location.href = data.url;
+              if (shouldSkipRedirect) {
+                window.open(data.url, 'google_auth', 'width=600,height=720');
+              } else {
+                window.location.href = data.url;
+              }
               return;
             }
           } catch (supaErr) {
@@ -274,7 +277,7 @@
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
-          try { await supaClient.auth.signOut(); } catch(err) {}
+          try { await supaClient.auth.signOut({ scope: 'local' }); } catch(err) {}
         }
         if (auth) {
           try { await auth.signOut(); } catch(err) {}
@@ -283,7 +286,7 @@
         console.error('Sign out error:', error);
       } finally {
         showLoginScreen();
-        window.location.href = window.location.origin + window.location.pathname;
+        window.location.reload();
       }
     }
 
@@ -351,19 +354,50 @@
     setTimeout(hideLoader, 300);
     window.addEventListener('load', hideLoader);
 
-    // 1. OAuth Popup Callback Auto-Closer
-    if (window.opener && (window.location.hash.includes('access_token') || window.location.search.includes('code'))) {
-      try {
-        if (window.opener.location) {
-          window.opener.location.reload();
-        }
-      } catch(e) {}
-      window.close();
+    // 1. OAuth Popup Callback Handler (Wait for Supabase session exchange before closing popup)
+    if (window.opener && (window.location.hash.includes('access_token') || window.location.search.includes('code='))) {
+      const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+      if (supaClient) {
+        supaClient.auth.onAuthStateChange((event, session) => {
+          if (session && session.user) {
+            try {
+              if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'SUPABASE_AUTH_SUCCESS' }, '*');
+                if (window.opener.location) {
+                  window.opener.location.reload();
+                }
+              }
+            } catch(e) {}
+            setTimeout(() => { window.close(); }, 300);
+          }
+        });
+      } else {
+        setTimeout(() => {
+          try {
+            if (window.opener && !window.opener.closed && window.opener.location) {
+              window.opener.location.reload();
+            }
+          } catch(e) {}
+          window.close();
+        }, 1000);
+      }
     }
+
+    window.addEventListener('message', (event) => {
+      if (event.data && event.data.type === 'SUPABASE_AUTH_SUCCESS') {
+        window.location.reload();
+      }
+    });
+
+    window.addEventListener('storage', (e) => {
+      if (e.key && (e.key.includes('auth-token') || e.key.includes('supabase'))) {
+        evaluateAuthState();
+      }
+    });
 
     // 2. Unified Auth Observer Handler
     async function evaluateAuthState() {
-      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token')) {
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
         sessionStorage.removeItem('expense_cal_guest_mode');
         localStorage.removeItem('expense_cal_guest_mode');
       }
@@ -390,8 +424,8 @@
         return true;
       }
 
-      // If URL has OAuth tokens, wait for Supabase onAuthStateChange to finish parsing
-      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token')) {
+      // If URL has OAuth tokens or auth code, wait for Supabase onAuthStateChange to finish parsing
+      if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
         return false;
       }
 
@@ -419,11 +453,25 @@
         hideLoader();
         if (session && session.user) {
           showApp(session.user);
+          // If this is a secondary popup window, auto-close after session is stored
+          if (window.name === 'google_auth' || (window.innerWidth < 750 && window.innerHeight < 800)) {
+            try {
+              if (window.opener && !window.opener.closed) {
+                window.opener.postMessage({ type: 'SUPABASE_AUTH_SUCCESS' }, '*');
+                if (window.opener.location) window.opener.location.reload();
+              }
+            } catch(e) {}
+            setTimeout(() => { window.close(); }, 300);
+          }
         } else if (event === 'SIGNED_OUT') {
           showLoginScreen();
         }
       });
     }
+
+    window.addEventListener('focus', () => {
+      evaluateAuthState();
+    });
 
     // Firebase Auth Listener
     if (auth) {
@@ -549,9 +597,9 @@
           : `Real-time financial analytics & budget control (Local Mode)`;
       }
 
-      const hasSeenWelcome = (user && localStorage.getItem('expense_cal_seen_welcome_v2_' + user.uid)) || localStorage.getItem('expense_cal_seen_welcome_global');
+      const hasSeenWelcome = (userId && localStorage.getItem('expense_cal_seen_welcome_v2_' + userId)) || localStorage.getItem('expense_cal_seen_welcome_global');
       if (user && !hasSeenWelcome) {
-        localStorage.setItem('expense_cal_seen_welcome_v2_' + user.uid, 'true');
+        if (userId) localStorage.setItem('expense_cal_seen_welcome_v2_' + userId, 'true');
         localStorage.setItem('expense_cal_seen_welcome_global', 'true');
         triggerWelcomeEmail(user, fullName);
         const modal = document.getElementById('welcome-modal');
@@ -687,16 +735,7 @@
       });
     }
 
-    function showLoginScreen() {
-      if (loginScreen) loginScreen.classList.remove('hidden');
-      if (appLayout) appLayout.classList.add('hidden');
-      budget = 0;
-      expenses = [];
-      subscriptions = [];
-      selectedMonth = getCurrentYearMonth();
-      updateMonthPickerOptions();
-      updateUI();
-    }
+
 
     // Error Helpers
     function showError(el, msg) {

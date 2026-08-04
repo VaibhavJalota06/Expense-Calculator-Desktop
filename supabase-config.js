@@ -13,15 +13,23 @@ const isSupabaseConfigured = Boolean(
   !SUPABASE_ANON_KEY.includes("YOUR_")
 );
 
+let _supabaseCdnLib = null;
+
 function getSupabaseClient() {
   if (!isSupabaseConfigured) return null;
   if (window._supabaseInstance) return window._supabaseInstance;
   
-  const creator = (window.supabaseJS && typeof window.supabaseJS.createClient === 'function')
-    ? window.supabaseJS.createClient
-    : (window.supabase && typeof window.supabase.createClient === 'function')
-      ? window.supabase.createClient
-      : (typeof createClient === 'function' ? createClient : null);
+  if (!_supabaseCdnLib) {
+    if (window.supabaseJS && typeof window.supabaseJS.createClient === 'function') {
+      _supabaseCdnLib = window.supabaseJS;
+    } else if (window.supabase && typeof window.supabase.createClient === 'function') {
+      _supabaseCdnLib = window.supabase;
+    }
+  }
+
+  const creator = (_supabaseCdnLib && typeof _supabaseCdnLib.createClient === 'function')
+    ? _supabaseCdnLib.createClient
+    : (typeof createClient === 'function' ? createClient : null);
 
   if (creator) {
     try {
@@ -34,17 +42,25 @@ function getSupabaseClient() {
   return null;
 }
 
-// Expose getSupabaseClient globally
+// Expose getSupabaseClient and supabaseClient globally
 window.getSupabaseClient = getSupabaseClient;
 
-// Global getter property for supabase
 try {
   let _cachedClient = null;
-  Object.defineProperty(window, 'supabase', {
+  Object.defineProperty(window, 'supabaseClient', {
     get: function() {
       if (_cachedClient) return _cachedClient;
       _cachedClient = getSupabaseClient();
       return _cachedClient;
+    },
+    configurable: true
+  });
+
+  Object.defineProperty(window, 'supabase', {
+    get: function() {
+      if (_cachedClient) return _cachedClient;
+      _cachedClient = getSupabaseClient();
+      return _cachedClient || _supabaseCdnLib;
     },
     configurable: true
   });
