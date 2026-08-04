@@ -231,13 +231,28 @@ window.closeEditProfileModal = function(e) {
       return false;
     }
 
+    async function sha256Hex(str) {
+      try {
+        const encoder = new TextEncoder();
+        const data = encoder.encode(str);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+      } catch(e) {
+        return '';
+      }
+    }
+
     function handleAdminLoginClick(e) {
       if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
       const emailInput = document.getElementById('login-email');
       const passInput = document.getElementById('login-password');
       if (emailInput) emailInput.value = 'admin@expenseos.com';
-      if (passInput) passInput.value = 'Admin@2026';
-      signInWithEmail('admin@expenseos.com', 'Admin@2026');
+      if (passInput) {
+        passInput.value = '';
+        passInput.placeholder = 'Enter Admin Password...';
+        passInput.focus();
+      }
     }
 
     async function signInWithEmail(email, password) {
@@ -252,8 +267,13 @@ window.closeEditProfileModal = function(e) {
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
 
-        // 1. Admin Account Check
-        if (cleanEmail === 'admin@expenseos.com' && (cleanPass === 'Admin@2026' || cleanPass.toLowerCase() === 'admin@2026')) {
+        // 1. Admin Account Verification (Secured via SHA-256 One-Way Cryptographic Hash)
+        const ADMIN_EMAIL = 'admin@expenseos.com';
+        const ADMIN_HASH = 'a36aef5a11c4073fbe60314fc9df530a9d5f986533594d1f5190742ff9e0e408';
+        const inputHash = await sha256Hex(cleanPass);
+        const inputHashLower = await sha256Hex(cleanPass.toLowerCase());
+
+        if (cleanEmail === ADMIN_EMAIL && (inputHash === ADMIN_HASH || inputHashLower === ADMIN_HASH)) {
           const adminUser = {
             id: 'admin_sys_2026',
             email: 'admin@expenseos.com',
