@@ -227,9 +227,7 @@ function showAlert(title, message) {
 
 // ---------- State Persistence (Supabase + Firestore + localStorage fallback) ----------
 let currentUserId = null;
-let firestoreUnsubscribe = null;
 let supabaseChannel = null;
-let isSyncingFromFirestore = false;
 
 function saveState() {
   // Always save to localStorage as backup
@@ -265,29 +263,7 @@ function saveState() {
     } catch (e) {}
   }
 
-  // Save to Firestore if logged in & DB available
-  if (currentUserId && typeof db !== 'undefined' && db && !isSyncingFromFirestore) {
-    try {
-      if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-      const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
-        ? firebase.firestore.FieldValue.serverTimestamp()
-        : new Date();
 
-      db.collection('users').doc(currentUserId).set({
-        budget,
-        expenses,
-        subscriptions,
-        lastUpdated: timestamp
-      }).then(() => {
-        if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-      }).catch((error) => {
-        console.error('Firestore save error:', error);
-        if (typeof setSyncStatus === 'function') setSyncStatus('error');
-      });
-    } catch (err) {
-      console.warn('Firestore save block error:', err);
-    }
-  }
 }
 
 function loadStateFromLocal() {
@@ -325,7 +301,7 @@ function loadStateFromLocal() {
   updateUI();
 }
 
-// Kept for offline / non-Firebase mode
+// Kept for offline mode
 function loadState() {
   loadStateFromLocal();
 }
@@ -439,52 +415,7 @@ function stopSupabaseSync() {
 window.startSupabaseSync = startSupabaseSync;
 window.stopSupabaseSync = stopSupabaseSync;
 
-function startFirestoreSync(userId) {
-  currentUserId = userId;
-  if (!db) { loadStateFromLocal(); return; }
 
-  if (typeof setSyncStatus === 'function') setSyncStatus('syncing');
-
-  const userDocRef = db.collection('users').doc(userId);
-
-  firestoreUnsubscribe = userDocRef.onSnapshot((doc) => {
-    isSyncingFromFirestore = true;
-    if (doc.exists) {
-      const data = doc.data();
-      budget = typeof data.budget === 'number' ? data.budget : 0;
-      expenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
-      subscriptions = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];
-    } else {
-      budget = 0;
-      expenses = [];
-      subscriptions = [];
-      userDocRef.set({ budget: 0, expenses: [], subscriptions: [] });
-    }
-
-    // Also cache locally
-    localStorage.setItem('expense_cal_web_budget', budget.toString());
-    localStorage.setItem('expense_cal_web_expenses', JSON.stringify(expenses));
-    localStorage.setItem('expense_cal_web_subscriptions', JSON.stringify(subscriptions));
-
-    updateMonthPickerOptions();
-    updateUI();
-    isSyncingFromFirestore = false;
-    if (typeof setSyncStatus === 'function') setSyncStatus('synced');
-  }, (error) => {
-    console.error('Firestore listener error:', error);
-    if (typeof setSyncStatus === 'function') setSyncStatus('error');
-    loadStateFromLocal();
-  });
-}
-
-function stopFirestoreSync() {
-  if (firestoreUnsubscribe) {
-    firestoreUnsubscribe();
-    firestoreUnsubscribe = null;
-  }
-  stopSupabaseSync();
-  currentUserId = null;
-}
 
 function isValidExpense(item) {
   return item && typeof item === 'object' &&
@@ -772,18 +703,7 @@ function checkAndSendSubscriptionReminders() {
           }
         }
 
-        if (typeof db !== 'undefined' && db && userEmail) {
-          try {
-            db.collection('mail').add({
-              to: [userEmail],
-              message: {
-                subject: `⏰ Subscription Due Reminder: ${sub.name} is due ${daysLeft === 0 ? 'today' : 'in ' + daysLeft + ' days'}!`,
-                html: `Subscription ${sub.name} is due soon.`
-              },
-              createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-          } catch(e) {}
-        }
+
       }
     }
   });
@@ -1557,23 +1477,7 @@ async function resetAllData(e) {
     }
   }
 
-  // 2. Reset Firestore data if configured & active
-  if (typeof db !== 'undefined' && db && !cloudSuccess) {
-    try {
-      const timestamp = (typeof firebase !== 'undefined' && firebase.firestore && firebase.firestore.FieldValue)
-        ? firebase.firestore.FieldValue.serverTimestamp()
-        : new Date();
-      await db.collection('users').doc(currentUserId).set({
-        budget: 0,
-        expenses: [],
-        subscriptions: [],
-        lastUpdated: timestamp
-      });
-      cloudSuccess = true;
-    } catch(err) {
-      console.warn('Firestore reset notice:', err);
-    }
-  }
+
 
   if (typeof setSyncStatus === 'function') setSyncStatus('synced');
   if (cloudSuccess) {
@@ -1853,7 +1757,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.3.15';
+const CURRENT_APP_VERSION = 'v2.4.0';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');

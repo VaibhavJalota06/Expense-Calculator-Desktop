@@ -133,7 +133,7 @@ ipcMain.on('restart-and-install', () => {
   }
 });
 
-// Lightweight static file server for local HTTP protocol (enables Firebase Auth in Electron)
+// Lightweight static file server for local HTTP protocol (enables OAuth in Electron)
 const mimeTypes = {
   '.html': 'text/html',
   '.js': 'text/javascript',
@@ -245,7 +245,6 @@ function createWindow(port) {
 
       const isAuthUrl =
         navigationUrl.includes('accounts.google.com') ||
-        navigationUrl.includes('firebaseapp.com') ||
         navigationUrl.includes('supabase.co') ||
         navigationUrl.includes('googleapis.com') ||
         navigationUrl.includes('google.com/o/oauth');
@@ -268,15 +267,14 @@ function createWindow(port) {
     }
   });
 
-  // Handle external link navigation vs Google Auth popups
+  // Handle external link navigation vs Auth popups
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Allow Google Auth popups inside Electron with Chrome userAgent
+    // Allow Auth popups inside Electron with Chrome userAgent
     if (
+      url.includes('supabase.co') ||
       url.includes('accounts.google.com') ||
-      url.includes('google.com') ||
-      url.includes('firebaseapp.com') ||
       url.includes('googleapis.com') ||
-      url.includes('supabase.co')
+      url.includes('google.com/o/oauth')
     ) {
       return {
         action: 'allow',

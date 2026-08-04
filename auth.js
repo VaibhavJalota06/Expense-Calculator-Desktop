@@ -19,7 +19,6 @@
     const btnShowLogin = document.getElementById('btn-show-login');
     // Topbar profile elements (sidebar profile was removed)
     const syncStatusEl = document.getElementById('sync-status');
-    let googleProvider = null;
 
     // Toggle Login / Signup
     if (btnShowSignup) {
@@ -93,42 +92,12 @@
           }
         }
 
-        // 2. Fallback to Firebase Auth
-        if (typeof firebase !== 'undefined' && firebase.auth && auth) {
-          if (auth.setPersistence) {
-            try { await auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL); } catch(e) {}
-          }
-          if (!googleProvider) {
-            googleProvider = new firebase.auth.GoogleAuthProvider();
-          }
-          if (googleProvider) {
-            googleProvider.setCustomParameters({ prompt: 'select_account' });
-            await auth.signInWithPopup(googleProvider);
-            return;
-          }
-        }
-
-        // If both failed or unavailable, show detailed error message
-        const finalMsg = supaErrorMessage 
-          ? `Supabase Auth Error: ${supaErrorMessage}. (You can also continue in Guest Mode or Email Sign-In).`
-          : 'Google Sign-In is unavailable. Please check your internet connection, sign in with Email & Password, or continue in Guest Mode.';
-        showError(loginError, finalMsg);
+        // If Supabase unavailable, show error message
+        showError(loginError, 'Google Sign-In is unavailable. Please check your internet connection, sign in with Email & Password, or click Continue Offline (Guest Mode).');
       } catch (error) {
         console.error('Google Sign-In error:', error);
-        const code = error ? (error.code || '') : '';
-        const msg = error ? (error.message || '') : '';
-
-        if (code === 'auth/unauthorized-domain' || msg.includes('unauthorized domain')) {
-          showError(loginError, 'Domain Unauthorized: Please add http://localhost:58420 to Firebase Console -> Authentication -> Settings -> Authorized Domains.');
-        } else if (code === 'auth/missing-initial-state' || msg.includes('missing initial state')) {
-          showError(loginError, 'Cookie Blocked: Third-party auth cookie was restricted. Please use Email Sign-In or Guest Mode.');
-        } else if (code === 'auth/internal-error') {
-          showError(loginError, 'Google Login Notice: Third-party auth cookies are restricted in desktop app mode. Please sign in with Email & Password or click Continue Offline (Guest Mode).');
-        } else if (code === 'auth/network-request-failed') {
-          showError(loginError, 'Network Error: Please check your internet connection or use Guest Mode.');
-        } else if (code !== 'auth/popup-closed-by-user' && code !== 'auth/cancelled-popup-request') {
-          showError(loginError, getAuthErrorMessage(error) || msg);
-        }
+        const msg = error ? (error.message || String(error)) : '';
+        showError(loginError, msg || 'Google Sign-In error. Please try again or click Continue Offline (Guest Mode).');
       } finally {
         isAuthInProgress = false;
       }
@@ -148,9 +117,7 @@
           return;
         }
 
-        if (auth) {
-          await auth.signInWithEmailAndPassword(email, password);
-        }
+        showError(loginError, 'Email Sign-In unavailable. Please check Supabase project credentials or click Continue Offline (Guest Mode).');
       } catch (error) {
         console.error('Email Sign-In error:', error);
         showError(loginError, getAuthErrorMessage(error));
@@ -229,27 +196,7 @@
           return;
         }
 
-        if (auth) {
-          const cred = await auth.createUserWithEmailAndPassword(email, password);
-          if (cred && cred.user) {
-            if (name) {
-              try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
-            }
-            if (gender) {
-              localStorage.setItem('expense_cal_user_gender_' + cred.user.uid, gender);
-            }
-            localStorage.setItem('expense_cal_show_welcome_' + cred.user.uid, 'true');
-            triggerWelcomeEmail(cred.user, name);
-            if (db) {
-              try {
-                await db.collection('users').doc(cred.user.uid).set({
-                  profile: { name, gender },
-                  lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-                }, { merge: true });
-              } catch (e) {}
-            }
-          }
-        }
+        showError(signupError, 'Email Sign-Up unavailable. Please check Supabase project credentials or click Continue Offline (Guest Mode).');
       } catch (error) {
         console.error('Email Sign-Up error:', error);
         showError(signupError, getAuthErrorMessage(error));
@@ -264,15 +211,11 @@
         sessionStorage.clear();
         localStorage.removeItem('expense_cal_redirect_pending');
 
-        if (typeof stopFirestoreSync === 'function') stopFirestoreSync();
         if (typeof stopSupabaseSync === 'function') stopSupabaseSync();
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
           try { await supaClient.auth.signOut({ scope: 'local' }); } catch(err) {}
-        }
-        if (auth) {
-          try { await auth.signOut(); } catch(err) {}
         }
       } catch (error) {
         console.error('Sign out error:', error);
@@ -408,13 +351,6 @@
         } catch(e) {}
       }
 
-      // Check Firebase Session
-      if (auth && auth.currentUser) {
-        sessionStorage.removeItem('expense_cal_guest_mode');
-        hideLoader();
-        showApp(auth.currentUser);
-        return true;
-      }
 
       // If URL has OAuth tokens or auth code, wait for Supabase onAuthStateChange to finish parsing
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
@@ -568,19 +504,6 @@
         loadStateFromLocal();
       }
 
-      // 3. Non-blocking optional gender fetch for Firebase accounts
-      if (!gender && user && typeof db !== 'undefined' && db && auth && auth.currentUser && userId) {
-        try {
-          const doc = await db.collection('users').doc(userId).get();
-          if (doc.exists && doc.data() && doc.data().profile) {
-            gender = doc.data().profile.gender;
-            if (gender) {
-              localStorage.setItem('expense_cal_user_gender_' + userId, gender);
-              if (dropName) dropName.textContent = `${gender === 'male' ? 'Mr. ' : (gender === 'female' ? 'Ms. ' : '')}${rawName}`;
-            }
-          }
-        } catch (e) {}
-      }
 
       const viewSubtitle = document.getElementById('view-subtitle');
       if (viewSubtitle) {
@@ -635,7 +558,6 @@
     }
 
     async function getAppUser() {
-      if (auth && auth.currentUser) return auth.currentUser;
       const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
       if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
         try {
@@ -731,15 +653,6 @@
 
           if (uid) localStorage.setItem('expense_cal_user_gender_' + uid, newGender);
 
-          if (db && currentUser.uid) {
-            try {
-              await db.collection('users').doc(currentUser.uid).set({
-                profile: { name: newName, gender: newGender },
-                lastUpdated: firebase.firestore.FieldValue.serverTimestamp()
-              }, { merge: true });
-            } catch(err) { console.error('Error updating firestore profile:', err); }
-          }
-
           if (currentUser.user_metadata) {
             currentUser.user_metadata.full_name = newName;
           } else {
@@ -774,17 +687,12 @@
       const m = {
         'auth/invalid-email': 'Invalid email address format.',
         'auth/user-disabled': 'This account has been disabled.',
-        'auth/user-not-found': 'No account found with this email. Please click "Create one" below to sign up.',
+        'auth/user-not-found': 'No account found with this email.',
         'auth/wrong-password': 'Incorrect password. Please try again.',
-        'auth/email-already-in-use': 'An account with this email already exists. Try signing in.',
+        'auth/email-already-in-use': 'An account with this email already exists.',
         'auth/weak-password': 'Password must be at least 6 characters.',
-        'auth/popup-closed-by-user': 'Sign-in popup was closed before completion.',
-        'auth/cancelled-popup-request': 'Sign-in popup request was interrupted. Please try again.',
         'auth/network-request-failed': 'Network error. Please check your internet connection.',
-        'auth/too-many-requests': 'Too many failed attempts. Please try again later.',
-        'auth/invalid-credential': 'Invalid email or password. Please check your credentials or click "Create one" below to sign up.',
-        'auth/operation-not-allowed': 'This sign-in method is not enabled in Firebase console.',
-        'auth/unauthorized-domain': 'This domain is not authorized in Firebase Console -> Authentication -> Settings -> Authorized domains.',
+        'auth/too-many-requests': 'Too many failed attempts. Please try again later.'
       };
       return m[code] || (message ? message : 'Authentication error. Please try again.');
     }
