@@ -15,11 +15,18 @@ const isSupabaseConfigured = Boolean(
 
 // Capture the CDN library reference IMMEDIATELY before any getter overwrites it
 let _supabaseCdnLib = null;
-if (window.supabase && typeof window.supabase.createClient === 'function') {
+
+// Check if window.supabase is still the raw CDN library (not yet overwritten by a getter)
+const _supaDesc = Object.getOwnPropertyDescriptor(window, 'supabase');
+if (_supaDesc && !_supaDesc.get && _supaDesc.value && typeof _supaDesc.value.createClient === 'function') {
+  _supabaseCdnLib = _supaDesc.value;
+} else if (window.supabase && typeof window.supabase.createClient === 'function') {
   _supabaseCdnLib = window.supabase;
 } else if (window.supabaseJS && typeof window.supabaseJS.createClient === 'function') {
   _supabaseCdnLib = window.supabaseJS;
 }
+// Store a safe backup reference for other scripts
+if (_supabaseCdnLib) window._supabaseCdnRef = _supabaseCdnLib;
 
 function getSupabaseClient() {
   if (!isSupabaseConfigured) return null;
