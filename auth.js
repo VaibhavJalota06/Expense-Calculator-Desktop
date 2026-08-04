@@ -44,10 +44,9 @@ window.handleEditProfileClick = function(e) {
       var templateInput = document.getElementById('edit-emailjs-template');
       var keyInput = document.getElementById('edit-emailjs-key');
       var savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
-      var activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
-      if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
-      if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
-      if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
+      if (serviceInput) serviceInput.value = (savedCfg.serviceId && !savedCfg.serviceId.includes('YOUR_')) ? savedCfg.serviceId : '';
+      if (templateInput) templateInput.value = (savedCfg.templateId && !savedCfg.templateId.includes('YOUR_')) ? savedCfg.templateId : '';
+      if (keyInput) keyInput.value = (savedCfg.publicKey && !savedCfg.publicKey.includes('YOUR_')) ? savedCfg.publicKey : '';
     } catch(err) {
       console.warn('Profile field population notice:', err);
     }
