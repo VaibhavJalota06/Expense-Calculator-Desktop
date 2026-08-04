@@ -728,6 +728,13 @@
             <label for="edit-profile-email">Email Address</label>
             <input type="email" id="edit-profile-email" disabled style="opacity: 0.6; cursor: not-allowed;" />
           </div>
+          <div class="form-group" style="margin-top: 14px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 12px;">
+            <label style="color: var(--primary-bright); font-weight: 600; display: flex; align-items: center; gap: 6px;"><i class="fa-solid fa-envelope"></i> EmailJS Gmail Reminders (Optional)</label>
+            <p style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 8px; line-height: 1.35;">Add your free keys from <a href="https://dashboard.emailjs.com/" target="_blank" style="color: var(--accent-cyan); text-decoration: underline;">dashboard.emailjs.com</a> to receive welcome and bill due emails.</p>
+            <input type="text" id="edit-emailjs-service" placeholder="Service ID (e.g. service_abc123)" style="margin-bottom: 6px; font-size: 0.85rem;" />
+            <input type="text" id="edit-emailjs-template" placeholder="Template ID (e.g. template_xyz789)" style="margin-bottom: 6px; font-size: 0.85rem;" />
+            <input type="text" id="edit-emailjs-key" placeholder="Public Key (e.g. user_ABC123XYZ)" style="font-size: 0.85rem;" />
+          </div>
         </div>
         <div class="modal-footer">
           <button type="button" id="edit-profile-cancel" class="btn btn-secondary">Cancel</button>
