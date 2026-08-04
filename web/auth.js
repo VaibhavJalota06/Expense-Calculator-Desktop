@@ -621,18 +621,7 @@
       evaluateAuthState();
     });
 
-    // Firebase Auth Listener
-    if (auth) {
-      auth.onAuthStateChanged((user) => {
-        if (user) {
-          hideLoader();
-          showApp(user);
-        } else {
-          // Only show login screen if Supabase is also not logged in
-          evaluateAuthState();
-        }
-      });
-    }
+    // (Firebase auth listener removed — Firebase was deprecated in v2.4.0 in favor of Supabase)
 
     // Ultimate Safety Fallback: guarantee screen is NEVER blank
     setTimeout(() => {
