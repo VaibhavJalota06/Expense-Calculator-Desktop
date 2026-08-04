@@ -816,6 +816,17 @@
   <!-- Supabase JS Client CDN -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
+  <!-- EmailJS Configuration (required for welcome & subscription reminder emails) -->
+  <script>
+    // ⚠️ REPLACE these placeholder values with your real EmailJS credentials
+    // Get them from: https://dashboard.emailjs.com/
+    window.emailjsConfig = {
+      serviceId:  'YOUR_EMAILJS_SERVICE_ID',   // e.g. 'service_abc123'
+      templateId: 'YOUR_EMAILJS_TEMPLATE_ID',  // e.g. 'template_xyz789'
+      publicKey:  'YOUR_EMAILJS_PUBLIC_KEY'     // e.g. 'user_ABC123XYZ'
+    };
+  </script>
+
   <!-- App Scripts (order matters) -->
   <script src="supabase-config.js?v=4.0.1"></script>
   <script src="script.js?v=4.0.0"></script>
