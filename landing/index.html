@@ -30,7 +30,11 @@
       <span>Expense <span class="gradient-text">OS</span></span>
     </a>
 
-    <ul class="nav-links">
+    <button class="mobile-menu-toggle" id="mobile-menu-toggle" aria-label="Toggle Navigation Menu">
+      <i class="fa-solid fa-bars"></i>
+    </button>
+
+    <ul class="nav-links" id="nav-links">
       <li><a href="#features" class="nav-link">Features</a></li>
       <li><a href="#gallery" class="nav-link">App Preview</a></li>
       <li><a href="#comparison" class="nav-link">Compare</a></li>
@@ -50,7 +54,7 @@
   <!-- Hero Section -->
   <header class="hero">
     <div class="hero-badge">
-      <i class="fa-solid fa-sparkles"></i> Expense OS v2.5.7 Released • Super Admin & Cloud Sync Active
+      <i class="fa-solid fa-wand-magic-sparkles"></i> Expense OS v2.5.7 Released • Super Admin & Cloud Sync Active
     </div>
 
     <h1 class="hero-title">The Next-Gen <span class="gradient-text">3D Financial Operating System</span></h1>
@@ -68,7 +72,7 @@
       </a>
     </div>
 
-    <!-- 3D Interactive App Mockup Frame -->
+    <!-- 3D Interactive App Showcase Mockup Frame -->
     <div class="hero-mockup-wrapper">
       <div class="hero-mockup">
 
@@ -102,7 +106,7 @@
 
         <!-- Live Interactive App Iframe -->
         <div class="mockup-screen">
-          <iframe src="../web/index.html" title="Expense OS Live Interactive Application Preview"></iframe>
+          <iframe id="hero-iframe" src="../web/index.html" title="Expense OS Live Interactive Application Preview"></iframe>
         </div>
 
       </div>
@@ -185,11 +189,11 @@
           <span class="dot dot-yellow"></span>
           <span class="dot dot-green"></span>
         </div>
-        <div class="mockup-title">Expense OS Interactive Preview Window</div>
+        <div class="mockup-title" id="gallery-url-title"><i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> https://expenseos.app/dashboard</div>
         <div style="width: 50px;"></div>
       </div>
       <div class="mockup-screen" style="height: 480px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
-        <iframe src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
+        <iframe id="gallery-iframe" src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
       </div>
     </div>
   </section>

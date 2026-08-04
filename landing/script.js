@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
 
-      const rotateX = (y / (rect.height / 2)) * -12; // Rotate pitch up to 12 deg
-      const rotateY = (x / (rect.width / 2)) * 12;   // Rotate yaw up to 12 deg
+      const rotateX = (y / (rect.height / 2)) * -10; // Rotate pitch up to 10 deg
+      const rotateY = (x / (rect.width / 2)) * 10;   // Rotate yaw up to 10 deg
 
       heroMockup.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
     });
@@ -96,32 +96,33 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---------- 4. Gallery Tab Switcher ----------
+  // ---------- 4. Gallery Tab Switcher & Preview Updates ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
-  const previewImg = document.getElementById('gallery-preview-img');
-  const previewTitle = document.getElementById('gallery-preview-title');
-  const previewDesc = document.getElementById('gallery-preview-desc');
+  const galleryTitle = document.getElementById('gallery-preview-title');
+  const galleryDesc = document.getElementById('gallery-preview-desc');
+  const galleryUrlTitle = document.getElementById('gallery-url-title');
+  const galleryIframe = document.getElementById('gallery-iframe');
 
   const galleryData = {
     dashboard: {
       title: "Real-Time Financial Dashboard & Analytics",
       desc: "Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.",
-      img: "../web/index.html"
+      url: "https://expenseos.app/dashboard"
     },
     budgeting: {
       title: "AI Category Rules & Smart Budget Limits",
       desc: "Set monthly target budgets per category with real-time color warnings and automatic transaction classification.",
-      img: "../web/index.html"
+      url: "https://expenseos.app/budgeting"
     },
     currency: {
       title: "Multi-Currency & Real-Time FX Exchange Rates",
       desc: "Track expenses in USD, EUR, INR, GBP, JPY, CAD and instantly convert balances using live API exchange rates.",
-      img: "../web/index.html"
+      url: "https://expenseos.app/fx-exchange"
     },
     sync: {
       title: "Supabase Cloud Sync & Zero-Lockout Local DB",
       desc: "Seamlessly synchronizes your data across devices using Supabase cloud PostgreSQL, with 100% offline local fallback.",
-      img: "../web/index.html"
+      url: "https://expenseos.app/cloud-sync"
     }
   };
 
@@ -132,17 +133,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const target = btn.getAttribute('data-tab');
       if (galleryData[target]) {
-        if (previewTitle) previewTitle.textContent = galleryData[target].title;
-        if (previewDesc) previewDesc.textContent = galleryData[target].desc;
+        if (galleryTitle) galleryTitle.textContent = galleryData[target].title;
+        if (galleryDesc) galleryDesc.textContent = galleryData[target].desc;
+        if (galleryUrlTitle) galleryUrlTitle.innerHTML = `<i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> ${galleryData[target].url}`;
+        if (galleryIframe) {
+          galleryIframe.style.opacity = '0.5';
+          setTimeout(() => {
+            galleryIframe.src = '../web/index.html';
+            galleryIframe.style.opacity = '1';
+          }, 150);
+        }
       }
     });
   });
 
-  // ---------- 5. Navbar Scroll Glassmorphism Effect ----------
+  // ---------- 5. Mobile Navbar Toggle ----------
+  const mobileToggle = document.getElementById('mobile-menu-toggle');
+  const navLinks = document.getElementById('nav-links');
+  if (mobileToggle && navLinks) {
+    mobileToggle.addEventListener('click', () => {
+      navLinks.classList.toggle('active');
+    });
+  }
+
+  // ---------- 6. Smooth Scroll for Anchor Links ----------
+  document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+    anchor.addEventListener('click', function (e) {
+      const targetId = this.getAttribute('href');
+      if (targetId && targetId !== '#') {
+        const targetEl = document.querySelector(targetId);
+        if (targetEl) {
+          e.preventDefault();
+          targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          if (navLinks) navLinks.classList.remove('active');
+        }
+      }
+    });
+  });
+
+  // ---------- 7. Navbar Glassmorphism Scroll Effect ----------
   const navbar = document.querySelector('.navbar');
   window.addEventListener('scroll', () => {
     if (window.scrollY > 40) {
-      navbar.style.background = 'rgba(8, 10, 15, 0.9)';
+      navbar.style.background = 'rgba(8, 10, 15, 0.95)';
       navbar.style.boxShadow = '0 10px 40px rgba(0, 0, 0, 0.8)';
     } else {
       navbar.style.background = 'rgba(12, 16, 26, 0.75)';
