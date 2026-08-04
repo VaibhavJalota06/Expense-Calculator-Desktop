@@ -69,16 +69,12 @@
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
           try {
-            const isElectronApp = Boolean(window.electronAPI && window.electronAPI.isElectron);
-            const isLocalhost = window.location.origin.includes('localhost');
-            const shouldSkipRedirect = isElectronApp || isLocalhost;
             const redirectUrl = window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({
               provider: 'google',
               options: {
                 redirectTo: redirectUrl,
-                skipBrowserRedirect: shouldSkipRedirect,
                 queryParams: {
                   prompt: 'select_account'
                 }
@@ -86,11 +82,7 @@
             });
             if (error) throw error;
             if (data && data.url) {
-              if (shouldSkipRedirect) {
-                window.open(data.url, 'google_auth', 'width=600,height=720');
-              } else {
-                window.location.href = data.url;
-              }
+              window.location.href = data.url;
               return;
             }
           } catch (supaErr) {

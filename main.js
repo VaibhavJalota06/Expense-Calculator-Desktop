@@ -258,7 +258,7 @@ function createWindow(port) {
 
       // If navigation target is the GitHub Pages web app (e.g. from Supabase logout redirect), redirect back to local app
       if (navigationUrl.includes('github.io') || navigationUrl.includes('Expense-Calculator-Desktop')) {
-        mainWindow.loadURL(`http://localhost:${port}`);
+        mainWindow.loadURL(`http://localhost:${port}${parsedUrl.search || ''}${parsedUrl.hash || ''}`);
         return;
       }
 
