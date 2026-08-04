@@ -39,14 +39,6 @@ window.handleEditProfileClick = function(e) {
 
       var currentGender = localStorage.getItem('expense_cal_user_gender_active') || 'male';
       if (genderSelect) genderSelect.value = currentGender;
-
-      var serviceInput = document.getElementById('edit-emailjs-service');
-      var templateInput = document.getElementById('edit-emailjs-template');
-      var keyInput = document.getElementById('edit-emailjs-key');
-      var savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
-      if (serviceInput) serviceInput.value = (savedCfg.serviceId && !savedCfg.serviceId.includes('YOUR_')) ? savedCfg.serviceId : '';
-      if (templateInput) templateInput.value = (savedCfg.templateId && !savedCfg.templateId.includes('YOUR_')) ? savedCfg.templateId : '';
-      if (keyInput) keyInput.value = (savedCfg.publicKey && !savedCfg.publicKey.includes('YOUR_')) ? savedCfg.publicKey : '';
     } catch(err) {
       console.warn('Profile field population notice:', err);
     }
