@@ -493,15 +493,15 @@
 
       // 2. Trigger data loading & real-time sync for the logged-in user
       if (userId) {
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase && typeof startSupabaseSync === 'function') {
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && typeof getSupabaseClient === 'function' && getSupabaseClient() && typeof startSupabaseSync === 'function') {
           startSupabaseSync(userId);
-        } else if (typeof startFirestoreSync === 'function') {
-          startFirestoreSync(userId);
         } else if (typeof loadStateFromLocal === 'function') {
           loadStateFromLocal();
+          if (typeof setSyncStatus === 'function') setSyncStatus('guest');
         }
       } else if (typeof loadStateFromLocal === 'function') {
         loadStateFromLocal();
+        if (typeof setSyncStatus === 'function') setSyncStatus('guest');
       }
 
 
@@ -697,16 +697,16 @@
       return m[code] || (message ? message : 'Authentication error. Please try again.');
     }
 
-    // Sync Status Badge
     window.setSyncStatus = function(status) {
       if (!syncStatusEl) return;
       const states = {
         syncing: { text: 'Syncing...', cls: 'sync-syncing', icon: 'fa-arrows-rotate fa-spin' },
         synced: { text: 'Synced', cls: 'sync-synced', icon: 'fa-circle-check' },
-        offline: { text: 'Offline', cls: 'sync-offline', icon: 'fa-wifi' },
+        guest: { text: 'Local Mode', cls: 'sync-offline', icon: 'fa-user' },
+        offline: { text: 'Local Mode', cls: 'sync-offline', icon: 'fa-wifi' },
         error: { text: 'Sync Error', cls: 'sync-error', icon: 'fa-triangle-exclamation' },
       };
-      const s = states[status] || states.synced;
+      const s = states[status] || states.guest;
       syncStatusEl.className = `sync-status-badge ${s.cls}`;
       syncStatusEl.innerHTML = `<i class="fa-solid ${s.icon}"></i> ${s.text}`;
     };

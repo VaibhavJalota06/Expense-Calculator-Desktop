@@ -252,7 +252,7 @@ function saveState() {
         updated_at: new Date().toISOString()
       }, { onConflict: 'user_id' }).then(({ error }) => {
         if (error) {
-          console.warn('Supabase save notice (check RLS policies):', error);
+          console.warn('⚠️ Supabase Save Notice (Check RLS Policies):', error.message || error);
           if (typeof setSyncStatus === 'function') setSyncStatus('error');
         } else if (typeof setSyncStatus === 'function') {
           setSyncStatus('synced');
@@ -262,6 +262,8 @@ function saveState() {
         if (typeof setSyncStatus === 'function') setSyncStatus('error');
       });
     } catch (e) {}
+  } else if (typeof setSyncStatus === 'function') {
+    setSyncStatus('guest');
   }
 
 
@@ -1763,7 +1765,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.4.2';
+const CURRENT_APP_VERSION = 'v2.4.3';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');
