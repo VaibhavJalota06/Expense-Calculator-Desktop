@@ -15,8 +15,8 @@
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
-  <!-- Custom Stylesheet -->
-  <link rel="stylesheet" href="style.css">
+  <!-- Custom Stylesheet with Cache Buster -->
+  <link rel="stylesheet" href="style.css?v=2.5.7_v3">
 </head>
 <body>
 
@@ -37,6 +37,7 @@
     <ul class="nav-links" id="nav-links">
       <li><a href="#features" class="nav-link">Features</a></li>
       <li><a href="#gallery" class="nav-link">App Preview</a></li>
+      <li><a href="#interactive-widgets" class="nav-link">Live Demos</a></li>
       <li><a href="#comparison" class="nav-link">Compare</a></li>
       <li><a href="#download" class="nav-link">Downloads</a></li>
     </ul>
@@ -124,13 +125,13 @@
     <div class="features-grid">
 
       <div class="glass-panel feature-card">
-        <div class="feature-icon-wrapper"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-cloud"></i></div>
         <h3>Supabase Cloud DB</h3>
         <p>Real-time PostgreSQL cloud synchronization. Changes on your desktop app automatically update on your web app instantantly.</p>
       </div>
 
       <div class="glass-panel feature-card">
-        <div class="feature-icon-wrapper"><i class="fa-solid fa-wifi-slash"></i></div>
+        <div class="feature-icon-wrapper"><i class="fa-solid fa-database"></i></div>
         <h3>Zero-Lockout Local Storage</h3>
         <p>Never worry about internet outages. Expense OS works 100% offline with local session persistence and auto-reconnect sync.</p>
       </div>
@@ -165,22 +166,24 @@
   <!-- Interactive Gallery Section -->
   <section id="gallery" class="gallery-section">
     <div class="section-header">
-      <div class="section-tag">Interactive Preview</div>
-      <h2 class="section-title">Explore the <span class="gradient-text">User Experience</span></h2>
-      <p class="section-desc">Click through the feature tabs to preview how Expense OS manages your daily financial workflow.</p>
+      <div class="section-tag">Interactive App Tour</div>
+      <h2 class="section-title">Explore Every Feature of <span class="gradient-text">Expense OS</span></h2>
+      <p class="section-desc">Select any section below to preview how each powerful component operates inside the app.</p>
     </div>
 
     <div class="tabs-container">
-      <button class="tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard & Analytics</button>
+      <button class="tab-btn active" data-tab="dashboard"><i class="fa-solid fa-chart-pie"></i> Dashboard Analytics</button>
+      <button class="tab-btn" data-tab="transactions"><i class="fa-solid fa-receipt"></i> Transaction Manager</button>
       <button class="tab-btn" data-tab="budgeting"><i class="fa-solid fa-calculator"></i> AI Budget Rules</button>
       <button class="tab-btn" data-tab="currency"><i class="fa-solid fa-globe"></i> FX Rates & Currency</button>
-      <button class="tab-btn" data-tab="sync"><i class="fa-solid fa-shield-halved"></i> Cloud & Offline Sync</button>
+      <button class="tab-btn" data-tab="sync"><i class="fa-solid fa-shield-halved"></i> Cloud & Offline DB</button>
+      <button class="tab-btn" data-tab="export"><i class="fa-solid fa-file-export"></i> Reports & Data Export</button>
     </div>
 
     <div class="glass-panel tab-preview-card">
       <div style="margin-bottom:20px; text-align:center;">
         <h3 id="gallery-preview-title" style="font-size:1.5rem; margin-bottom:8px;">Real-Time Financial Dashboard & Analytics</h3>
-        <p id="gallery-preview-desc" style="color:var(--text-med); font-size:0.95rem; max-width:700px; margin:0 auto;">Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.</p>
+        <p id="gallery-preview-desc" style="color:var(--text-med); font-size:0.95rem; max-width:750px; margin:0 auto;">Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.</p>
       </div>
 
       <div class="mockup-header" style="border-radius:10px 10px 0 0;">
@@ -192,9 +195,89 @@
         <div class="mockup-title" id="gallery-url-title"><i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> https://expenseos.app/dashboard</div>
         <div style="width: 50px;"></div>
       </div>
-      <div class="mockup-screen" style="height: 480px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
+      <div class="mockup-screen" style="height: 520px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
         <iframe id="gallery-iframe" src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
       </div>
+    </div>
+  </section>
+
+  <!-- Live Interactive Mini-Widgets Section -->
+  <section id="interactive-widgets" class="section">
+    <div class="section-header">
+      <div class="section-tag">Hands-On Demos</div>
+      <h2 class="section-title">Try Expense OS Tools <span class="gradient-text">Right Here</span></h2>
+      <p class="section-desc">Experience real-time financial calculations using our live embedded mini-widgets below.</p>
+    </div>
+
+    <div class="widgets-grid">
+
+      <!-- Live FX Calculator Demo -->
+      <div class="glass-panel widget-card">
+        <div class="widget-header">
+          <i class="fa-solid fa-calculator widget-icon"></i>
+          <h3>Live FX Currency Converter Demo</h3>
+        </div>
+        <p style="font-size:0.9rem; color:var(--text-med); margin-bottom:16px;">Test our live exchange rate engine directly on this page.</p>
+
+        <div class="widget-form">
+          <div class="form-group-inline">
+            <input type="number" id="demo-fx-amount" value="100" min="1" class="widget-input" placeholder="Amount">
+            <select id="demo-fx-from" class="widget-select">
+              <option value="USD" selected>USD ($)</option>
+              <option value="EUR">EUR (€)</option>
+              <option value="INR">INR (₹)</option>
+              <option value="GBP">GBP (£)</option>
+              <option value="CAD">CAD ($)</option>
+            </select>
+          </div>
+          <div class="widget-output-box" id="demo-fx-output">
+            <div style="font-size:0.85rem; color:var(--text-dim);">Equivalent Value</div>
+            <div style="font-size:1.4rem; font-weight:700; color:var(--primary-bright);" id="demo-fx-result">₹8,350.00 INR</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Budget Progress Demo -->
+      <div class="glass-panel widget-card">
+        <div class="widget-header">
+          <i class="fa-solid fa-chart-pie widget-icon"></i>
+          <h3>Category Budget Alerts Demo</h3>
+        </div>
+        <p style="font-size:0.9rem; color:var(--text-med); margin-bottom:16px;">Real-time category spending limits and threshold alerts.</p>
+
+        <div class="widget-progress-list">
+          <div class="progress-item">
+            <div class="progress-label"><span>🍔 Dining & Food</span><span>$360 / $500 (72%)</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:72%; background:var(--primary);"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>✈️ Travel & Flights</span><span>$450 / $1000 (45%)</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:45%; background:var(--accent-cyan);"></div></div>
+          </div>
+          <div class="progress-item">
+            <div class="progress-label"><span>⚡ Electricity & Bills</span><span>$264 / $300 (88%)</span></div>
+            <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:88%; background:#f59e0b;"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Live Quick Expense Simulator -->
+      <div class="glass-panel widget-card">
+        <div class="widget-header">
+          <i class="fa-solid fa-bolt widget-icon"></i>
+          <h3>Quick Expense Simulator</h3>
+        </div>
+        <p style="font-size:0.9rem; color:var(--text-med); margin-bottom:16px;">See how smart AI rules auto-detect category and tags.</p>
+
+        <div class="widget-form">
+          <input type="text" id="demo-sim-name" value="Starbucks Coffee" class="widget-input" placeholder="Expense description">
+          <div class="widget-output-box" id="demo-sim-result">
+            <div style="font-size:0.85rem; color:var(--text-dim);">Auto-Detected Category</div>
+            <div style="font-size:1.1rem; font-weight:700; color:var(--accent-cyan);"><i class="fa-solid fa-utensils"></i> Food & Dining (Auto-Rule)</div>
+          </div>
+        </div>
+      </div>
+
     </div>
   </section>
 
@@ -289,7 +372,7 @@
     <p>© 2026 Expense OS. Engineered with passion by Vaibhav Jalota. All rights reserved.</p>
   </footer>
 
-  <!-- Custom Script -->
-  <script src="script.js"></script>
+  <!-- Custom Script with Cache Buster -->
+  <script src="script.js?v=2.5.7_v3"></script>
 </body>
 </html>

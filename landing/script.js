@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const x = e.clientX - rect.left - rect.width / 2;
       const y = e.clientY - rect.top - rect.height / 2;
 
-      const rotateX = (y / (rect.height / 2)) * -10; // Rotate pitch up to 10 deg
-      const rotateY = (x / (rect.width / 2)) * 10;   // Rotate yaw up to 10 deg
+      const rotateX = (y / (rect.height / 2)) * -10;
+      const rotateY = (x / (rect.width / 2)) * 10;
 
       heroMockup.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale3d(1.02, 1.02, 1.02)`;
     });
@@ -96,7 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---------- 4. Gallery Tab Switcher & Preview Updates ----------
+  // ---------- 4. Gallery Tab Switcher ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
   const galleryTitle = document.getElementById('gallery-preview-title');
   const galleryDesc = document.getElementById('gallery-preview-desc');
@@ -108,6 +108,11 @@ document.addEventListener('DOMContentLoaded', () => {
       title: "Real-Time Financial Dashboard & Analytics",
       desc: "Instant breakdown of monthly income vs expenses, category allocation charts, net balance trends, and recurring subscription trackers.",
       url: "https://expenseos.app/dashboard"
+    },
+    transactions: {
+      title: "Full Transaction Manager & History",
+      desc: "View, search, filter, and edit all transactions with date range selectors, category badges, and instant CSV/JSON exports.",
+      url: "https://expenseos.app/transactions"
     },
     budgeting: {
       title: "AI Category Rules & Smart Budget Limits",
@@ -123,6 +128,11 @@ document.addEventListener('DOMContentLoaded', () => {
       title: "Supabase Cloud Sync & Zero-Lockout Local DB",
       desc: "Seamlessly synchronizes your data across devices using Supabase cloud PostgreSQL, with 100% offline local fallback.",
       url: "https://expenseos.app/cloud-sync"
+    },
+    export: {
+      title: "Comprehensive Financial Reports & Exports",
+      desc: "Export your complete expense data in formatted CSV or JSON at any time for accounting, taxes, or personal archives.",
+      url: "https://expenseos.app/reports"
     }
   };
 
@@ -147,7 +157,59 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---------- 5. Mobile Navbar Toggle ----------
+  // ---------- 5. Live FX Calculator Demo Widget ----------
+  const fxAmount = document.getElementById('demo-fx-amount');
+  const fxFrom = document.getElementById('demo-fx-from');
+  const fxResult = document.getElementById('demo-fx-result');
+
+  const exchangeRates = {
+    USD: { INR: 83.5, EUR: 0.92, GBP: 0.79, CAD: 1.36, USD: 1.0 },
+    EUR: { INR: 90.7, USD: 1.08, GBP: 0.86, CAD: 1.48, EUR: 1.0 },
+    INR: { USD: 0.012, EUR: 0.011, GBP: 0.0095, CAD: 0.016, INR: 1.0 },
+    GBP: { USD: 1.26, EUR: 1.16, INR: 105.4, CAD: 1.72, GBP: 1.0 },
+    CAD: { USD: 0.73, EUR: 0.67, INR: 61.3, GBP: 0.58, CAD: 1.0 }
+  };
+
+  function updateFxDemo() {
+    if (!fxAmount || !fxFrom || !fxResult) return;
+    const amt = parseFloat(fxAmount.value) || 0;
+    const curr = fxFrom.value;
+    const inrVal = (amt * (exchangeRates[curr] ? exchangeRates[curr]['INR'] : 83.5)).toFixed(2);
+    const eurVal = (amt * (exchangeRates[curr] ? exchangeRates[curr]['EUR'] : 0.92)).toFixed(2);
+    fxResult.innerHTML = `₹${inrVal} INR &nbsp;|&nbsp; €${eurVal} EUR`;
+  }
+
+  if (fxAmount) fxAmount.addEventListener('input', updateFxDemo);
+  if (fxFrom) fxFrom.addEventListener('change', updateFxDemo);
+  updateFxDemo();
+
+  // ---------- 6. Quick Expense Simulator Widget ----------
+  const simName = document.getElementById('demo-sim-name');
+  const simResult = document.getElementById('demo-sim-result');
+
+  const categoryRules = [
+    { keywords: ['coffee', 'starbucks', 'mcdonalds', 'pizza', 'burger', 'food', 'restaurant', 'cafe', 'dinner'], cat: 'Food & Dining', icon: 'fa-utensils', color: 'var(--accent-cyan)' },
+    { keywords: ['uber', 'flight', 'airline', 'cab', 'bus', 'train', 'fuel', 'petrol', 'parking'], cat: 'Travel & Transport', icon: 'fa-plane', color: 'var(--primary-bright)' },
+    { keywords: ['netflix', 'spotify', 'amazon', 'hulu', 'disney', 'youtube', 'subscription'], cat: 'Subscriptions', icon: 'fa-film', color: 'var(--accent-purple)' },
+    { keywords: ['electricity', 'water', 'internet', 'rent', 'power', 'bill'], cat: 'Utilities & Housing', icon: 'fa-bolt', color: '#f59e0b' }
+  ];
+
+  function updateSimDemo() {
+    if (!simName || !simResult) return;
+    const val = simName.value.toLowerCase().trim();
+    let found = categoryRules.find(r => r.keywords.some(k => val.includes(k)));
+    if (!found) {
+      found = { cat: 'General & Miscellaneous', icon: 'fa-tags', color: 'var(--text-high)' };
+    }
+    simResult.innerHTML = `
+      <div style="font-size:0.85rem; color:var(--text-dim);">Auto-Detected Category</div>
+      <div style="font-size:1.1rem; font-weight:700; color:${found.color};"><i class="fa-solid ${found.icon}"></i> ${found.cat}</div>
+    `;
+  }
+
+  if (simName) simName.addEventListener('input', updateSimDemo);
+
+  // ---------- 7. Mobile Navbar Toggle ----------
   const mobileToggle = document.getElementById('mobile-menu-toggle');
   const navLinks = document.getElementById('nav-links');
   if (mobileToggle && navLinks) {
@@ -156,7 +218,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // ---------- 6. Smooth Scroll for Anchor Links ----------
+  // ---------- 8. Smooth Scroll ----------
   document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     anchor.addEventListener('click', function (e) {
       const targetId = this.getAttribute('href');
@@ -171,7 +233,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---------- 7. Navbar Glassmorphism Scroll Effect ----------
+  // ---------- 9. Navbar Glassmorphism Scroll Effect ----------
   const navbar = document.querySelector('.navbar');
   window.addEventListener('scroll', () => {
     if (window.scrollY > 40) {
