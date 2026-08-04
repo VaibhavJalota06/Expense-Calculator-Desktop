@@ -792,43 +792,46 @@
       if (dropdown) dropdown.classList.add('hidden');
 
       const modal = document.getElementById('edit-profile-modal');
-      const nameInput = document.getElementById('edit-profile-name');
-      const genderSelect = document.getElementById('edit-profile-gender');
-      const emailInput = document.getElementById('edit-profile-email');
-
-      const currentUser = await getAppUser();
-      const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
-      const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
-      const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
-      let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
-
-      if (!currentName) {
-        const dropName = document.getElementById('dropdown-user-name');
-        if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
-      }
-      const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
-
-      if (nameInput) nameInput.value = currentName;
-      if (genderSelect) genderSelect.value = currentGender;
-      if (emailInput) emailInput.value = userEmail || 'Local Mode';
-
-      // Populate EmailJS fields if saved
-      const serviceInput = document.getElementById('edit-emailjs-service');
-      const templateInput = document.getElementById('edit-emailjs-template');
-      const keyInput = document.getElementById('edit-emailjs-key');
-      try {
-        const savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
-        const activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
-        if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
-        if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
-        if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
-      } catch(err) {}
-
       if (modal) {
         modal.classList.remove('hidden');
         modal.style.setProperty('display', 'flex', 'important');
         modal.style.opacity = '1';
         modal.style.visibility = 'visible';
+        modal.style.zIndex = '100000';
+      }
+
+      try {
+        const nameInput = document.getElementById('edit-profile-name');
+        const genderSelect = document.getElementById('edit-profile-gender');
+        const emailInput = document.getElementById('edit-profile-email');
+
+        const currentUser = await getAppUser();
+        const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
+        const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
+        const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
+        let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
+
+        if (!currentName) {
+          const dropName = document.getElementById('dropdown-user-name');
+          if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
+        }
+        const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
+
+        if (nameInput) nameInput.value = currentName;
+        if (genderSelect) genderSelect.value = currentGender;
+        if (emailInput) emailInput.value = userEmail || 'Local Mode';
+
+        // Populate EmailJS fields if saved
+        const serviceInput = document.getElementById('edit-emailjs-service');
+        const templateInput = document.getElementById('edit-emailjs-template');
+        const keyInput = document.getElementById('edit-emailjs-key');
+        const savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
+        const activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
+        if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
+        if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
+        if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
+      } catch(err) {
+        console.warn('Error populating edit profile fields:', err);
       }
     }
 
