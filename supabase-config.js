@@ -13,19 +13,17 @@ const isSupabaseConfigured = Boolean(
   !SUPABASE_ANON_KEY.includes("YOUR_")
 );
 
+// Capture the CDN library reference IMMEDIATELY before any getter overwrites it
 let _supabaseCdnLib = null;
+if (window.supabase && typeof window.supabase.createClient === 'function') {
+  _supabaseCdnLib = window.supabase;
+} else if (window.supabaseJS && typeof window.supabaseJS.createClient === 'function') {
+  _supabaseCdnLib = window.supabaseJS;
+}
 
 function getSupabaseClient() {
   if (!isSupabaseConfigured) return null;
   if (window._supabaseInstance) return window._supabaseInstance;
-  
-  if (!_supabaseCdnLib) {
-    if (window.supabaseJS && typeof window.supabaseJS.createClient === 'function') {
-      _supabaseCdnLib = window.supabaseJS;
-    } else if (window.supabase && typeof window.supabase.createClient === 'function') {
-      _supabaseCdnLib = window.supabase;
-    }
-  }
 
   const creator = (_supabaseCdnLib && typeof _supabaseCdnLib.createClient === 'function')
     ? _supabaseCdnLib.createClient
@@ -60,7 +58,7 @@ try {
     get: function() {
       if (_cachedClient) return _cachedClient;
       _cachedClient = getSupabaseClient();
-      return _cachedClient || _supabaseCdnLib;
+      return _cachedClient;
     },
     configurable: true
   });
