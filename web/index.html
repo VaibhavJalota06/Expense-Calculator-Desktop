@@ -338,7 +338,7 @@
                 </li>
                 <li class="dropdown-divider"></li>
                 <li>
-                  <button id="btn-dropdown-auth" class="dropdown-item" onclick="if(window.handleSignOut) window.handleSignOut(event);">
+                  <button id="btn-dropdown-auth" class="dropdown-item" onclick="if(window.promptSignOut) window.promptSignOut(event); else if(window.handleSignOut) window.handleSignOut(event);">
                     <i id="dropdown-auth-icon" class="fa-solid fa-right-from-bracket text-danger"></i>
                     <span id="dropdown-auth-text">Sign Out</span>
                   </button>
@@ -737,6 +737,34 @@
           <button type="submit" class="btn btn-primary"><i class="fa-solid fa-check"></i> Save Changes</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Sign Out Verification Modal -->
+  <div id="signout-modal" class="modal-overlay hidden" style="z-index: 100000;">
+    <div class="glass-panel modal-card" style="max-width: 420px; text-align: center; padding: 25px;">
+      <div class="modal-header" style="border-bottom: none; padding-bottom: 0; justify-content: center; position: relative;">
+        <h3 style="color: var(--danger-color, #ff4d4d); display: flex; align-items: center; gap: 10px; font-size: 1.3rem;">
+          <i class="fa-solid fa-triangle-exclamation text-danger"></i> Confirm Sign Out
+        </h3>
+        <button type="button" class="btn-close-modal" onclick="window.closeSignOutModal()" style="position: absolute; right: 0; top: 0; background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer;">&times;</button>
+      </div>
+      <div class="modal-body" style="padding: 20px 0 10px 0;">
+        <p style="font-size: 0.95rem; color: var(--text-secondary, #a0aec0); line-height: 1.5; margin-bottom: 5px;">
+          Are you sure you want to sign out of <strong>Expense OS</strong>?
+        </p>
+        <p style="font-size: 0.82rem; color: var(--text-muted, #718096); margin-bottom: 20px;">
+          Your synced data will remain safely stored in your cloud account.
+        </p>
+        <div style="display: flex; gap: 12px; justify-content: center;">
+          <button type="button" class="btn btn-secondary" onclick="window.closeSignOutModal()" style="flex: 1; justify-content: center;">
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger" onclick="window.confirmSignOut()" style="flex: 1; justify-content: center; background: #ef4444; color: #fff;">
+            <i class="fa-solid fa-right-from-bracket"></i> Sign Out
+          </button>
+        </div>
+      </div>
     </div>
   </div>
 

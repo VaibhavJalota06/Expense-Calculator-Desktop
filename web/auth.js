@@ -56,6 +56,9 @@
     window.showApp = showApp;
     window.showLoginScreen = showLoginScreen;
     window.handleSignOut = handleSignOut;
+    window.promptSignOut = promptSignOut;
+    window.closeSignOutModal = closeSignOutModal;
+    window.confirmSignOut = confirmSignOut;
 
 
     async function signInWithGoogle() {
@@ -227,6 +230,27 @@
         showLoginScreen();
         window.location.href = window.location.href.split('#')[0].split('?')[0];
       }
+    }
+
+    function promptSignOut(e) {
+      if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+      const dropdown = document.getElementById('user-dropdown-menu');
+      if (dropdown) {
+        dropdown.classList.add('hidden');
+        dropdown.style.setProperty('display', 'none', 'important');
+      }
+      const modal = document.getElementById('signout-modal');
+      if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeSignOutModal() {
+      const modal = document.getElementById('signout-modal');
+      if (modal) modal.classList.add('hidden');
+    }
+
+    function confirmSignOut() {
+      closeSignOutModal();
+      handleSignOut();
     }
 
     function hideLoader() {
@@ -551,14 +575,7 @@
       btnDropdownAuth.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
-        const dropdown = document.getElementById('user-dropdown-menu');
-        if (dropdown) {
-          dropdown.classList.add('hidden');
-          dropdown.style.setProperty('display', 'none', 'important');
-        }
-        
-        sessionStorage.removeItem('expense_cal_guest_mode');
-        handleSignOut(e);
+        promptSignOut(e);
       });
     }
 
