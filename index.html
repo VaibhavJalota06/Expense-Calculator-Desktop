@@ -338,7 +338,7 @@
                 </li>
                 <li class="dropdown-divider"></li>
                 <li>
-                  <button id="btn-dropdown-auth" class="dropdown-item">
+                  <button id="btn-dropdown-auth" class="dropdown-item" onclick="if(window.handleSignOut) window.handleSignOut(event);">
                     <i id="dropdown-auth-icon" class="fa-solid fa-right-from-bracket text-danger"></i>
                     <span id="dropdown-auth-text">Sign Out</span>
                   </button>

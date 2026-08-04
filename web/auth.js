@@ -215,7 +215,7 @@
         if (typeof stopSupabaseSync === 'function') stopSupabaseSync();
 
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
           try { await supaClient.auth.signOut({ scope: 'global' }); } catch(err) {}
           try { await supaClient.auth.signOut({ scope: 'local' }); } catch(err) {}
           try { await supaClient.auth.signOut(); } catch(err) {}
@@ -224,13 +224,19 @@
         console.error('Sign out error:', error);
       } finally {
         try {
-          for (let i = localStorage.length - 1; i >= 0; i--) {
+          const keysToRemove = [];
+          for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase.auth'))) {
-              localStorage.removeItem(key);
+            if (key && (key.startsWith('sb-') || key.includes('auth-token') || key.includes('supabase') || key.includes('expense_cal_guest_mode'))) {
+              keysToRemove.push(key);
             }
           }
+          keysToRemove.forEach(k => {
+            try { localStorage.removeItem(k); } catch(err) {}
+          });
+          sessionStorage.clear();
         } catch(e) {}
+
         showLoginScreen();
         window.location.reload();
       }
