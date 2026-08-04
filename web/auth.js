@@ -59,6 +59,10 @@
     window.promptSignOut = promptSignOut;
     window.closeSignOutModal = closeSignOutModal;
     window.confirmSignOut = confirmSignOut;
+    window.showWelcomeModal = function() {
+      const modal = document.getElementById('welcome-modal');
+      if (modal) modal.classList.remove('hidden');
+    };
 
 
     async function signInWithGoogle() {
