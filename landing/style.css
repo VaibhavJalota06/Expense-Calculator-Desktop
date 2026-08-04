@@ -4,6 +4,32 @@
 
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
 
+/* Custom Futuristic Emerald Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: #080a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(16, 185, 129, 0.35);
+  border-radius: 999px;
+  border: 2px solid #080a0f;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #34d399;
+  box-shadow: 0 0 10px rgba(52, 211, 153, 0.8);
+}
+::-webkit-scrollbar-corner {
+  background: #080a0f;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(16, 185, 129, 0.4) #080a0f;
+}
+
 :root {
   /* Color Palette */
   --bg-dark: #080a0f;
