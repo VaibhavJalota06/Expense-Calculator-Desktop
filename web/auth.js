@@ -1,6 +1,70 @@
 // Authentication Module - Expense OS Web
 // Handles Google Sign-In, Email/Password Auth, and Auth State Management
 
+// Global Edit Profile Modal Handlers (accessible immediately everywhere)
+window.handleEditProfileClick = function(e) {
+  if (e) {
+    try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+  }
+  var dropdown = document.getElementById('user-dropdown-menu');
+  if (dropdown) {
+    dropdown.classList.add('hidden');
+    dropdown.style.setProperty('display', 'none', 'important');
+  }
+
+  var modal = document.getElementById('edit-profile-modal');
+  if (modal) {
+    modal.classList.remove('hidden');
+    modal.style.setProperty('display', 'flex', 'important');
+    modal.style.opacity = '1';
+    modal.style.visibility = 'visible';
+    modal.style.zIndex = '100000';
+  }
+
+  setTimeout(function() {
+    try {
+      var nameInput = document.getElementById('edit-profile-name');
+      var genderSelect = document.getElementById('edit-profile-gender');
+      var emailInput = document.getElementById('edit-profile-email');
+      var dropName = document.getElementById('dropdown-user-name');
+      var dropEmail = document.getElementById('dropdown-user-email');
+
+      var currentName = dropName ? dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim() : '';
+      if (currentName === 'User Name' || !currentName) currentName = '';
+      var currentEmail = dropEmail ? dropEmail.textContent : '';
+      if (currentEmail === 'user@example.com' || !currentEmail) currentEmail = 'Local Mode';
+
+      if (nameInput && currentName) nameInput.value = currentName;
+      if (emailInput && currentEmail) emailInput.value = currentEmail;
+
+      var currentGender = localStorage.getItem('expense_cal_user_gender_active') || 'male';
+      if (genderSelect) genderSelect.value = currentGender;
+
+      var serviceInput = document.getElementById('edit-emailjs-service');
+      var templateInput = document.getElementById('edit-emailjs-template');
+      var keyInput = document.getElementById('edit-emailjs-key');
+      var savedCfg = JSON.parse(localStorage.getItem('expense_cal_emailjs_config') || '{}');
+      var activeCfg = (savedCfg.serviceId ? savedCfg : (window.emailjsConfig || {}));
+      if (serviceInput) serviceInput.value = (activeCfg.serviceId && !activeCfg.serviceId.includes('YOUR_')) ? activeCfg.serviceId : '';
+      if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
+      if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
+    } catch(err) {
+      console.warn('Profile field population notice:', err);
+    }
+  }, 0);
+};
+
+window.closeEditProfileModal = function(e) {
+  if (e) {
+    try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+  }
+  var modal = document.getElementById('edit-profile-modal');
+  if (modal) {
+    modal.classList.add('hidden');
+    modal.style.setProperty('display', 'none', 'important');
+  }
+};
+
 (function initAuth() {
     const loginScreen = document.getElementById('login-screen');
     const appLayout = document.querySelector('.app-layout');
