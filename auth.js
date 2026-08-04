@@ -573,9 +573,9 @@
         return false;
       }
 
-      // Check Guest Mode
+      // Check Guest Mode or Preview/Iframe Mode (e.g. landing page hero mockup)
       const guestMode = sessionStorage.getItem('expense_cal_guest_mode');
-      if (guestMode === 'true') {
+      if (guestMode === 'true' || window.location.search.includes('preview=true') || window.self !== window.top) {
         hideLoader();
         showApp(null);
         return true;
