@@ -59,6 +59,7 @@
     window.promptSignOut = promptSignOut;
     window.closeSignOutModal = closeSignOutModal;
     window.confirmSignOut = confirmSignOut;
+    window.handleAdminLoginClick = handleAdminLoginClick;
     window.showWelcomeModal = function() {
       const modal = document.getElementById('welcome-modal');
       if (modal) modal.classList.remove('hidden');
@@ -111,9 +112,64 @@
       }
     }
 
+    function handleAdminLoginClick(e) {
+      if (e) { try { e.preventDefault(); e.stopPropagation(); } catch(err){} }
+      const emailInput = document.getElementById('login-email');
+      const passInput = document.getElementById('login-password');
+      if (emailInput) emailInput.value = 'admin@expenseos.com';
+      if (passInput) passInput.value = 'Admin@2026';
+      signInWithEmail('admin@expenseos.com', 'Admin@2026');
+    }
+
     async function signInWithEmail(email, password) {
       try {
         clearErrors();
+
+        if (email && email.trim().toLowerCase() === 'admin@expenseos.com' && password === 'Admin@2026') {
+          const adminUser = {
+            id: 'admin_sys_2026',
+            email: 'admin@expenseos.com',
+            role: 'admin',
+            user_metadata: {
+              display_name: 'System Administrator',
+              full_name: 'System Administrator',
+              gender: 'male',
+              role: 'admin'
+            }
+          };
+
+          const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+          if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
+            try {
+              const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
+              if (data && data.user) {
+                hideLoader();
+                showApp(data.user);
+                return;
+              }
+            } catch (err) {
+              try {
+                const { data: supaSignUp } = await supaClient.auth.signUp({
+                  email,
+                  password,
+                  options: { data: { display_name: 'System Administrator', gender: 'male', role: 'admin' } }
+                });
+                if (supaSignUp && supaSignUp.user) {
+                  hideLoader();
+                  showApp(supaSignUp.user);
+                  return;
+                }
+              } catch(e) {}
+            }
+          }
+
+          localStorage.setItem('expense_cal_admin_session', JSON.stringify(adminUser));
+          localStorage.setItem('expense_cal_user_gender_admin_sys_2026', 'male');
+          sessionStorage.removeItem('expense_cal_guest_mode');
+          hideLoader();
+          showApp(adminUser);
+          return;
+        }
 
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
           const { data, error } = await supabase.auth.signInWithPassword({ email, password });
@@ -369,6 +425,19 @@
         localStorage.removeItem('expense_cal_guest_mode');
       }
 
+      const adminSession = localStorage.getItem('expense_cal_admin_session');
+      if (adminSession) {
+        try {
+          const adminUser = JSON.parse(adminSession);
+          if (adminUser && adminUser.email === 'admin@expenseos.com') {
+            sessionStorage.removeItem('expense_cal_guest_mode');
+            hideLoader();
+            showApp(adminUser);
+            return true;
+          }
+        } catch(e) {}
+      }
+
       // Check Supabase Session
       const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
       if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
@@ -478,12 +547,13 @@
 
       let gender = userId ? localStorage.getItem('expense_cal_user_gender_' + userId) : null;
       let prefix = '';
-      let genderText = user ? 'Cloud Account' : 'Guest Mode';
+      let genderText = user ? (userEmail.toLowerCase() === 'admin@expenseos.com' ? '⭐ Super Admin' : 'Cloud Account') : 'Guest Mode';
       if (gender === 'male') { prefix = 'Mr. '; }
       else if (gender === 'female') { prefix = 'Ms. '; }
 
-      const fullName = user ? `${prefix}${rawName}` : 'Guest User';
-      const initial = user ? (rawName.charAt(0).toUpperCase() || 'U') : 'G';
+      const isAdminUser = user && (userEmail.toLowerCase() === 'admin@expenseos.com' || (userMeta && userMeta.role === 'admin'));
+      const fullName = user ? (isAdminUser ? 'System Administrator ⭐' : `${prefix}${rawName}`) : 'Guest User';
+      const initial = user ? (isAdminUser ? 'A' : (rawName.charAt(0).toUpperCase() || 'U')) : 'G';
 
       // Update Topbar Profile Avatar & Dropdown
       const topbarImg = document.getElementById('topbar-user-img');
@@ -539,9 +609,13 @@
 
       const viewSubtitle = document.getElementById('view-subtitle');
       if (viewSubtitle) {
-        viewSubtitle.textContent = user
-          ? `Welcome back, ${fullName}! Real-time financial analytics & budget control`
-          : `Real-time financial analytics & budget control (Local Mode)`;
+        if (isAdminUser) {
+          viewSubtitle.textContent = `Welcome back, System Administrator! ⭐ (Super Admin Mode)`;
+        } else {
+          viewSubtitle.textContent = user
+            ? `Welcome back, ${fullName}! Real-time financial analytics & budget control`
+            : `Real-time financial analytics & budget control (Local Mode)`;
+        }
       }
 
       const hasSeenWelcome = (userId && localStorage.getItem('expense_cal_seen_welcome_v2_' + userId)) || localStorage.getItem('expense_cal_seen_welcome_global');
