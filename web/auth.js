@@ -323,7 +323,6 @@ window.closeEditProfileModal = function(e) {
                     options: { data: { display_name: cleanEmail.split('@')[0], gender: 'male' } }
                   });
                   if (signData && signData.user) {
-                    triggerWelcomeEmail(signData.user, cleanEmail.split('@')[0]);
                     hideLoader();
                     showApp(signData.user);
                     return;
@@ -365,55 +364,8 @@ window.closeEditProfileModal = function(e) {
     }
 
     async function triggerWelcomeEmail(user, name) {
-      if (!user || !user.email) return;
-      const userEmail = (user.email || '').trim().toLowerCase();
-      if (!userEmail || userEmail === 'admin@expenseos.com') return;
-
-      const uid = user.id || user.uid || userEmail;
-      const key = 'expense_cal_welcome_email_sent_' + uid;
-
-      // In-memory + LocalStorage deduplication lock to guarantee exactly 1 email delivery
-      window._welcomeEmailSentMap = window._welcomeEmailSentMap || {};
-      if (window._welcomeEmailSentMap[uid] || localStorage.getItem(key)) return;
-
-      window._welcomeEmailSentMap[uid] = true;
-      localStorage.setItem(key, 'true');
-
-      const recipientName = name || user.displayName || (user.user_metadata && user.user_metadata.display_name) || userEmail.split('@')[0] || 'User';
-
-      // Automated Live Delivery via EmailJS directly to Gmail
-      if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined' && emailjsConfig.serviceId && emailjsConfig.publicKey) {
-        try {
-          if (emailjs.init && emailjsConfig.publicKey) {
-            try { emailjs.init(emailjsConfig.publicKey); } catch(e){}
-          }
-          const WEB_APP_URL = 'https://vaibhavjalota06.github.io/Expense-Calculator-Desktop/';
-
-          await emailjs.send(
-            emailjsConfig.serviceId,
-            emailjsConfig.templateId,
-            {
-              email: userEmail,
-              to_email: userEmail,
-              user_email: userEmail,
-              recipient_email: userEmail,
-              name: recipientName,
-              user_name: recipientName,
-              subject: '🎉 Welcome to Expense OS — Your Personal Finance Command Center!',
-              message: `Welcome to Expense OS, ${recipientName}! Your personal finance command center is now active. Launch the web app below to track your expenses anytime.`,
-              web_app_url: WEB_APP_URL,
-              app_url: WEB_APP_URL,
-              action_url: WEB_APP_URL,
-              url: WEB_APP_URL,
-              link: WEB_APP_URL
-            },
-            emailjsConfig.publicKey
-          );
-          console.log('Automated Welcome Email sent successfully to:', userEmail);
-        } catch (err) {
-          console.warn('Welcome Email delivery notice:', err);
-        }
-      }
+      // Disabled to prevent duplicate welcome email dispatching on login/signup
+      return;
     }
 
     async function signUpWithEmail(name, gender, email, password) {
@@ -434,7 +386,6 @@ window.closeEditProfileModal = function(e) {
             const uid = data.user.id;
             localStorage.setItem('expense_cal_user_gender_' + uid, gender);
             localStorage.setItem('expense_cal_show_welcome_' + uid, 'true');
-            triggerWelcomeEmail(data.user, name);
             if (data.session) {
               hideLoader();
               showApp(data.user);
