@@ -124,6 +124,7 @@
     async function signInWithEmail(email, password) {
       try {
         clearErrors();
+        const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
 
         if (email && email.trim().toLowerCase() === 'admin@expenseos.com' && password === 'Admin@2026') {
           const adminUser = {
@@ -138,7 +139,6 @@
             }
           };
 
-          const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
           if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
             try {
               const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
@@ -171,8 +171,8 @@
           return;
         }
 
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-          const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
+          const { data, error } = await supaClient.auth.signInWithPassword({ email, password });
           if (error) throw error;
           if (data && data.user) {
             hideLoader();
@@ -181,7 +181,7 @@
           return;
         }
 
-        showError(loginError, 'Email Sign-In unavailable. Please check Supabase project credentials or click Continue Offline (Guest Mode).');
+        showError(loginError, 'Email Sign-In unavailable. Please check your Supabase credentials or internet connection.');
       } catch (error) {
         console.error('Email Sign-In error:', error);
         showError(loginError, getAuthErrorMessage(error));
@@ -235,9 +235,10 @@
     async function signUpWithEmail(name, gender, email, password) {
       try {
         clearErrors();
+        const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
 
-        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supabase) {
-          const { data, error } = await supabase.auth.signUp({
+        if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
+          const { data, error } = await supaClient.auth.signUp({
             email,
             password,
             options: {
@@ -254,13 +255,13 @@
               hideLoader();
               showApp(data.user);
             } else {
-              showError(signupError, '🎉 Account created successfully! If email confirmation is enabled in your Supabase project, please confirm your email to sign in, or click Continue Offline (Guest Mode).');
+              showError(signupError, '🎉 Account created successfully! Please check your email to confirm your account or sign in directly.');
             }
           }
           return;
         }
 
-        showError(signupError, 'Email Sign-Up unavailable. Please check Supabase project credentials or click Continue Offline (Guest Mode).');
+        showError(signupError, 'Email Sign-Up unavailable. Please check your Supabase credentials or internet connection.');
       } catch (error) {
         console.error('Email Sign-Up error:', error);
         showError(signupError, getAuthErrorMessage(error));
