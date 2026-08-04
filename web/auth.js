@@ -786,40 +786,24 @@
       return null;
     }
 
-    async function openEditProfileModal(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
-      const dropdown = document.getElementById('user-dropdown-menu');
-      if (dropdown) dropdown.classList.add('hidden');
-
-      const modal = document.getElementById('edit-profile-modal');
-      if (modal) {
-        modal.classList.remove('hidden');
-        modal.style.setProperty('display', 'flex', 'important');
-        modal.style.opacity = '1';
-        modal.style.visibility = 'visible';
-        modal.style.zIndex = '100000';
-      }
-
+    function populateProfileFields() {
       try {
         const nameInput = document.getElementById('edit-profile-name');
         const genderSelect = document.getElementById('edit-profile-gender');
         const emailInput = document.getElementById('edit-profile-email');
+        const dropName = document.getElementById('dropdown-user-name');
+        const dropEmail = document.getElementById('dropdown-user-email');
 
-        const currentUser = await getAppUser();
-        const currentUid = currentUser ? (currentUser.id || currentUser.uid) : 'local';
-        const userEmail = currentUser ? (currentUser.email || (currentUser.user_metadata && currentUser.user_metadata.email) || '') : '';
-        const userMeta = currentUser ? (currentUser.user_metadata || {}) : {};
-        let currentName = currentUser ? (currentUser.displayName || userMeta.full_name || userMeta.name || (userEmail ? userEmail.split('@')[0] : '')) : '';
+        let currentName = dropName ? dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim() : '';
+        if (currentName === 'User Name' || !currentName) currentName = '';
+        let currentEmail = dropEmail ? dropEmail.textContent : '';
+        if (currentEmail === 'user@example.com' || !currentEmail) currentEmail = 'Local Mode';
 
-        if (!currentName) {
-          const dropName = document.getElementById('dropdown-user-name');
-          if (dropName) currentName = dropName.textContent.replace(/^(Mr\.\s*|Ms\.\s*)/i, '').trim();
-        }
-        const currentGender = localStorage.getItem('expense_cal_user_gender_' + currentUid) || 'male';
+        if (nameInput && currentName) nameInput.value = currentName;
+        if (emailInput && currentEmail) emailInput.value = currentEmail;
 
-        if (nameInput) nameInput.value = currentName;
+        const currentGender = localStorage.getItem('expense_cal_user_gender_active') || 'male';
         if (genderSelect) genderSelect.value = currentGender;
-        if (emailInput) emailInput.value = userEmail || 'Local Mode';
 
         // Populate EmailJS fields if saved
         const serviceInput = document.getElementById('edit-emailjs-service');
@@ -831,8 +815,34 @@
         if (templateInput) templateInput.value = (activeCfg.templateId && !activeCfg.templateId.includes('YOUR_')) ? activeCfg.templateId : '';
         if (keyInput) keyInput.value = (activeCfg.publicKey && !activeCfg.publicKey.includes('YOUR_')) ? activeCfg.publicKey : '';
       } catch(err) {
-        console.warn('Error populating edit profile fields:', err);
+        console.warn('Profile field population notice:', err);
       }
+    }
+
+    function openEditProfileModal(e) {
+      if (e) {
+        try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+      }
+
+      // 1. Hide user dropdown menu instantly
+      const dropdown = document.getElementById('user-dropdown-menu');
+      if (dropdown) {
+        dropdown.classList.add('hidden');
+        dropdown.style.setProperty('display', 'none', 'important');
+      }
+
+      // 2. Open Edit Profile Modal instantly on UI main thread
+      const modal = document.getElementById('edit-profile-modal');
+      if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.setProperty('display', 'flex', 'important');
+        modal.style.opacity = '1';
+        modal.style.visibility = 'visible';
+        modal.style.zIndex = '100000';
+      }
+
+      // 3. Populate fields in background tick
+      setTimeout(populateProfileFields, 0);
     }
 
     window.handleEditProfileClick = openEditProfileModal;
