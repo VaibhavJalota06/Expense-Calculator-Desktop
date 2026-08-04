@@ -537,7 +537,7 @@
 
     // Supabase Auth Listener
     const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
-    if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
+    if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
       supaClient.auth.onAuthStateChange((event, session) => {
         hideLoader();
         if (session && session.user) {
@@ -553,7 +553,11 @@
             setTimeout(() => { window.close(); }, 300);
           }
         } else if (event === 'SIGNED_OUT') {
-          showLoginScreen();
+          const adminSession = localStorage.getItem('expense_cal_admin_session');
+          const userSession = localStorage.getItem('expense_cal_user_session');
+          if (!adminSession && !userSession) {
+            showLoginScreen();
+          }
         }
       });
     }
