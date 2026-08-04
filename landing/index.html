@@ -16,7 +16,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
   <!-- Custom Stylesheet with Cache Buster -->
-  <link rel="stylesheet" href="style.css?v=2.5.7_v3">
+  <link rel="stylesheet" href="style.css?v=2.5.7_v4">
 </head>
 <body>
 
@@ -166,9 +166,9 @@
   <!-- Interactive Gallery Section -->
   <section id="gallery" class="gallery-section">
     <div class="section-header">
-      <div class="section-tag">Interactive App Tour</div>
-      <h2 class="section-title">Explore Every Feature of <span class="gradient-text">Expense OS</span></h2>
-      <p class="section-desc">Select any section below to preview how each powerful component operates inside the app.</p>
+      <div class="section-tag">Interactive Feature Previews</div>
+      <h2 class="section-title">Explore Every Screen of <span class="gradient-text">Expense OS</span></h2>
+      <p class="section-desc">Click through the feature buttons below to inspect the actual UI views of Expense OS.</p>
     </div>
 
     <div class="tabs-container">
@@ -202,11 +202,13 @@
         </div>
         <div class="mockup-title" id="gallery-url-title"><i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> https://expenseos.app/dashboard</div>
         <div class="preview-header-actions">
-          <a href="../web/index.html" target="_blank" class="btn btn-outline" style="padding:4px 12px; font-size:0.75rem;"><i class="fa-solid fa-up-right-from-square"></i> Open Fullscreen</a>
+          <a href="../web/index.html" target="_blank" class="btn btn-outline" style="padding:4px 12px; font-size:0.75rem;"><i class="fa-solid fa-up-right-from-square"></i> Open Live Web App</a>
         </div>
       </div>
-      <div class="mockup-screen" style="height: 540px; border-radius:0 0 10px 10px; border:1px solid rgba(255,255,255,0.08);">
-        <iframe id="gallery-iframe" src="../web/index.html" title="Expense OS App Interactive Feature Preview"></iframe>
+      
+      <!-- Feature Screen Dynamic Container -->
+      <div class="mockup-screen-container" id="gallery-view-container">
+        <!-- Injected dynamically by script.js -->
       </div>
     </div>
 
@@ -437,6 +439,6 @@
   </footer>
 
   <!-- Custom Script with Cache Buster -->
-  <script src="script.js?v=2.5.7_v3"></script>
+  <script src="script.js?v=2.5.7_v4"></script>
 </body>
 </html>

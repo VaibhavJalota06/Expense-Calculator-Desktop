@@ -96,13 +96,13 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // ---------- 4. Gallery Tab Switcher ----------
+  // ---------- 4. Gallery Feature Views Renderer ----------
   const tabBtns = document.querySelectorAll('.tab-btn');
   const galleryTitle = document.getElementById('gallery-preview-title');
   const galleryDesc = document.getElementById('gallery-preview-desc');
   const galleryUrlTitle = document.getElementById('gallery-url-title');
-  const galleryIframe = document.getElementById('gallery-iframe');
   const previewPillsEl = document.getElementById('preview-pills');
+  const galleryViewContainer = document.getElementById('gallery-view-container');
 
   const galleryData = {
     dashboard: {
@@ -114,7 +114,39 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-wallet"></i> Net Balance Metric',
         '<i class="fa-solid fa-arrows-rotate"></i> Subscription Tracker',
         '<i class="fa-solid fa-bolt"></i> Quick Entry Bar'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-chart-pie" style="color:var(--primary-bright);"></i> Financial Command Center Dashboard</div>
+            <div class="mockup-ui-status"><span class="status-dot"></span> Active Session</div>
+          </div>
+          <div class="mockup-stats-grid">
+            <div class="mockup-stat-card">
+              <div class="stat-label">Net Balance</div>
+              <div class="stat-value" style="color:var(--primary-bright);">$14,850.00</div>
+              <div class="stat-sub">+12.4% this month</div>
+            </div>
+            <div class="mockup-stat-card">
+              <div class="stat-label">Monthly Income</div>
+              <div class="stat-value" style="color:var(--accent-cyan);">$6,200.00</div>
+              <div class="stat-sub">2 Income Sources</div>
+            </div>
+            <div class="mockup-stat-card">
+              <div class="stat-label">Total Expenses</div>
+              <div class="stat-value" style="color:#f87171;">$2,150.00</div>
+              <div class="stat-sub">18 Transactions</div>
+            </div>
+          </div>
+          <div class="mockup-chart-box">
+            <div style="font-weight:600; margin-bottom:12px; font-size:0.9rem;">Category Breakdown & Spending Distribution</div>
+            <div class="mockup-bar-row"><span style="width:100px;">🍔 Dining</span><div class="mockup-bar"><div style="width:38%; background:var(--primary);"></div></div><span>$817.00 (38%)</span></div>
+            <div class="mockup-bar-row"><span style="width:100px;">✈️ Travel</span><div class="mockup-bar"><div style="width:26%; background:var(--accent-cyan);"></div></div><span>$559.00 (26%)</span></div>
+            <div class="mockup-bar-row"><span style="width:100px;">⚡ Utilities</span><div class="mockup-bar"><div style="width:20%; background:#f59e0b;"></div></div><span>$430.00 (20%)</span></div>
+            <div class="mockup-bar-row"><span style="width:100px;">🛍️ Shopping</span><div class="mockup-bar"><div style="width:16%; background:var(--accent-purple);"></div></div><span>$344.00 (16%)</span></div>
+          </div>
+        </div>
+      `
     },
     transactions: {
       title: "Full Transaction Manager & History",
@@ -125,7 +157,32 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-filter"></i> Category & Date Filters',
         '<i class="fa-solid fa-pen-to-square"></i> Inline Transaction Editing',
         '<i class="fa-solid fa-file-csv"></i> CSV & JSON Export'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-receipt" style="color:var(--accent-cyan);"></i> Transaction Manager & Ledger</div>
+            <div style="font-size:0.8rem; color:var(--text-dim);">18 Total Transactions</div>
+          </div>
+          <div class="mockup-filter-bar">
+            <input type="text" class="widget-input" value="Search transactions..." readonly style="width:220px; padding:6px 12px; font-size:0.8rem;">
+            <span class="preview-pill" style="background:var(--primary); color:#000;"><i class="fa-solid fa-list"></i> All</span>
+            <span class="preview-pill"><i class="fa-solid fa-arrow-down"></i> Expenses</span>
+            <span class="preview-pill"><i class="fa-solid fa-arrow-up"></i> Income</span>
+          </div>
+          <table class="mockup-table">
+            <thead>
+              <tr><th>Date</th><th>Description</th><th>Category</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>2026-08-04</td><td>Starbucks Reserve Coffee</td><td><span class="mockup-tag" style="background:rgba(16,185,129,0.15); color:var(--primary-bright);">Food & Dining</span></td><td style="color:#f87171; font-weight:600;">-$8.50</td></tr>
+              <tr><td>2026-08-03</td><td>Client Project Payment</td><td><span class="mockup-tag" style="background:rgba(6,182,212,0.15); color:var(--accent-cyan);">Income</span></td><td style="color:var(--primary-bright); font-weight:600;">+$1,250.00</td></tr>
+              <tr><td>2026-08-02</td><td>Uber Airport Transfer</td><td><span class="mockup-tag" style="background:rgba(139,92,246,0.15); color:var(--accent-purple);">Travel</span></td><td style="color:#f87171; font-weight:600;">-$34.00</td></tr>
+              <tr><td>2026-08-01</td><td>AWS Cloud Server Hosting</td><td><span class="mockup-tag" style="background:rgba(245,158,11,0.15); color:#f59e0b;">Utilities</span></td><td style="color:#f87171; font-weight:600;">-$45.00</td></tr>
+            </tbody>
+          </table>
+        </div>
+      `
     },
     budgeting: {
       title: "AI Category Rules & Smart Budget Limits",
@@ -136,7 +193,38 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-triangle-exclamation"></i> Over-Budget Warning Alerts',
         '<i class="fa-solid fa-robot"></i> Custom Keyword Auto-Rules',
         '<i class="fa-solid fa-circle-notch"></i> Progress Bars'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-sliders" style="color:var(--primary-bright);"></i> AI Category Rules & Budget Limits</div>
+            <div style="font-size:0.8rem; color:var(--primary-bright);"><i class="fa-solid fa-check"></i> 4 Active Rules</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="mockup-chart-box">
+              <div style="font-weight:600; margin-bottom:10px; font-size:0.85rem; color:var(--text-high);">Target Monthly Budgets</div>
+              <div class="progress-item" style="margin-bottom:12px;">
+                <div class="progress-label"><span>🍔 Dining & Food</span><span>$360 / $500 (72%)</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:72%; background:var(--primary);"></div></div>
+              </div>
+              <div class="progress-item" style="margin-bottom:12px;">
+                <div class="progress-label"><span>✈️ Travel</span><span>$450 / $1000 (45%)</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:45%; background:var(--accent-cyan);"></div></div>
+              </div>
+              <div class="progress-item">
+                <div class="progress-label"><span>⚡ Utilities</span><span>$264 / $300 (88%)</span></div>
+                <div class="progress-bar-bg"><div class="progress-bar-fill" style="width:88%; background:#f59e0b;"></div></div>
+              </div>
+            </div>
+            <div class="mockup-chart-box">
+              <div style="font-weight:600; margin-bottom:10px; font-size:0.85rem; color:var(--text-high);">AI Auto-Categorization Keywords</div>
+              <div class="mockup-rule-item"><span>"coffee", "starbucks", "pizza"</span> ➔ <span style="color:var(--primary-bright); font-weight:600;">Food</span></div>
+              <div class="mockup-rule-item"><span>"uber", "flight", "fuel"</span> ➔ <span style="color:var(--accent-cyan); font-weight:600;">Travel</span></div>
+              <div class="mockup-rule-item"><span>"netflix", "spotify"</span> ➔ <span style="color:var(--accent-purple); font-weight:600;">Subscriptions</span></div>
+            </div>
+          </div>
+        </div>
+      `
     },
     currency: {
       title: "Multi-Currency & Real-Time FX Exchange Rates",
@@ -146,7 +234,21 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-coins"></i> 6 Currencies (USD, EUR, INR, GBP, CAD, JPY)',
         '<i class="fa-solid fa-chart-line"></i> Live FX API Rates',
         '<i class="fa-solid fa-calculator"></i> Auto Rate Converter'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-coins" style="color:var(--accent-cyan);"></i> Multi-Currency & Live FX Exchange Rates</div>
+            <div style="font-size:0.8rem; color:var(--accent-cyan);">Base: USD ($)</div>
+          </div>
+          <div class="mockup-currency-grid">
+            <div class="mockup-stat-card"><div class="stat-label">USD / EUR</div><div class="stat-value" style="font-size:1.3rem;">€0.92</div><div class="stat-sub">Eurozone</div></div>
+            <div class="mockup-stat-card"><div class="stat-label">USD / INR</div><div class="stat-value" style="font-size:1.3rem; color:var(--primary-bright);">₹83.50</div><div class="stat-sub">India</div></div>
+            <div class="mockup-stat-card"><div class="stat-label">USD / GBP</div><div class="stat-value" style="font-size:1.3rem;">£0.79</div><div class="stat-sub">United Kingdom</div></div>
+            <div class="mockup-stat-card"><div class="stat-label">USD / CAD</div><div class="stat-value" style="font-size:1.3rem;">$1.36</div><div class="stat-sub">Canada</div></div>
+          </div>
+        </div>
+      `
     },
     sync: {
       title: "Supabase Cloud Sync & Zero-Lockout Local DB",
@@ -156,7 +258,27 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-database"></i> 100% Offline Local DB Fallback',
         '<i class="fa-solid fa-cloud"></i> Supabase PostgreSQL Cloud Sync',
         '<i class="fa-solid fa-shield-halved"></i> AES-256 Data Encryption'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-shield-halved" style="color:var(--primary-bright);"></i> Dual-Engine Cloud & Offline Database</div>
+            <div style="font-size:0.8rem; color:var(--primary-bright);"><i class="fa-solid fa-circle-check"></i> All Systems Active</div>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+            <div class="mockup-chart-box" style="border-left:3px solid var(--primary);">
+              <div style="font-weight:700; color:var(--primary-bright); margin-bottom:6px;"><i class="fa-solid fa-cloud"></i> Supabase PostgreSQL Cloud Sync</div>
+              <div style="font-size:0.85rem; color:var(--text-med); margin-bottom:8px;">Real-time multi-device cloud synchronization enabled.</div>
+              <div style="font-size:0.75rem; color:var(--text-dim);">Latency: 24ms | Status: Synced</div>
+            </div>
+            <div class="mockup-chart-box" style="border-left:3px solid var(--accent-cyan);">
+              <div style="font-weight:700; color:var(--accent-cyan); margin-bottom:6px;"><i class="fa-solid fa-database"></i> Zero-Lockout Local Storage Engine</div>
+              <div style="font-size:0.85rem; color:var(--text-med); margin-bottom:8px;">100% offline persistence with client-side AES-256 encryption.</div>
+              <div style="font-size:0.75rem; color:var(--text-dim);">Local Storage: Ready | Status: Persistent</div>
+            </div>
+          </div>
+        </div>
+      `
     },
     export: {
       title: "Comprehensive Financial Reports & Exports",
@@ -166,33 +288,56 @@ document.addEventListener('DOMContentLoaded', () => {
         '<i class="fa-solid fa-file-csv"></i> One-Click CSV Export',
         '<i class="fa-solid fa-file-code"></i> JSON Data Backup',
         '<i class="fa-solid fa-clock-rotate-left"></i> Historic Ledger Archives'
-      ]
+      ],
+      html: `
+        <div class="mockup-ui-wrapper">
+          <div class="mockup-ui-topbar">
+            <div class="mockup-ui-title"><i class="fa-solid fa-file-export" style="color:var(--accent-purple);"></i> Comprehensive Financial Reports & Export</div>
+            <div style="font-size:0.8rem; color:var(--text-dim);">Export Manager</div>
+          </div>
+          <div style="display:flex; gap:16px; justify-content:center; padding:20px 0;">
+            <div class="mockup-stat-card" style="width:240px; text-align:center;">
+              <i class="fa-solid fa-file-csv" style="font-size:2rem; color:var(--primary-bright); margin-bottom:8px;"></i>
+              <div style="font-weight:700;">Export as CSV</div>
+              <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:12px;">Spreadsheet Ready</div>
+              <a href="../web/index.html" target="_blank" class="preview-pill" style="background:var(--primary); color:#000; display:inline-block;">Download CSV</a>
+            </div>
+            <div class="mockup-stat-card" style="width:240px; text-align:center;">
+              <i class="fa-solid fa-file-code" style="font-size:2rem; color:var(--accent-cyan); margin-bottom:8px;"></i>
+              <div style="font-weight:700;">Backup JSON</div>
+              <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:12px;">Complete Raw Ledger</div>
+              <a href="../web/index.html" target="_blank" class="preview-pill" style="background:var(--accent-cyan); color:#000; display:inline-block;">Download JSON</a>
+            </div>
+          </div>
+        </div>
+      `
     }
   };
+
+  function updateGalleryView(tabName) {
+    const data = galleryData[tabName] || galleryData.dashboard;
+    if (galleryTitle) galleryTitle.textContent = data.title;
+    if (galleryDesc) galleryDesc.textContent = data.desc;
+    if (galleryUrlTitle) galleryUrlTitle.innerHTML = `<i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> ${data.url}`;
+    if (previewPillsEl && data.pills) {
+      previewPillsEl.innerHTML = data.pills.map(p => `<span class="preview-pill">${p}</span>`).join('');
+    }
+    if (galleryViewContainer) {
+      galleryViewContainer.innerHTML = data.html;
+    }
+  }
 
   tabBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       tabBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
-
       const target = btn.getAttribute('data-tab');
-      if (galleryData[target]) {
-        if (galleryTitle) galleryTitle.textContent = galleryData[target].title;
-        if (galleryDesc) galleryDesc.textContent = galleryData[target].desc;
-        if (galleryUrlTitle) galleryUrlTitle.innerHTML = `<i class="fa-solid fa-lock" style="font-size:0.7rem;"></i> ${galleryData[target].url}`;
-        if (previewPillsEl && galleryData[target].pills) {
-          previewPillsEl.innerHTML = galleryData[target].pills.map(p => `<span class="preview-pill">${p}</span>`).join('');
-        }
-        if (galleryIframe) {
-          galleryIframe.style.opacity = '0.5';
-          setTimeout(() => {
-            galleryIframe.src = '../web/index.html';
-            galleryIframe.style.opacity = '1';
-          }, 150);
-        }
-      }
+      updateGalleryView(target);
     });
   });
+
+  // Initial load
+  updateGalleryView('dashboard');
 
   // ---------- 5. Live FX Calculator Demo Widget ----------
   const fxAmount = document.getElementById('demo-fx-amount');
