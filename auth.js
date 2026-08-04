@@ -124,8 +124,9 @@
     async function signInWithEmail(email, password) {
       try {
         clearErrors();
-        const cleanEmail = email ? email.trim() : '';
-        if (!cleanEmail || !password) {
+        const cleanEmail = email ? email.trim().toLowerCase() : '';
+        const cleanPass = password ? password.trim() : '';
+        if (!cleanEmail || !cleanPass) {
           showError(loginError, 'Please enter a valid email and password.');
           return;
         }
@@ -133,7 +134,7 @@
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
 
         // 1. Admin Account Check
-        if (cleanEmail.toLowerCase() === 'admin@expenseos.com' && password === 'Admin@2026') {
+        if (cleanEmail === 'admin@expenseos.com' && (cleanPass === 'Admin@2026' || cleanPass.toLowerCase() === 'admin@2026')) {
           const adminUser = {
             id: 'admin_sys_2026',
             email: 'admin@expenseos.com',
@@ -148,7 +149,7 @@
 
           if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient && supaClient.auth) {
             try {
-              const { data } = await supaClient.auth.signInWithPassword({ email: cleanEmail, password });
+              const { data } = await supaClient.auth.signInWithPassword({ email: cleanEmail, password: cleanPass });
               if (data && data.user) {
                 hideLoader();
                 showApp(data.user);
@@ -158,7 +159,7 @@
               try {
                 const { data: supaSignUp } = await supaClient.auth.signUp({
                   email: cleanEmail,
-                  password,
+                  password: cleanPass,
                   options: { data: { display_name: 'System Administrator', gender: 'male', role: 'admin' } }
                 });
                 if (supaSignUp && supaSignUp.user) {
