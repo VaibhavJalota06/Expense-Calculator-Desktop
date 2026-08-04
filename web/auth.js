@@ -72,7 +72,7 @@
             const isElectronApp = Boolean(window.electronAPI && window.electronAPI.isElectron);
             const isLocalhost = window.location.origin.includes('localhost');
             const shouldSkipRedirect = isElectronApp || isLocalhost;
-            const redirectUrl = window.location.origin;
+            const redirectUrl = window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({
               provider: 'google',
