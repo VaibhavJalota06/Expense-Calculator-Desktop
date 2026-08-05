@@ -1,6 +1,6 @@
 {
   "name": "expense-calculator-desktop",
-  "version": "2.5.7",
+  "version": "2.6.5",
   "description": "Expense OS - Futuristic Dark Glassmorphic Desktop App",
   "main": "main.js",
   "scripts": {
@@ -15,6 +15,7 @@
   "build": {
     "appId": "com.expensecalculator.app",
     "productName": "Expense OS",
+    "icon": "icon.ico",
     "files": [
       "!dist{,/**}",
       "!dist-verify{,/**}",
@@ -47,6 +48,10 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
+      "shortcutName": "Expense OS",
+      "installerIcon": "icon.ico",
+      "uninstallerIcon": "icon.ico",
+      "installerHeaderIcon": "icon.ico",
       "runAfterFinish": true
     }
   },

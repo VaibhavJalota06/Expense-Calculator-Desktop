@@ -51,6 +51,10 @@ app.commandLine.appendSwitch('disable-gpu-shader-disk-cache');
 app.commandLine.appendSwitch('disable-gpu-program-cache');
 app.commandLine.appendSwitch('no-sandbox');
 
+// Set User-Agent globally for Google OAuth compatibility in Electron
+const standardChromeUserAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+app.userAgentFallback = standardChromeUserAgent;
+
 
 let autoUpdater;
 
@@ -148,7 +152,27 @@ const mimeTypes = {
 
 const webRoot = path.join(__dirname, 'web');
 
+const AUTH_SUCCESS_HTML = `<!DOCTYPE html><html><head><title>Authentication Successful - Expense OS</title>
+<style>body{font-family:system-ui,sans-serif;background:#050811;color:#fff;display:flex;align-items:center;justify-content:center;height:100vh;margin:0;text-align:center}.card{background:#0f172a;padding:2.5rem;border-radius:1rem;border:1px solid rgba(255,255,255,0.1);max-width:400px;box-shadow:0 20px 25px -5px rgba(0,0,0,0.5)}.icon{font-size:3rem;margin-bottom:1rem}h2{color:#10b981;margin:0 0 .5rem 0}p{color:#94a3b8;font-size:.95rem;line-height:1.5}</style></head>
+<body><div class="card"><div class="icon">✅</div><h2>Authentication Successful!</h2><p>Your Google account has been connected to <strong>Expense OS Desktop</strong>.</p><p style="font-size:.85rem;color:#64748b">You can close this browser tab now.</p></div>
+<script>setTimeout(()=>{try{window.close()}catch(e){}},2000)</script></body></html>`;
+
 const server = http.createServer((req, res) => {
+  const actualPort = server.address() ? server.address().port : serverPort;
+
+  // Check if OAuth callback arrived from browser (contains code= or access_token=)
+  if (req.url.includes('code=') || req.url.includes('access_token=') || req.url.includes('refresh_token=')) {
+    // Load the OAuth tokens into the Electron main window so Supabase can exchange them
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.loadURL(`http://localhost:${actualPort}/${req.url.startsWith('/') ? req.url.slice(1) : req.url}`);
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+    res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' });
+    res.end(AUTH_SUCCESS_HTML);
+    return;
+  }
+
   // Decode and strip query strings
   let requestedPath = decodeURIComponent(req.url.split('?')[0]);
 
@@ -234,22 +258,17 @@ function createWindow(port) {
   });
 
   // Set Chrome User-Agent so Google Auth popups inside Electron operate smoothly
-  mainWindow.webContents.userAgent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36';
+  mainWindow.webContents.userAgent = standardChromeUserAgent;
+
+  // Debounce guard: prevent multiple shell.openExternal calls during OAuth redirect chain
+  let lastExternalUrl = '';
+  let lastExternalTime = 0;
 
   mainWindow.webContents.on('will-navigate', (event, navigationUrl) => {
     try {
       const parsedUrl = new URL(navigationUrl);
-      if (parsedUrl.origin === `http://localhost:${port}`) {
-        return;
-      }
-
-      const isAuthUrl =
-        navigationUrl.includes('accounts.google.com') ||
-        navigationUrl.includes('supabase.co') ||
-        navigationUrl.includes('googleapis.com') ||
-        navigationUrl.includes('google.com/o/oauth');
-
-      if (isAuthUrl) {
+      // Allow local navigation (same localhost server)
+      if (parsedUrl.origin === `http://localhost:${port}` || parsedUrl.origin === `http://127.0.0.1:${port}`) {
         return;
       }
 
@@ -261,36 +280,32 @@ function createWindow(port) {
         return;
       }
 
+      // Debounce: skip duplicate URLs within 3 seconds (OAuth redirect chain fires multiple will-navigate events)
+      const now = Date.now();
+      const urlBase = navigationUrl.split('?')[0];
+      if (urlBase === lastExternalUrl && (now - lastExternalTime) < 3000) {
+        return;
+      }
+      lastExternalUrl = urlBase;
+      lastExternalTime = now;
+
       shell.openExternal(navigationUrl);
     } catch (e) {
       event.preventDefault();
     }
   });
 
-  // Handle external link navigation vs Auth popups
+  // Handle popup windows & Auth popups via System Default Browser
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
-    // Allow Auth popups inside Electron with Chrome userAgent
-    if (
-      url.includes('supabase.co') ||
-      url.includes('accounts.google.com') ||
-      url.includes('googleapis.com') ||
-      url.includes('google.com/o/oauth')
-    ) {
-      return {
-        action: 'allow',
-        overrideBrowserWindowOptions: {
-          width: 600,
-          height: 720,
-          autoHideMenuBar: true,
-          webPreferences: {
-            nodeIntegration: false,
-            contextIsolation: true,
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-          }
-        }
-      };
+    // Debounce: skip duplicate URLs within 3 seconds
+    const now = Date.now();
+    const urlBase = url.split('?')[0];
+    if (urlBase === lastExternalUrl && (now - lastExternalTime) < 3000) {
+      return { action: 'deny' };
     }
-    // Open all other external links in user's default installed browser (Chrome/Edge/Firefox)
+    lastExternalUrl = urlBase;
+    lastExternalTime = now;
+
     shell.openExternal(url);
     return { action: 'deny' };
   });
@@ -319,10 +334,14 @@ function createWindow(port) {
 }
 
 app.whenReady().then(() => {
+  // Strip Electron-identifying headers and set consistent Chrome UA for all requests
   if (session && session.defaultSession) {
-    session.defaultSession.setUserAgent(
-      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36'
-    );
+    session.defaultSession.setUserAgent(standardChromeUserAgent);
+    session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
+      details.requestHeaders['User-Agent'] = standardChromeUserAgent;
+      delete details.requestHeaders['X-Electron-Version'];
+      callback({ cancel: false, requestHeaders: details.requestHeaders });
+    });
   }
 
   startLocalServer((port) => {

@@ -1819,7 +1819,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.5.7';
+const CURRENT_APP_VERSION = 'v2.6.5';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');
@@ -1853,6 +1853,17 @@ window.checkAppUpdates = async function checkAppUpdates(manual = false) {
   window.lastManualCheck = manual;
   const dropdown = document.getElementById('user-dropdown-menu');
   if (dropdown) dropdown.classList.add('hidden');
+
+  const isElectron = !!(window.electronAPI && window.electronAPI.isElectron);
+  if (!isElectron) {
+    if (manual) {
+      window.showUpdateToast('✓ Web Version', 'You are using the Expense OS Web App.', false);
+      setTimeout(() => { window.hideUpdateToast(); }, 3500);
+    } else {
+      window.hideUpdateToast();
+    }
+    return;
+  }
 
   if (window.electronAPI && typeof window.electronAPI.checkForUpdates === 'function') {
     if (manual) {
@@ -1948,6 +1959,8 @@ if (window.electronAPI && typeof window.electronAPI.onUpdateStatus === 'function
       if (window.lastManualCheck) {
         window.showUpdateToast('✓ Up to Date', `Expense OS ${CURRENT_APP_VERSION} is currently up to date.`, false);
         setTimeout(() => { window.hideUpdateToast(); }, 4500);
+      } else {
+        window.hideUpdateToast();
       }
     }
   });

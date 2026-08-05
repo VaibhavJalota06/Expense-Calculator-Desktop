@@ -51,6 +51,11 @@ try {
     } catch (e) {}
   }
 
+  // Ensure latest.yml is attached to GitHub Release for electron-updater
+  try {
+    execSync('node scripts/upload-latest-yml.js', { stdio: 'inherit' });
+  } catch (e) {}
+
   console.log('\n🎉 SUCCESS: Release published to GitHub Releases automatically!');
 } catch (err) {
   console.error('\n❌ Build/Publish failed:', err.message);

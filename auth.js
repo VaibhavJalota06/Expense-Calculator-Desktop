@@ -134,7 +134,13 @@ window.closeEditProfileModal = function(e) {
         const supaClient = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
         if (typeof isSupabaseConfigured !== 'undefined' && isSupabaseConfigured && supaClient) {
           try {
-            const redirectUrl = window.location.href.split('#')[0].split('?')[0];
+            // For Desktop (Electron): redirect back to the local HTTP server so the OAuth callback
+            // is intercepted by main.js and loads the tokens into the Electron window.
+            // For Web: redirect back to the current page.
+            const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
+            const redirectUrl = isElectronApp
+              ? window.location.origin + '/'
+              : window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({
               provider: 'google',
@@ -147,7 +153,12 @@ window.closeEditProfileModal = function(e) {
             });
             if (error) throw error;
             if (data && data.url) {
-              window.location.href = data.url;
+              // In Electron, use shell.openExternal to open in system browser
+              if (isElectronApp && window.electronAPI.openExternal) {
+                window.electronAPI.openExternal(data.url);
+              } else {
+                window.location.href = data.url;
+              }
               return;
             }
           } catch (supaErr) {
