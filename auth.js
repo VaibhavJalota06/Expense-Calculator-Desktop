@@ -617,10 +617,28 @@ window.closeEditProfileModal = function(e) {
       // If URL has OAuth tokens or auth code, attempt forwarding to local Desktop app server if running
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
         try {
-          const fullPath = window.location.pathname + window.location.search + window.location.hash;
-          ['58420', '58421'].forEach(port => {
-            fetch(`http://127.0.0.1:${port}${fullPath.startsWith('/') ? fullPath : '/' + fullPath}`, { mode: 'no-cors' }).catch(() => {});
-          });
+          const hash = window.location.hash;
+          const search = window.location.search;
+          let access_token = '';
+          let refresh_token = '';
+          let code = '';
+          if (hash.includes('access_token')) {
+            const p = new URLSearchParams(hash.substring(1));
+            access_token = p.get('access_token') || '';
+            refresh_token = p.get('refresh_token') || '';
+          } else if (search.includes('code=')) {
+            const p = new URLSearchParams(search);
+            code = p.get('code') || '';
+          }
+          if (access_token || code) {
+            ['58420', '58421'].forEach(port => {
+              fetch(`http://127.0.0.1:${port}/api/session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ access_token, refresh_token, code })
+              }).catch(() => {});
+            });
+          }
         } catch(e) {}
         return false;
       }

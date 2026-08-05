@@ -160,6 +160,37 @@ const AUTH_SUCCESS_HTML = `<!DOCTYPE html><html><head><title>Authentication Succ
 const server = http.createServer((req, res) => {
   const actualPort = server.address() ? server.address().port : serverPort;
 
+  // Endpoint for browser to pass OAuth hash tokens back to Electron desktop window
+  if (req.method === 'POST' && req.url === '/api/session') {
+    let body = '';
+    req.on('data', chunk => { body += chunk; });
+    req.on('end', () => {
+      try {
+        const payload = JSON.parse(body);
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          let hashTarget = '';
+          if (payload.access_token) {
+            hashTarget = `#access_token=${payload.access_token}&refresh_token=${payload.refresh_token || ''}&token_type=bearer`;
+          } else if (payload.code) {
+            hashTarget = `?code=${payload.code}`;
+          }
+          if (hashTarget) {
+            mainWindow.loadURL(`http://localhost:${actualPort}/${hashTarget}`);
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
+          }
+        }
+      } catch(e) {}
+      res.writeHead(200, {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      });
+      res.end(JSON.stringify({ success: true }));
+    });
+    return;
+  }
+
   // Check if OAuth callback arrived from browser (contains code= or access_token=)
   if (req.url.includes('code=') || req.url.includes('access_token=') || req.url.includes('refresh_token=')) {
     // Load the OAuth tokens into the Electron main window so Supabase can exchange them
