@@ -335,6 +335,14 @@ function startSupabaseSync(userId) {
 
   supaClient.from('user_data').select('*').eq('user_id', userId).maybeSingle()
     .then(({ data, error }) => {
+      // A failed cloud read is not an empty record. Preserve local data instead
+      // of replacing data from another signed-in device with local defaults.
+      if (error) {
+        console.warn('Supabase load error:', error.message || error);
+        loadStateFromLocal();
+        if (typeof setSyncStatus === 'function') setSyncStatus('error');
+        return;
+      }
       if (data) {
         const cloudExpenses = Array.isArray(data.expenses) ? data.expenses.filter(isValidExpense) : [];
         const cloudSubs = Array.isArray(data.subscriptions) ? data.subscriptions.filter(isValidSubscription) : [];

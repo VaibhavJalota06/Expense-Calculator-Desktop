@@ -39,7 +39,7 @@
     };
 
     window.handleGoogleLoginClick = function(e) {
-      if (e) { e.preventDefault(); e.stopPropagation(); }
+      if (e) { e.preventDefault(); e.stopImmediatePropagation(); }
       if (typeof window.signInWithGoogle === 'function') {
         window.signInWithGoogle();
       } else {

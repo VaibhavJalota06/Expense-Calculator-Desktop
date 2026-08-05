@@ -1,6 +1,6 @@
 {
   "name": "expense-calculator-desktop",
-  "version": "2.7.1",
+  "version": "2.7.3",
   "description": "Expense OS - Futuristic Dark Glassmorphic Desktop App",
   "main": "main.js",
   "scripts": {
@@ -15,6 +15,10 @@
   "build": {
     "appId": "com.expensecalculator.app",
     "productName": "Expense OS",
+    "protocols": [{
+      "name": "Expense OS Authentication",
+      "schemes": ["com.expensecalculator.expenseosmobile"]
+    }],
     "icon": "icon.ico",
     "files": [
       "!dist{,/**}",

@@ -124,6 +124,9 @@ window.closeEditProfileModal = function(e) {
 
 
     async function signInWithGoogle() {
+      if (isAuthInProgress) return;
+      isAuthInProgress = true;
+      let oauthBrowserOpened = false;
       let supaErrorMessage = '';
       try {
         clearErrors();
@@ -139,7 +142,7 @@ window.closeEditProfileModal = function(e) {
             // For Web: redirect back to the current page.
             const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
             const redirectUrl = isElectronApp
-              ? window.location.origin + '/auth-callback.html'
+              ? 'com.expensecalculator.expenseosmobile://login-callback'
               : window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({
@@ -160,6 +163,8 @@ window.closeEditProfileModal = function(e) {
               } else {
                 window.location.href = data.url;
               }
+              oauthBrowserOpened = true;
+              setTimeout(() => { isAuthInProgress = false; }, 5000);
               return;
             }
           } catch (supaErr) {
@@ -177,7 +182,7 @@ window.closeEditProfileModal = function(e) {
         const msg = error ? (error.message || String(error)) : '';
         showError(loginError, msg || 'Google Sign-In error. Please try again or click Continue Offline (Guest Mode).');
       } finally {
-        isAuthInProgress = false;
+        if (!oauthBrowserOpened) isAuthInProgress = false;
       }
     }
 
@@ -663,6 +668,48 @@ window.closeEditProfileModal = function(e) {
       return false;
     }
 
+    // Receive a completed browser OAuth session from Electron. This avoids relying
+    // on a timing-sensitive script injection into the desktop window.
+    let lastDesktopOAuthPayload = null;
+    async function applyDesktopOAuthSession(payload) {
+      if (!payload) return;
+      const payloadKey = payload.access_token || payload.code;
+      if (!payloadKey || payloadKey === lastDesktopOAuthPayload) return;
+      lastDesktopOAuthPayload = payloadKey;
+      try {
+        const client = (typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null));
+        if (!client || !client.auth) throw new Error('Authentication service is unavailable.');
+        const result = payload.code
+          ? await client.auth.exchangeCodeForSession(payload.code)
+          : await client.auth.setSession({
+              access_token: payload.access_token,
+              refresh_token: payload.refresh_token || ''
+            });
+        if (result.error) throw result.error;
+        const session = result.data && result.data.session;
+        if (session && session.user) {
+          sessionStorage.removeItem('expense_cal_guest_mode');
+          localStorage.removeItem('expense_cal_guest_mode');
+          hideLoader();
+          showApp(session.user);
+        } else {
+          await evaluateAuthState();
+        }
+      } catch (error) {
+        console.error('Desktop Google sign-in completion error:', error);
+        lastDesktopOAuthPayload = null;
+        showError(loginError, 'Google sign-in completed in your browser, but Expense OS could not save the session. Please try again.');
+      }
+    }
+    if (window.electronAPI && window.electronAPI.isElectron) {
+      if (typeof window.electronAPI.onOAuthSession === 'function') {
+        window.electronAPI.onOAuthSession(applyDesktopOAuthSession);
+      }
+      if (typeof window.electronAPI.consumeOAuthSession === 'function') {
+        window.electronAPI.consumeOAuthSession().then(applyDesktopOAuthSession).catch(() => {});
+      }
+    }
+
     // Run Auth Evaluation on Startup
     evaluateAuthState();
 
@@ -1054,9 +1101,7 @@ window.closeEditProfileModal = function(e) {
 
 
     // Event Listeners
-    document.querySelectorAll('.btn-google-login').forEach(btn => {
-      btn.addEventListener('click', signInWithGoogle);
-    });
+    // Google buttons use the inline handleGoogleLoginClick handler from index.html.
 
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => {

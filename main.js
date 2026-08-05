@@ -4,6 +4,8 @@ const http = require('http');
 const fs = require('fs');
 const os = require('os');
 
+const DESKTOP_AUTH_SCHEME = 'com.expensecalculator.expenseosmobile';
+
 // ──────────────────────────────────────────────────────────────────
 // Single Instance Lock: Prevents multiple instances from running concurrently
 // and fighting over Chromium GPU & Quota database locks.
@@ -12,7 +14,9 @@ const gotTheLock = app.requestSingleInstanceLock();
 if (!gotTheLock) {
   app.quit();
 } else {
-  app.on('second-instance', () => {
+  app.on('second-instance', (_event, commandLine) => {
+    const authUrl = commandLine.find(arg => arg.startsWith(`${DESKTOP_AUTH_SCHEME}://`));
+    if (authUrl) handleDesktopAuthUrl(authUrl);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
@@ -24,6 +28,9 @@ if (!gotTheLock) {
 const safeUserDataPath = path.join(os.homedir(), 'AppData', 'Roaming', 'ExpenseOS');
 app.setPath('userData', safeUserDataPath);
 app.setPath('logs', path.join(safeUserDataPath, 'logs'));
+
+// Register the redirect URL already configured in Supabase.
+if (app.isPackaged) app.setAsDefaultProtocolClient(DESKTOP_AUTH_SCHEME);
 
 // Self-healing: clean corrupted/empty QuotaManager files on startup
 function cleanCorruptedCache() {
@@ -183,32 +190,12 @@ const server = http.createServer((req, res) => {
         const payload = JSON.parse(body);
         if (mainWindow && !mainWindow.isDestroyed()) {
           if (payload.access_token) {
-            // Inject the session directly into Electron's Supabase client via executeJavaScript
-            // This avoids page reload and hash-based token passing entirely
-            const jsCode = `
-              (async function() {
-                try {
-                  const sc = typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null);
-                  if (sc) {
-                    const { data, error } = await sc.auth.setSession({
-                      access_token: ${JSON.stringify(payload.access_token)},
-                      refresh_token: ${JSON.stringify(payload.refresh_token || '')}
-                    });
-                    if (data && data.session && data.session.user) {
-                      if (typeof showApp === 'function') showApp(data.session.user);
-                    }
-                  }
-                } catch(e) { console.error('Session injection error:', e); }
-              })();
-            `;
-            mainWindow.webContents.executeJavaScript(jsCode).catch(() => {});
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
+            deliverOAuthSession({
+              access_token: payload.access_token,
+              refresh_token: payload.refresh_token || ''
+            });
           } else if (payload.code) {
-            // For PKCE code flow, load the URL with query param so Supabase JS can exchange it
-            mainWindow.loadURL(`http://localhost:${actualPort}/?code=${payload.code}`);
-            if (mainWindow.isMinimized()) mainWindow.restore();
-            mainWindow.focus();
+            deliverOAuthSession({ code: payload.code });
           }
         }
       } catch(e) { console.error('POST /api/session error:', e); }
@@ -233,23 +220,7 @@ const server = http.createServer((req, res) => {
         const access_token = p.get('access_token') || '';
         const refresh_token = p.get('refresh_token') || '';
         if (access_token) {
-          const jsCode = `
-            (async function() {
-              try {
-                const sc = typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null);
-                if (sc) {
-                  const { data, error } = await sc.auth.setSession({
-                    access_token: ${JSON.stringify(access_token)},
-                    refresh_token: ${JSON.stringify(refresh_token)}
-                  });
-                  if (data && data.session && data.session.user) {
-                    if (typeof showApp === 'function') showApp(data.session.user);
-                  }
-                }
-              } catch(e) { console.error('Session injection error:', e); }
-            })();
-          `;
-          mainWindow.webContents.executeJavaScript(jsCode).catch(() => {});
+          deliverOAuthSession({ access_token, refresh_token });
         } else {
           mainWindow.loadURL(`http://localhost:${actualPort}/#${queryString}`);
         }
@@ -307,6 +278,43 @@ const server = http.createServer((req, res) => {
 });
 
 let serverPort = 58420;
+// Keep the OAuth callback available until the renderer confirms it received it.
+// The external browser can complete Google sign-in before the renderer is ready.
+let pendingOAuthSession = null;
+
+function deliverOAuthSession(payload) {
+  pendingOAuthSession = payload;
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('oauth-session', payload);
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.focus();
+  }
+}
+
+ipcMain.handle('consume-oauth-session', () => {
+  const payload = pendingOAuthSession;
+  pendingOAuthSession = null;
+  return payload;
+});
+
+function handleDesktopAuthUrl(callbackUrl) {
+  try {
+    const callback = new URL(callbackUrl);
+    const hash = new URLSearchParams(callback.hash.replace(/^#/, ''));
+    const access_token = callback.searchParams.get('access_token') || hash.get('access_token') || '';
+    const refresh_token = callback.searchParams.get('refresh_token') || hash.get('refresh_token') || '';
+    const code = callback.searchParams.get('code') || '';
+    if (access_token) deliverOAuthSession({ access_token, refresh_token });
+    else if (code) deliverOAuthSession({ code });
+  } catch (error) {
+    console.error('Desktop OAuth callback error:', error);
+  }
+}
+
+app.on('open-url', (event, callbackUrl) => {
+  event.preventDefault();
+  handleDesktopAuthUrl(callbackUrl);
+});
 
 function startLocalServer(callback) {
   server.listen(58420, '127.0.0.1', () => {
@@ -437,6 +445,8 @@ app.whenReady().then(() => {
 
   startLocalServer((port) => {
     createWindow(port);
+    const initialAuthUrl = process.argv.find(arg => arg.startsWith(`${DESKTOP_AUTH_SCHEME}://`));
+    if (initialAuthUrl) handleDesktopAuthUrl(initialAuthUrl);
   });
 
   app.on('activate', () => {

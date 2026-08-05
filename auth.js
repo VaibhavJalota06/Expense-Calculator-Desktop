@@ -124,6 +124,9 @@ window.closeEditProfileModal = function(e) {
 
 
     async function signInWithGoogle() {
+      if (isAuthInProgress) return;
+      isAuthInProgress = true;
+      let oauthBrowserOpened = false;
       let supaErrorMessage = '';
       try {
         clearErrors();
@@ -139,7 +142,7 @@ window.closeEditProfileModal = function(e) {
             // For Web: redirect back to the current page.
             const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
             const redirectUrl = isElectronApp
-              ? window.location.origin + '/auth-callback.html'
+              ? 'com.expensecalculator.expenseosmobile://login-callback'
               : window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({
@@ -160,6 +163,8 @@ window.closeEditProfileModal = function(e) {
               } else {
                 window.location.href = data.url;
               }
+              oauthBrowserOpened = true;
+              setTimeout(() => { isAuthInProgress = false; }, 5000);
               return;
             }
           } catch (supaErr) {
@@ -177,7 +182,7 @@ window.closeEditProfileModal = function(e) {
         const msg = error ? (error.message || String(error)) : '';
         showError(loginError, msg || 'Google Sign-In error. Please try again or click Continue Offline (Guest Mode).');
       } finally {
-        isAuthInProgress = false;
+        if (!oauthBrowserOpened) isAuthInProgress = false;
       }
     }
 
@@ -1054,9 +1059,7 @@ window.closeEditProfileModal = function(e) {
 
 
     // Event Listeners
-    document.querySelectorAll('.btn-google-login').forEach(btn => {
-      btn.addEventListener('click', signInWithGoogle);
-    });
+    // Google buttons use the inline handleGoogleLoginClick handler from index.html.
 
     if (loginForm) {
       loginForm.addEventListener('submit', (e) => {
