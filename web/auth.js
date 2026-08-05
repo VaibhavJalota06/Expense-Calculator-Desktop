@@ -571,6 +571,37 @@ window.closeEditProfileModal = function(e) {
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
         sessionStorage.removeItem('expense_cal_guest_mode');
         localStorage.removeItem('expense_cal_guest_mode');
+
+        // IMMEDIATELY forward tokens to Desktop app if we're in a browser (not Electron)
+        // This MUST run before getSession() below, because Supabase auto-parses hash tokens
+        // and getSession() would return early with the session, skipping this code entirely.
+        const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
+        if (!isElectronApp) {
+          try {
+            const hash = window.location.hash;
+            const search = window.location.search;
+            let access_token = '';
+            let refresh_token = '';
+            let code = '';
+            if (hash.includes('access_token')) {
+              const p = new URLSearchParams(hash.substring(1));
+              access_token = p.get('access_token') || '';
+              refresh_token = p.get('refresh_token') || '';
+            } else if (search.includes('code=')) {
+              const p = new URLSearchParams(search);
+              code = p.get('code') || '';
+            }
+            if (access_token || code) {
+              ['58420', '58421'].forEach(port => {
+                fetch(`http://127.0.0.1:${port}/api/session`, {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ access_token, refresh_token, code })
+                }).catch(() => {});
+              });
+            }
+          } catch(e) {}
+        }
       }
 
       const adminSession = localStorage.getItem('expense_cal_admin_session');
@@ -613,42 +644,8 @@ window.closeEditProfileModal = function(e) {
         } catch(e) {}
       }
 
-
-      // If URL has OAuth tokens or auth code, handle differently for Electron vs Browser
+      // If URL has OAuth tokens, wait for Supabase onAuthStateChange to process them
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
-        const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
-
-        // In Electron: Supabase JS will auto-parse hash tokens via onAuthStateChange listener (line ~666).
-        // Just let it process — don't forward, don't show login screen.
-        if (isElectronApp) {
-          return false;
-        }
-
-        // In Browser (Chrome): Forward tokens to the Desktop App's local server if it's running
-        try {
-          const hash = window.location.hash;
-          const search = window.location.search;
-          let access_token = '';
-          let refresh_token = '';
-          let code = '';
-          if (hash.includes('access_token')) {
-            const p = new URLSearchParams(hash.substring(1));
-            access_token = p.get('access_token') || '';
-            refresh_token = p.get('refresh_token') || '';
-          } else if (search.includes('code=')) {
-            const p = new URLSearchParams(search);
-            code = p.get('code') || '';
-          }
-          if (access_token || code) {
-            ['58420', '58421'].forEach(port => {
-              fetch(`http://127.0.0.1:${port}/api/session`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ access_token, refresh_token, code })
-              }).catch(() => {});
-            });
-          }
-        } catch(e) {}
         return false;
       }
 
