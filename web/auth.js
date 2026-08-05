@@ -146,6 +146,7 @@ window.closeEditProfileModal = function(e) {
               provider: 'google',
               options: {
                 redirectTo: redirectUrl,
+                skipBrowserRedirect: true,
                 queryParams: {
                   prompt: 'select_account'
                 }
@@ -154,7 +155,7 @@ window.closeEditProfileModal = function(e) {
             if (error) throw error;
             if (data && data.url) {
               // In Electron, use shell.openExternal to open in system browser
-              if (isElectronApp && window.electronAPI.openExternal) {
+              if (isElectronApp && window.electronAPI && typeof window.electronAPI.openExternal === 'function') {
                 window.electronAPI.openExternal(data.url);
               } else {
                 window.location.href = data.url;
