@@ -614,8 +614,17 @@ window.closeEditProfileModal = function(e) {
       }
 
 
-      // If URL has OAuth tokens or auth code, attempt forwarding to local Desktop app server if running
+      // If URL has OAuth tokens or auth code, handle differently for Electron vs Browser
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
+        const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
+
+        // In Electron: Supabase JS will auto-parse hash tokens via onAuthStateChange listener (line ~666).
+        // Just let it process — don't forward, don't show login screen.
+        if (isElectronApp) {
+          return false;
+        }
+
+        // In Browser (Chrome): Forward tokens to the Desktop App's local server if it's running
         try {
           const hash = window.location.hash;
           const search = window.location.search;

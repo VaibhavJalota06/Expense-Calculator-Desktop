@@ -160,7 +160,21 @@ const AUTH_SUCCESS_HTML = `<!DOCTYPE html><html><head><title>Authentication Succ
 const server = http.createServer((req, res) => {
   const actualPort = server.address() ? server.address().port : serverPort;
 
-  // Endpoint for browser to pass OAuth hash tokens back to Electron desktop window
+  // CORS Preflight handler — browsers send OPTIONS before POST with Content-Type: application/json
+  if (req.method === 'OPTIONS') {
+    res.writeHead(204, {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type',
+      'Access-Control-Max-Age': '86400'
+    });
+    res.end();
+    return;
+  }
+
+  // Endpoint for browser to pass OAuth tokens back to Electron desktop window
+  // This is critical because URL hash fragments (#access_token=...) are NEVER sent
+  // to HTTP servers per HTTP spec, so we need client-side JS to extract and POST them.
   if (req.method === 'POST' && req.url === '/api/session') {
     let body = '';
     req.on('data', chunk => { body += chunk; });
@@ -168,19 +182,36 @@ const server = http.createServer((req, res) => {
       try {
         const payload = JSON.parse(body);
         if (mainWindow && !mainWindow.isDestroyed()) {
-          let hashTarget = '';
           if (payload.access_token) {
-            hashTarget = `#access_token=${payload.access_token}&refresh_token=${payload.refresh_token || ''}&token_type=bearer`;
+            // Inject the session directly into Electron's Supabase client via executeJavaScript
+            // This avoids page reload and hash-based token passing entirely
+            const jsCode = `
+              (async function() {
+                try {
+                  const sc = typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null);
+                  if (sc) {
+                    const { data, error } = await sc.auth.setSession({
+                      access_token: ${JSON.stringify(payload.access_token)},
+                      refresh_token: ${JSON.stringify(payload.refresh_token || '')}
+                    });
+                    if (data && data.session && data.session.user) {
+                      if (typeof showApp === 'function') showApp(data.session.user);
+                    }
+                  }
+                } catch(e) { console.error('Session injection error:', e); }
+              })();
+            `;
+            mainWindow.webContents.executeJavaScript(jsCode).catch(() => {});
+            if (mainWindow.isMinimized()) mainWindow.restore();
+            mainWindow.focus();
           } else if (payload.code) {
-            hashTarget = `?code=${payload.code}`;
-          }
-          if (hashTarget) {
-            mainWindow.loadURL(`http://localhost:${actualPort}/${hashTarget}`);
+            // For PKCE code flow, load the URL with query param so Supabase JS can exchange it
+            mainWindow.loadURL(`http://localhost:${actualPort}/?code=${payload.code}`);
             if (mainWindow.isMinimized()) mainWindow.restore();
             mainWindow.focus();
           }
         }
-      } catch(e) {}
+      } catch(e) { console.error('POST /api/session error:', e); }
       res.writeHead(200, {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
@@ -191,9 +222,9 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Check if OAuth callback arrived from browser (contains code= or access_token=)
-  if (req.url.includes('code=') || req.url.includes('access_token=') || req.url.includes('refresh_token=')) {
-    // Load the OAuth tokens into the Electron main window so Supabase can exchange them
+  // Check if OAuth callback arrived via query string (PKCE code flow — code IS sent to server)
+  // Note: Hash fragments (#access_token=...) are NEVER sent to the server per HTTP spec
+  if (req.url.includes('code=') && !req.url.includes('/api/')) {
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.loadURL(`http://localhost:${actualPort}/${req.url.startsWith('/') ? req.url.slice(1) : req.url}`);
       if (mainWindow.isMinimized()) mainWindow.restore();
