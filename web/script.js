@@ -21,6 +21,12 @@ const categoryColors = {
   'Miscellaneous': '#94A3B8'            // Slate
 };
 
+// Sync Status Callback (optional - for UI sync indicators)
+window.setSyncStatus = function(status) {
+  // status: 'syncing', 'synced', 'error', 'guest'
+  console.log(`Sync status: ${status}`);
+};
+
 // Chart.js Instances
 let breakdownChartInstance = null;
 let fullAnalyticsChartInstance = null;
@@ -716,7 +722,11 @@ function checkAndSendSubscriptionReminders() {
         localStorage.setItem(reminderKey, 'true');
 
         // EmailJS Live Email Delivery to Gmail
-        if (typeof emailjs !== 'undefined' && typeof emailjsConfig !== 'undefined' && userEmail) {
+        if (typeof emailjs !== 'undefined' && emailjsConfig && 
+            typeof emailjsConfig.serviceId !== 'undefined' && 
+            typeof emailjsConfig.templateId !== 'undefined' && 
+            typeof emailjsConfig.publicKey !== 'undefined' && 
+            userEmail) {
           try {
             emailjs.send(
               emailjsConfig.serviceId,
