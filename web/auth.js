@@ -614,8 +614,14 @@ window.closeEditProfileModal = function(e) {
       }
 
 
-      // If URL has OAuth tokens or auth code, wait for Supabase onAuthStateChange to finish parsing
+      // If URL has OAuth tokens or auth code, attempt forwarding to local Desktop app server if running
       if (window.location.hash.includes('access_token') || window.location.hash.includes('refresh_token') || window.location.search.includes('code=')) {
+        try {
+          const fullPath = window.location.pathname + window.location.search + window.location.hash;
+          ['58420', '58421'].forEach(port => {
+            fetch(`http://127.0.0.1:${port}${fullPath.startsWith('/') ? fullPath : '/' + fullPath}`, { mode: 'no-cors' }).catch(() => {});
+          });
+        } catch(e) {}
         return false;
       }
 

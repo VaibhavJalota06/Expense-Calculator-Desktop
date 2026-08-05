@@ -1819,7 +1819,7 @@ document.addEventListener('click', (e) => {
 document.addEventListener('DOMContentLoaded', applyEnvironmentAdjustments);
 
 // ---------- Live Update Manager & GitHub Checker ----------
-const CURRENT_APP_VERSION = 'v2.6.6';
+const CURRENT_APP_VERSION = 'v2.6.7';
 
 window.showUpdateToast = function(title, message, showActions = false) {
   const toast = document.getElementById('update-notification');
