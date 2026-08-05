@@ -139,7 +139,7 @@ window.closeEditProfileModal = function(e) {
             // For Web: redirect back to the current page.
             const isElectronApp = !!(window.electronAPI && window.electronAPI.isElectron);
             const redirectUrl = isElectronApp
-              ? window.location.origin + '/'
+              ? window.location.origin + '/auth-callback.html'
               : window.location.href.split('#')[0].split('?')[0];
 
             const { data, error } = await supaClient.auth.signInWithOAuth({

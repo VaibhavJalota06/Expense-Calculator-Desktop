@@ -222,11 +222,40 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // Check if OAuth callback arrived via query string (PKCE code flow — code IS sent to server)
-  // Note: Hash fragments (#access_token=...) are NEVER sent to the server per HTTP spec
-  if (req.url.includes('code=') && !req.url.includes('/api/')) {
+  // Handle /auth-complete GET request (converted hash tokens from auth-callback.html) or PKCE code=
+  if ((req.url.includes('/auth-complete') || req.url.includes('code=')) && !req.url.includes('/api/')) {
+    const urlParts = req.url.split('?');
+    const queryString = urlParts[1] || '';
     if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.loadURL(`http://localhost:${actualPort}/${req.url.startsWith('/') ? req.url.slice(1) : req.url}`);
+      if (queryString.includes('access_token')) {
+        // Extract access_token and refresh_token and inject directly via executeJavaScript
+        const p = new URLSearchParams(queryString);
+        const access_token = p.get('access_token') || '';
+        const refresh_token = p.get('refresh_token') || '';
+        if (access_token) {
+          const jsCode = `
+            (async function() {
+              try {
+                const sc = typeof getSupabaseClient === 'function' ? getSupabaseClient() : (typeof supabase !== 'undefined' ? supabase : null);
+                if (sc) {
+                  const { data, error } = await sc.auth.setSession({
+                    access_token: ${JSON.stringify(access_token)},
+                    refresh_token: ${JSON.stringify(refresh_token)}
+                  });
+                  if (data && data.session && data.session.user) {
+                    if (typeof showApp === 'function') showApp(data.session.user);
+                  }
+                }
+              } catch(e) { console.error('Session injection error:', e); }
+            })();
+          `;
+          mainWindow.webContents.executeJavaScript(jsCode).catch(() => {});
+        } else {
+          mainWindow.loadURL(`http://localhost:${actualPort}/#${queryString}`);
+        }
+      } else if (queryString.includes('code=')) {
+        mainWindow.loadURL(`http://localhost:${actualPort}/?${queryString}`);
+      }
       if (mainWindow.isMinimized()) mainWindow.restore();
       mainWindow.focus();
     }
